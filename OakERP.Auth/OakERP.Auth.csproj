@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\OakERP.Domain\OakERP.Domain.csproj" />
+		<ProjectReference Include="..\OakERP.Shared\OakERP.Shared.csproj" />
+		<ProjectReference Include="..\OakERP.Infrastructure\OakERP.Infrastructure.csproj" />
+	</ItemGroup>
+
+</Project>

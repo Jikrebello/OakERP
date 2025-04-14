@@ -1,0 +1,29 @@
+services:
+  oakdb:
+    image: postgres:16
+    container_name: oakdb
+    restart: always
+    environment:
+      POSTGRES_USER: oakadmin
+      POSTGRES_PASSWORD: oakpass
+      POSTGRES_DB: oakerp
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  oakadmin:
+    image: dpage/pgadmin4
+    container_name: oakadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@oakerp.dev
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  postgres_data:
+  pgadmin_data:
