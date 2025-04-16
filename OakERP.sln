@@ -44,10 +44,16 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{1890D62E-9108-469E-B0CA-71D60B5B5A71}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{841CC296-A5AB-41E3-A09A-8AC7CCA4A605}"
+	ProjectSection(SolutionItems) = preProject
+		ef.ps1 = ef.ps1
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{52AD7769-CE1B-4B6C-8F77-D7CF963C90DC}"
 	ProjectSection(SolutionItems) = preProject
+		db-setup.md = db-setup.md
+		ef-core.md = ef-core.md
 		Oak_ERP_Solution_Structure.txt = Oak_ERP_Solution_Structure.txt
+		README-dev.md = README-dev.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{1FDDAC9E-D108-46D0-8303-2E1569D80CD6}"
@@ -62,7 +68,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
-		README-dev.md = README-dev.md
 		README.md = README.md
 	EndProjectSection
 EndProject
