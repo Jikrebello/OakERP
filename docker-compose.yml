@@ -11,6 +11,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Optional: Initial SQL (only runs on first volume create)
+      - ./initdb:/docker-entrypoint-initdb.d
 
   oakadmin:
     image: dpage/pgadmin4

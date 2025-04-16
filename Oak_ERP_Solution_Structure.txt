@@ -2,25 +2,23 @@
 
 /OakERP.Solution
 │
-├── /OakERP.Desktop              <-- .NET MAUI Blazor desktop app
+├── /OakERP.Desktop              <-- .NET MAUI Blazor desktop app -> (Windows and MacOS)
 │
 ├── /OakERP.Client              <-- .NET MAUI Blazor web server app
 │
-├── /OakERP.Mobile               <-- .NET MAUI Blazor mobile app (POS, CRM, etc.)
-│   └── ViewModels/
-│   └── Views/
+├── /OakERP.Mobile               <-- .NET MAUI Blazor mobile app (POS, CRM, etc.) -> (Android and IOS)
 │
 ├── /OakERP.WebAPI               <-- ASP.NET Core WebAPI (online sync, endpoints)
 │
 ├── /OakERP.Application          <-- Business logic, interfaces, services
 │
-├── /OakERP.Domain               <-- Core domain models and rules
-│
 ├── /OakERP.Infrastructure       <-- EF Core, Repos, Templates, Auth, Background Tasks
 │
-├── /OakERP.Reports              <-- Razor Class Library for printable/exportable reports
+├── /OakERP.Domain               <-- Core domain models and rules
 │
 ├── /OakERP.UI                   <-- Shared Blazor components, styles, icons
+│
+├── /OakERP.Shared               <-- DTOs, constants, settings, mapping
 │
 ├── /OakERP.Auth                 <-- Token handling, roles, identity management
 │
@@ -28,23 +26,15 @@
 │
 ├── /OakERP.MigrationTool        <-- CLI tool for DB migrations and data import
 │
-├── /OakERP.Shared               <-- DTOs, constants, settings, mapping
+├── /OakERP.Reports              <-- Razor Class Library for printable/exportable reports
 │
 ├── /OakERP.Tests.Unit           <-- Unit tests (Domain + Application layer)
+│
 ├── /OakERP.Tests.Integration    <-- Integration tests (API, ViewModels, EF)
 │
 ├── /OakERP.Docs                 <-- Auto-generated and developer documentation
 │
-├── /docker                      <-- Docker configs and supporting services
-│   ├── /postgres/               <-- Init scripts and volume config
-│   │   ├── init/
-│   │   └── data/
-│   ├── /pgadmin/                <-- Optional DB GUI
-│   ├── /mailhog/                <-- Fake SMTP for dev email
-│   ├── /nginx/                  <-- (Optional) static hosting or reverse proxy
-│   ├── /redis/                  <-- (Optional) Redis for caching/queueing
-│   └── /seed/                   <-- Sample fixtures or JSON test data
-│
 ├── docker-compose.yml           <-- Starts API, DB, MailHog, Redis, etc.
+│
 ├── README.md                     <-- High-level overview and tech stack
 └── README-dev.md                 <-- Dev-specific: setup, Docker, migrations, tests
