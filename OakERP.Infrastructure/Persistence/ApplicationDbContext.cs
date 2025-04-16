@@ -13,10 +13,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
         base.OnModelCreating(builder);
 
-        builder.Entity<Tenant>().HasKey(t => t.Id);
-
-        builder.Entity<Tenant>().Property(t => t.Name).IsRequired();
-
-        builder.Entity<Tenant>().Property(t => t.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }

@@ -12,8 +12,8 @@ using OakERP.Infrastructure.Persistence;
 namespace OakERP.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250414214417_InitIdentitySchema")]
-    partial class InitIdentitySchema
+    [Migration("20250416202310_InitialIdentityAndTenantSetup")]
+    partial class InitialIdentityAndTenantSetup
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -230,12 +230,13 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuid_generate_v4()");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasDefaultValueSql("timezone('utc', now())");
 
                     b.Property<string>("Name")
                         .IsRequired()

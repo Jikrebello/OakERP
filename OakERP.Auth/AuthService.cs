@@ -31,20 +31,21 @@ namespace OakERP.Auth
             if (existingUser != null)
                 return AuthResultDTO.Failed("Email already exists.");
 
-            var tenant = new Tenant { Id = Guid.NewGuid(), Name = dto.TenantName };
+            var tenant = new Tenant { Name = dto.TenantName };
+
+            _db.Tenants.Add(tenant);
+            await _db.SaveChangesAsync();
+
             var user = new ApplicationUser
             {
                 UserName = dto.Email,
                 Email = dto.Email,
-                Tenant = tenant,
+                TenantId = tenant.Id,
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
                 return AuthResultDTO.Failed(result.Errors.First().Description);
-
-            _db.Tenants.Add(tenant);
-            await _db.SaveChangesAsync();
 
             return AuthResultDTO.SuccessResult("registered");
         }

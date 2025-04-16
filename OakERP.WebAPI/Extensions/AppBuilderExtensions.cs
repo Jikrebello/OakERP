@@ -12,6 +12,11 @@ public static class AppBuilderExtensions
 
         //app.UseHttpsRedirection();
 
+
+        app.UseAuthorization();
+
+        app.MapControllers();
+
         // Add authentication, CORS, etc. later here
         return app;
     }

@@ -13,9 +13,11 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="8.1.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OakERP.Auth\OakERP.Auth.csproj" />
     <ProjectReference Include="..\OakERP.Infrastructure\OakERP.Infrastructure.csproj" />
   </ItemGroup>
 

@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using OakERP.Auth;
 using OakERP.Domain.Entities;
 using OakERP.Infrastructure.Persistence;
+using OakERP.WebAPI.Swagger.Filters.Auth;
 
 namespace OakERP.WebAPI.Extensions;
 
@@ -45,8 +47,17 @@ public static class ServiceCollectionExtensions
         services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new OpenApiInfo { Title = "OakERP API", Version = "v1" });
+
+            options.SchemaFilter<RegisterDtoExampleFilter>();
+            options.SchemaFilter<LoginDtoExampleFilter>();
         });
 
+        return services;
+    }
+
+    public static IServiceCollection AddAuthServices(this IServiceCollection services)
+    {
+        services.AddScoped<IAuthService, AuthService>();
         return services;
     }
 }
