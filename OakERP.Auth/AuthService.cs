@@ -1,4 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using OakERP.Domain.Entities;
 using OakERP.Infrastructure.Persistence;
 using OakERP.Shared.DTOs.Auth;
@@ -11,15 +16,48 @@ namespace OakERP.Auth
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _db;
 
+        private readonly IConfiguration _config;
+
         public AuthService(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            ApplicationDbContext db
+            ApplicationDbContext db,
+            IConfiguration config
         )
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _db = db;
+            _config = config;
+        }
+
+        private string GenerateJwtToken(ApplicationUser user)
+        {
+            var jwtSettings = _config.GetSection("JwtSettings");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
+
+            var claims = new List<Claim>
+            {
+                new(JwtRegisteredClaimNames.Sub, user.Id),
+                new(JwtRegisteredClaimNames.Email, user.Email!),
+                new("tenantId", user.TenantId.ToString()),
+            };
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var expires = DateTime.UtcNow.AddMinutes(
+                Convert.ToDouble(jwtSettings["ExpireMinutes"])
+            );
+
+            var token = new JwtSecurityToken(
+                issuer: jwtSettings["Issuer"],
+                audience: jwtSettings["Audience"],
+                claims: claims,
+                expires: expires,
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         public async Task<AuthResultDTO> RegisterAsync(RegisterDTO dto)
@@ -58,9 +96,20 @@ namespace OakERP.Auth
                 false,
                 false
             );
-            return result.Succeeded
-                ? AuthResultDTO.SuccessResult("login-success")
-                : AuthResultDTO.Failed("Invalid login credentials.");
+            if (!result.Succeeded)
+            {
+                return AuthResultDTO.Failed("Invalid login credentials");
+            }
+
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user is null)
+            {
+                return AuthResultDTO.Failed("User not found.");
+            }
+
+            var token = GenerateJwtToken(user);
+
+            return AuthResultDTO.SuccessResult(token);
         }
     }
 }

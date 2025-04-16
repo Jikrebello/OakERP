@@ -8,6 +8,7 @@ builder.Services.AddControllers();
 builder
     .Services.AddApplicationDb(builder.Configuration)
     .AddIdentityServices()
+    .AddJwtAuth(builder.Configuration)
     .AddAuthServices()
     .AddSwaggerDocs();
 

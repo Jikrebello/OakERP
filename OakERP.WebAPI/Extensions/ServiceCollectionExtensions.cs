@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OakERP.Auth;
 using OakERP.Domain.Entities;
@@ -37,6 +40,38 @@ public static class ServiceCollectionExtensions
             options.Password.RequireUppercase = false;
             options.Password.RequireLowercase = false;
         });
+
+        return services;
+    }
+
+    public static IServiceCollection AddJwtAuth(
+        this IServiceCollection services,
+        IConfiguration config
+    )
+    {
+        var jwtSettings = config.GetSection("JwtSettings");
+
+        services
+            .AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings["Issuer"],
+                    ValidAudience = jwtSettings["Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtSettings["Key"]!)
+                    ),
+                };
+            });
 
         return services;
     }
