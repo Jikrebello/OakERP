@@ -1,4 +1,4 @@
-## 🔧 EF Core CLI Helper (Windows PowerShell)
+## 🧰 EF Core CLI Helper (Windows PowerShell)
 
 To simplify working with migrations and updating your local dev database, a helper script `ef.ps1` is included in the root of the solution.
 

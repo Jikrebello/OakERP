@@ -1,8 +1,4 @@
-﻿
-
----
-
-# 🧑‍💻 OakERP Developer Docs
+﻿# 🧑‍💻 OakERP Developer Docs
 
 Welcome to the OakERP developer documentation hub.
 
@@ -27,7 +23,3 @@ This section will grow over time to include detailed notes on setting up your en
 - Mobile App Development Notes
 - Deployment Recipes (Cloud & Self-hosted)
 - API Conventions & Design Notes
-
----
-
-Have questions? Start with [db-setup.md](db-setup.md) or [ef-core.md](ef-core.md) depending on your task.
