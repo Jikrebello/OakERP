@@ -3,20 +3,19 @@ using Microsoft.OpenApi.Models;
 using OakERP.Shared.DTOs.Auth;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace OakERP.WebAPI.Swagger.Filters.Auth
+namespace OakERP.WebAPI.Swagger.Filters.Auth;
+
+public class LoginDtoExampleFilter : ISchemaFilter
 {
-    public class LoginDtoExampleFilter : ISchemaFilter
+    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
     {
-        public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+        if (context.Type == typeof(LoginDTO))
         {
-            if (context.Type == typeof(LoginDTO))
+            schema.Example = new OpenApiObject
             {
-                schema.Example = new OpenApiObject
-                {
-                    ["email"] = new OpenApiString("user1@acme.com"),
-                    ["password"] = new OpenApiString("acmePass123"),
-                };
-            }
+                ["email"] = new OpenApiString("user1@acme.com"),
+                ["password"] = new OpenApiString("acmePass123"),
+            };
         }
     }
 }
