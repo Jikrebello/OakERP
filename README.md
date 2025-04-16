@@ -3,7 +3,6 @@
 [![.NET](https://img.shields.io/badge/.NET%207+-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![MAUI](https://img.shields.io/badge/MAUI-Blazor-blueviolet?logo=microsoft&logoColor=white)](https://learn.microsoft.com/en-us/dotnet/maui/)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 > **Modern, modular ERP system built with .NET MAUI, Blazor, and PostgreSQL**  
 > Cross-platform. Offline-ready. Razor-powered UI. Cloud and private hosting supported.
@@ -83,10 +82,3 @@ OakERP is designed for businesses who want a modern ERP system that:
 | Mobile POS App          | 🛠️ Pending      |
 | EF Migration Tool       | 🛠️ Scaffolded   |
 
----
-
-<!--
-## 📜 License
-
-This project is licensed under the [MIT License](LICENSE).
--->
