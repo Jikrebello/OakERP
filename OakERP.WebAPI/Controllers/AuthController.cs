@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using OakERP.Auth;
 using OakERP.Shared.DTOs.Auth;
 
@@ -16,6 +17,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [AllowAnonymous]
     public async Task<IActionResult> Register(RegisterDTO dto)
     {
         var result = await _authService.RegisterAsync(dto);
@@ -24,6 +26,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login(LoginDTO dto)
     {
         var result = await _authService.LoginAsync(dto);

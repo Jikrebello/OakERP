@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using OakERP.Domain.Entities;
 using OakERP.Infrastructure.Persistence;
@@ -87,10 +88,18 @@ public class AuthService : IAuthService
             return AuthResultDTO.Failed("User not found.");
         }
 
-        var tenant = await _db.Tenants.FindAsync(user.TenantId);
-        if (tenant is null || tenant.License == null)
+        var tenant = await _db
+            .Tenants.Include(t => t.License)
+            .FirstOrDefaultAsync(t => t.Id == user.TenantId);
+
+        if (tenant == null)
         {
-            return AuthResultDTO.Failed("Invalid or missing token");
+            return AuthResultDTO.Failed("Tenant not found.");
+        }
+
+        if (tenant.License == null)
+        {
+            return AuthResultDTO.Failed("License not found for tenant.");
         }
 
         if (tenant.License.ExpiryDate is not null && tenant.License.ExpiryDate < DateTime.UtcNow)
