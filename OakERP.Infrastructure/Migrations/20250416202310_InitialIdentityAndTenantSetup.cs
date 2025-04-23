@@ -11,6 +11,9 @@ public partial class InitialIdentityAndTenantSetup : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
+        // Manually added this to create the uuid-ossp extension
+        migrationBuilder.Sql("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";");
+
         migrationBuilder.CreateTable(
             name: "AspNetRoles",
             columns: table => new

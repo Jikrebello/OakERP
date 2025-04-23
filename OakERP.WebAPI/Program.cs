@@ -21,3 +21,6 @@ app.UseOakMiddleware();
 await DbInitializer.SeedRolesAndAdminAsync(app.Services, app.Configuration);
 
 app.Run();
+
+public partial class Program
+{ }

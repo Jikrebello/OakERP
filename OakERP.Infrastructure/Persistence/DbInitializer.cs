@@ -32,21 +32,15 @@ public static class DbInitializer
         var tenant = db.Tenants.FirstOrDefault(t => t.Name == "SystemTenant");
         if (tenant is null)
         {
-            tenant = new Tenant { Name = "SystemTenant" };
-
-            if (tenant.License is null)
+            tenant = new Tenant
             {
-                var license = new License
+                Name = "SystemTenant",
+                License = new License
                 {
                     Key = Guid.NewGuid().ToString("N"),
                     ExpiryDate = DateTime.UtcNow.AddYears(1),
-                    TenantId = tenant.Id,
-                };
-
-                db.Licenses.Add(license);
-                await db.SaveChangesAsync();
-            }
-
+                },
+            };
             db.Tenants.Add(tenant);
             await db.SaveChangesAsync();
         }

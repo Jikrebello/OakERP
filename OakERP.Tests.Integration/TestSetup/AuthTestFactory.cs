@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OakERP.Auth;
@@ -31,13 +32,22 @@ public static class AuthTestFactory
             new LoggerFactory().CreateLogger<UserManager<ApplicationUser>>()
         );
 
+        var httpContext = new DefaultHttpContext
+        {
+            RequestServices = new ServiceCollection().BuildServiceProvider(),
+        };
+
+        var httpContextAccessor = new HttpContextAccessor { HttpContext = httpContext };
+
+        var userClaimsPrincipalFactory = new UserClaimsPrincipalFactory<ApplicationUser>(
+            userManager,
+            new OptionsWrapper<IdentityOptions>(new IdentityOptions())
+        );
+
         var signInManager = new SignInManager<ApplicationUser>(
             userManager,
-            new HttpContextAccessor(),
-            new UserClaimsPrincipalFactory<ApplicationUser>(
-                userManager,
-                new OptionsWrapper<IdentityOptions>(new IdentityOptions())
-            ),
+            httpContextAccessor,
+            userClaimsPrincipalFactory,
             null,
             null,
             null,
