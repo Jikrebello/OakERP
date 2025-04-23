@@ -8,6 +8,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     : IdentityDbContext<ApplicationUser>(options)
 {
     public DbSet<Tenant> Tenants => Set<Tenant>();
+    public DbSet<License> Licenses => Set<License>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

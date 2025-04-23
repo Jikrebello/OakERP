@@ -1,9 +1,5 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using OakERP.Domain.Entities;
 using OakERP.Infrastructure.Persistence;
 using OakERP.Shared.DTOs.Auth;
@@ -15,6 +11,7 @@ public class AuthService : IAuthService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ApplicationDbContext _db;
+    private readonly IJwtGenerator _jwtGenerator;
 
     private readonly IConfiguration _config;
 
@@ -22,40 +19,15 @@ public class AuthService : IAuthService
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         ApplicationDbContext db,
-        IConfiguration config
+        IConfiguration config,
+        IJwtGenerator jwtGenerator
     )
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _db = db;
         _config = config;
-    }
-
-    private string GenerateJwtToken(ApplicationUser user)
-    {
-        var jwtSettings = _config.GetSection("JwtSettings");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
-
-        var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, user.Id),
-            new(JwtRegisteredClaimNames.Email, user.Email!),
-            new("tenantId", user.TenantId.ToString()),
-        };
-
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["ExpireMinutes"]));
-
-        var token = new JwtSecurityToken(
-            issuer: jwtSettings["Issuer"],
-            audience: jwtSettings["Audience"],
-            claims: claims,
-            expires: expires,
-            signingCredentials: creds
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        _jwtGenerator = jwtGenerator;
     }
 
     public async Task<AuthResultDTO> RegisterAsync(RegisterDTO dto)
@@ -67,7 +39,16 @@ public class AuthService : IAuthService
         if (existingUser != null)
             return AuthResultDTO.Failed("Email already exists.");
 
-        var tenant = new Tenant { Name = dto.TenantName };
+        var tenant = new Tenant
+        {
+            Name = dto.TenantName,
+            License = new License
+            {
+                Key = Guid.NewGuid().ToString("N"),
+                CreatedAt = DateTime.UtcNow,
+                ExpiryDate = DateTime.UtcNow.AddYears(1),
+            },
+        };
 
         _db.Tenants.Add(tenant);
         await _db.SaveChangesAsync();
@@ -94,6 +75,7 @@ public class AuthService : IAuthService
             false,
             false
         );
+
         if (!result.Succeeded)
         {
             return AuthResultDTO.Failed("Invalid login credentials");
@@ -105,7 +87,18 @@ public class AuthService : IAuthService
             return AuthResultDTO.Failed("User not found.");
         }
 
-        var token = GenerateJwtToken(user);
+        var tenant = await _db.Tenants.FindAsync(user.TenantId);
+        if (tenant is null || tenant.License == null)
+        {
+            return AuthResultDTO.Failed("Invalid or missing token");
+        }
+
+        if (tenant.License.ExpiryDate is not null && tenant.License.ExpiryDate < DateTime.UtcNow)
+        {
+            return AuthResultDTO.Failed("License has expired.");
+        }
+
+        var token = _jwtGenerator.Generate(user);
 
         return AuthResultDTO.SuccessResult(token);
     }

@@ -1,3 +1,7 @@
+Absolutely — here’s the updated version of your documentation with the new `rollback`, `reset`, and `status` actions included 👇
+
+---
+
 ## 🧰 EF Core CLI Helper (Windows PowerShell)
 
 To simplify working with migrations and updating your local dev database, a helper script `ef.ps1` is included in the root of the solution.
@@ -11,17 +15,26 @@ This script assumes:
 ### 📜 Commands & Usage
 
 ```powershell
-# Add a new migration (e.g., when changing entities or relationships)
-.\ef.ps1 -action add -name AddCustomersTable
+# Add a new migration
+.\ef.ps1 -action add -name AddTenantLicenseTable
 
-# Remove the last migration (undo bad changes before applying)
-.\ef.ps1 -action remove
-
-# Apply all migrations to the database
+# Apply migrations to the database
 .\ef.ps1 -action update
 
-# Drop the database (use with caution!)
+# Remove the last migration (code only, does NOT touch the database)
+.\ef.ps1 -action remove
+
+# Drop the entire database (careful!)
 .\ef.ps1 -action drop
+
+# Rollback the last migration (reverts DB and deletes the migration file)
+.\ef.ps1 -action rollback
+
+# Drop and immediately re-apply all migrations
+.\ef.ps1 -action reset
+
+# View migration history (applied + available)
+.\ef.ps1 -action status
 ```
 
 ---
@@ -32,27 +45,36 @@ This script assumes:
 # Add a migration after modifying ApplicationUser
 .\ef.ps1 -action add -name AddUserTenantRelation
 
-# Rebuild your database completely from scratch
+# Rollback a broken or unnecessary migration
+.\ef.ps1 -action rollback
+
+# Rebuild your database from scratch with a clean migration
 .\ef.ps1 -action drop
 .\ef.ps1 -action add -name InitSchema
 .\ef.ps1 -action update
+
+# Full reset (drop + apply latest migrations)
+.\ef.ps1 -action reset
 ```
 
 ---
 
 ### 🧼 When to Use This
 
-| Task                                      | Use This When                                                  |
-|-------------------------------------------|----------------------------------------------------------------|
-| `add`                                     | You changed your entities and want to capture the diff         |
-| `remove`                                  | You regret your last migration and haven’t run `update` yet    |
-| `update`                                  | You want to bring your DB up-to-date with the latest migration |
-| `drop`                                    | You're doing a full clean reset during development             |
+| Task       | Use This When                                                                 |
+|------------|-------------------------------------------------------------------------------|
+| `add`      | You’ve changed your models and want to capture the difference as a migration. |
+| `remove`   | You added a migration by mistake and want to remove it (before updating DB).  |
+| `update`   | You want to apply the latest migrations to the database.                      |
+| `drop`     | You want to nuke the DB during development and start over.                    |
+| `rollback` | You need to undo the last migration, both in DB and source code.              |
+| `reset`    | You want to fully reset the database and re-apply all migrations cleanly.     |
+| `status`   | You want to see which migrations exist and are applied.                       |
 
 ---
 
 ### 🛑 Warnings
 
 - This script is **only for local dev environments**.
-- Do **not** use `drop` on production or shared environments.
-- If you use Docker, make sure `oakdb` is running before running `update`.
+- Do **not** use `drop` or `rollback` in production or on shared environments.
+- If you're using Docker, ensure the `oakdb` service is running before using `update`, `reset`, or `rollback`.

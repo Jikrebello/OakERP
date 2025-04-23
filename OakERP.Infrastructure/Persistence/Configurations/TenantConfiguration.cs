@@ -15,6 +15,12 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.Property(x => x.Name).IsRequired();
 
         builder
+            .HasOne(t => t.License)
+            .WithOne(l => l.Tenant)
+            .HasForeignKey<License>(l => l.TenantId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
             .Property(x => x.CreatedAt)
             .HasDefaultValueSql("timezone('utc', now())")
             .ValueGeneratedOnAdd();

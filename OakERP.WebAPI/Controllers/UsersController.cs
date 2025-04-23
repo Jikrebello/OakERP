@@ -25,4 +25,18 @@ public class UsersController : ControllerBase
             }
         );
     }
+
+    [HttpGet("admin-only")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult AdminOnly()
+    {
+        return Ok("Welcome, Admin 🎩.");
+    }
+
+    [HttpGet("user-only")]
+    [Authorize(Roles = "User")]
+    public IActionResult UserOnly()
+    {
+        return Ok("Welcome, user 🧰.");
+    }
 }
