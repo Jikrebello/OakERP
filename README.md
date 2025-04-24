@@ -57,7 +57,7 @@ OakERP is being built module-by-module. Initial release will include:
 
 To get the database environment running locally using Docker:
 
-> 📖 Follow the full setup in [README-dev.md](README-dev.md)
+> 📖 Follow the full setup in [README-dev.md](OakERP.Docs\README-dev.md)
 
 ---
 
