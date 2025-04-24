@@ -202,7 +202,7 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task LoginAsync_Should_Fail_When_Tenant_Or_License_Missing()
+    public async Task LoginAsync_Should_Fail_When_Tenant_Not_Found()
     {
         // Arrange
         var dto = new LoginDTO { Email = "user@example.com", Password = "correctpass" };
@@ -227,7 +227,46 @@ public class AuthServiceTests
 
         // Assert
         result.Success.ShouldBeFalse();
-        result.Error.ShouldBe("Invalid or missing token");
+        result.Error.ShouldBe("Tenant not found.");
+    }
+
+    [Fact]
+    public async Task LoginAsync_Should_Fail_When_License_Not_Found_For_Tenant()
+    {
+        // Arrange
+        var dto = new LoginDTO { Email = "user@example.com", Password = "correctpass" };
+
+        var tenant = new Tenant { Name = "NoLicenseTenant" };
+        _dbContext.Tenants.Add(tenant);
+        await _dbContext.SaveChangesAsync();
+
+        // Make sure no license exists for this tenant (should be none, but let's ensure)
+        var licenses = _dbContext.Licenses.Where(l => l.TenantId == tenant.Id).ToList();
+        if (licenses.Count != 0)
+        {
+            _dbContext.Licenses.RemoveRange(licenses);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        var fakeUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid().ToString(),
+            Email = dto.Email,
+            TenantId = tenant.Id,
+        };
+
+        _signInManager
+            .Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
+            .ReturnsAsync(SignInResult.Success);
+
+        _userManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
+
+        // Act
+        var result = await _authService.LoginAsync(dto);
+
+        // Assert
+        result.Success.ShouldBeFalse();
+        result.Error.ShouldBe("License not found for tenant.");
     }
 
     [Fact]

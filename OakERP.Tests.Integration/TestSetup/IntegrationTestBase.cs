@@ -5,7 +5,7 @@ using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Tests.Integration.TestSetup;
 
-public abstract class IntegrationTestBase : IAsyncLifetime
+public abstract class IntegrationTestBase
 {
     internal ApplicationDbContext DbContext = null!;
     private NpgsqlConnection _connection = null!;
@@ -13,7 +13,7 @@ public abstract class IntegrationTestBase : IAsyncLifetime
 
     protected virtual bool UseTransaction => true;
 
-    public async Task InitializeAsync()
+    public virtual async Task SetUp()
     {
         _connection = new NpgsqlConnection(
             "Host=localhost;Port=5432;Username=oakadmin;Password=oakpass;Database=oakerp"
@@ -33,7 +33,7 @@ public abstract class IntegrationTestBase : IAsyncLifetime
         }
     }
 
-    public virtual async Task DisposeAsync()
+    public virtual async Task TearDown()
     {
         if (_transaction != null)
         {

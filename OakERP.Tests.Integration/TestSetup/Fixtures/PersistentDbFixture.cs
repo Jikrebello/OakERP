@@ -1,37 +1,29 @@
-﻿namespace OakERP.Tests.Integration.TestSetup;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace OakERP.Tests.Integration.TestSetup.Fixtures;
 
 public class PersistentDbFixture : IntegrationTestBase
 {
     protected override bool UseTransaction => false;
 
-    // Use HashSet to avoid duplicates and circular refs
     private readonly HashSet<object> _entitiesToCleanup = [];
 
-    /// <summary>
-    /// Register one or more entities for cleanup.
-    /// All navigational children will be found and cleaned up automatically.
-    /// </summary>
+    // Call this in your test's [TearDown]
     public void RegisterEntitiesForCleanup(params object[] entities)
     {
         foreach (var entity in entities)
             AddEntityAndChildren(entity, _entitiesToCleanup);
     }
 
-    /// <summary>
-    /// Recursively adds all child entities first, then the parent, for correct cleanup order.
-    /// </summary>
     private static void AddEntityAndChildren(object? entity, HashSet<object> visited)
     {
         if (entity is null)
             return;
 
-        // Only add if not already processed (avoid circular references)
         if (!visited.Add(entity))
             return;
 
         var type = entity.GetType();
-
-        // Look for all navigation properties (single or collection)
         var navProps = type.GetProperties()
             .Where(p =>
                 p.CanRead
@@ -50,7 +42,6 @@ public class PersistentDbFixture : IntegrationTestBase
             if (value is null)
                 continue;
 
-            // Handle collections (excluding string)
             if (value is System.Collections.IEnumerable enumerable && value is not string)
             {
                 foreach (var child in enumerable)
@@ -63,9 +54,8 @@ public class PersistentDbFixture : IntegrationTestBase
         }
     }
 
-    public override async Task DisposeAsync()
+    public override async Task TearDown()
     {
-        // Remove all tracked entities in reverse order (children first)
         foreach (var entity in _entitiesToCleanup.Reverse())
         {
             if (!DbContext.ChangeTracker.Entries().Any(e => e.Entity == entity))
@@ -74,6 +64,11 @@ public class PersistentDbFixture : IntegrationTestBase
             DbContext.Remove(entity);
         }
         await DbContext.SaveChangesAsync();
-        await base.DisposeAsync();
+        await base.TearDown();
+    }
+
+    public override async Task SetUp()
+    {
+        await base.SetUp();
     }
 }
