@@ -6,7 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OakERP.Auth;
 using OakERP.Domain.Entities;
+using OakERP.Domain.Repositories;
 using OakERP.Infrastructure.Persistence;
+using OakERP.Infrastructure.Repositories;
 using OakERP.WebAPI.Swagger.Filters.Auth;
 
 namespace OakERP.WebAPI.Extensions;
@@ -126,6 +128,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IJwtGenerator, JwtGenerator>();
+        services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<ILicenseRepository, LicenseRepository>();
         return services;
     }
 }

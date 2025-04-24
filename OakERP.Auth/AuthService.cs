@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using OakERP.Domain.Entities;
+using OakERP.Domain.Repositories;
 using OakERP.Infrastructure.Persistence;
 using OakERP.Shared.DTOs.Auth;
 
@@ -13,6 +13,8 @@ public class AuthService : IAuthService
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ApplicationDbContext _db;
     private readonly IJwtGenerator _jwtGenerator;
+    private readonly ITenantRepository _tenantRepository;
+    private readonly ILicenseRepository _licenseRepository;
 
     private readonly IConfiguration _config;
 
@@ -21,7 +23,9 @@ public class AuthService : IAuthService
         SignInManager<ApplicationUser> signInManager,
         ApplicationDbContext db,
         IConfiguration config,
-        IJwtGenerator jwtGenerator
+        IJwtGenerator jwtGenerator,
+        ITenantRepository tenantRepository,
+        ILicenseRepository licenseRepository
     )
     {
         _userManager = userManager;
@@ -29,6 +33,8 @@ public class AuthService : IAuthService
         _db = db;
         _config = config;
         _jwtGenerator = jwtGenerator;
+        _tenantRepository = tenantRepository;
+        _licenseRepository = licenseRepository;
     }
 
     public async Task<AuthResultDTO> RegisterAsync(RegisterDTO dto)
@@ -37,7 +43,7 @@ public class AuthService : IAuthService
             return AuthResultDTO.Failed("Passwords do not match.");
 
         var existingUser = await _userManager.FindByEmailAsync(dto.Email);
-        if (existingUser != null)
+        if (existingUser is not null)
             return AuthResultDTO.Failed("Email already exists.");
 
         var tenant = new Tenant
@@ -51,8 +57,7 @@ public class AuthService : IAuthService
             },
         };
 
-        _db.Tenants.Add(tenant);
-        await _db.SaveChangesAsync();
+        await _tenantRepository.CreateAsync(tenant);
 
         var user = new ApplicationUser
         {
@@ -88,16 +93,14 @@ public class AuthService : IAuthService
             return AuthResultDTO.Failed("User not found.");
         }
 
-        var tenant = await _db
-            .Tenants.Include(t => t.License)
-            .FirstOrDefaultAsync(t => t.Id == user.TenantId);
+        var tenant = await _tenantRepository.GetByIdAsync(user.TenantId);
 
-        if (tenant == null)
+        if (tenant is null)
         {
             return AuthResultDTO.Failed("Tenant not found.");
         }
 
-        if (tenant.License == null)
+        if (tenant.License is null)
         {
             return AuthResultDTO.Failed("License not found for tenant.");
         }

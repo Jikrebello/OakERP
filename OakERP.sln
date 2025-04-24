@@ -50,10 +50,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{841CC296
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{52AD7769-CE1B-4B6C-8F77-D7CF963C90DC}"
 	ProjectSection(SolutionItems) = preProject
-		db-setup.md = db-setup.md
-		ef-core.md = ef-core.md
-		Oak_ERP_Solution_Structure.txt = Oak_ERP_Solution_Structure.txt
-		README-dev.md = README-dev.md
+		OakERP.Docs\db-setup.md = OakERP.Docs\db-setup.md
+		OakERP.Docs\ef-core.md = OakERP.Docs\ef-core.md
+		oakERP-testing-guide.md = oakERP-testing-guide.md
+		OakERP.Docs\Oak_ERP_Solution_Structure.txt = OakERP.Docs\Oak_ERP_Solution_Structure.txt
+		OakERP.Docs\README-dev.md = OakERP.Docs\README-dev.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{1FDDAC9E-D108-46D0-8303-2E1569D80CD6}"

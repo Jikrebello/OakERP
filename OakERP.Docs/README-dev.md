@@ -14,6 +14,8 @@ This section will grow over time to include detailed notes on setting up your en
 - [🧰 EF Core Migration Helper](ef-core.md)  
   Use the provided PowerShell script to manage migrations cleanly.
 
+- [🧪 Testing Guide](oakERP-testing-guide.md)  
+  Understand the testing strategy and how to write effective tests.
 ---
 
 ## 🏗️ Coming Soon

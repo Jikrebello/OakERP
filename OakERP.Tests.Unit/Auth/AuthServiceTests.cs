@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using OakERP.Auth;
 using OakERP.Domain.Entities;
-using OakERP.Infrastructure.Persistence;
+using OakERP.Domain.Repositories;
 using OakERP.Shared.DTOs.Auth;
 using Shouldly;
 
@@ -15,18 +14,13 @@ public class AuthServiceTests
 {
     private readonly Mock<UserManager<ApplicationUser>> _userManager;
     private readonly Mock<SignInManager<ApplicationUser>> _signInManager;
-    private readonly ApplicationDbContext _dbContext;
     private readonly IJwtGenerator _jwtGenerator;
     private readonly IAuthService _authService;
+    private readonly Mock<ITenantRepository> _tenantRepository;
+    private readonly Mock<ILicenseRepository> _licenseRepository;
 
     public AuthServiceTests()
     {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        _dbContext = new ApplicationDbContext(options);
-
         var userStore = new Mock<IUserStore<ApplicationUser>>();
         _userManager = new Mock<UserManager<ApplicationUser>>(
             userStore.Object,
@@ -58,12 +52,17 @@ public class AuthServiceTests
         jwtMock.Setup(j => j.Generate(It.IsAny<ApplicationUser>())).Returns("mock-token");
         _jwtGenerator = jwtMock.Object;
 
+        _tenantRepository = new Mock<ITenantRepository>();
+        _licenseRepository = new Mock<ILicenseRepository>();
+
         _authService = new AuthService(
             _userManager.Object,
             _signInManager.Object,
-            _dbContext,
+            null!, // No longer using DbContext in AuthService!
             configMock.Object,
-            _jwtGenerator
+            _jwtGenerator,
+            _tenantRepository.Object,
+            _licenseRepository.Object
         );
     }
 
@@ -99,7 +98,7 @@ public class AuthServiceTests
             TenantName = "TenantB",
         };
 
-        _userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(new ApplicationUser()); // Pretend user exists
+        _userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(new ApplicationUser());
 
         // Act
         var result = await _authService.RegisterAsync(dto);
@@ -121,7 +120,7 @@ public class AuthServiceTests
             TenantName = "TenantC",
         };
 
-        _userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync((ApplicationUser)null!); // No existing user
+        _userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync((ApplicationUser)null!);
 
         _userManager
             .Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), dto.Password))
@@ -206,7 +205,6 @@ public class AuthServiceTests
     {
         // Arrange
         var dto = new LoginDTO { Email = "user@example.com", Password = "correctpass" };
-
         var fakeUser = new ApplicationUser
         {
             Id = Guid.NewGuid().ToString(),
@@ -220,7 +218,7 @@ public class AuthServiceTests
 
         _userManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
 
-        _dbContext.Tenants.RemoveRange(_dbContext.Tenants); // no tenant added
+        _tenantRepository.Setup(r => r.GetByIdAsync(fakeUser.TenantId)).ReturnsAsync((Tenant)null!); // Not found
 
         // Act
         var result = await _authService.LoginAsync(dto);
@@ -235,31 +233,22 @@ public class AuthServiceTests
     {
         // Arrange
         var dto = new LoginDTO { Email = "user@example.com", Password = "correctpass" };
-
-        var tenant = new Tenant { Name = "NoLicenseTenant" };
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
-
-        // Make sure no license exists for this tenant (should be none, but let's ensure)
-        var licenses = _dbContext.Licenses.Where(l => l.TenantId == tenant.Id).ToList();
-        if (licenses.Count != 0)
-        {
-            _dbContext.Licenses.RemoveRange(licenses);
-            await _dbContext.SaveChangesAsync();
-        }
-
+        var tenantId = Guid.NewGuid();
         var fakeUser = new ApplicationUser
         {
             Id = Guid.NewGuid().ToString(),
             Email = dto.Email,
-            TenantId = tenant.Id,
+            TenantId = tenantId,
         };
+        var tenant = new Tenant { Id = tenantId, Name = "NoLicenseTenant" };
 
         _signInManager
             .Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
             .ReturnsAsync(SignInResult.Success);
 
         _userManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
+
+        _tenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
 
         // Act
         var result = await _authService.LoginAsync(dto);
@@ -274,18 +263,18 @@ public class AuthServiceTests
     {
         // Arrange
         var dto = new LoginDTO { Email = "expired@example.com", Password = "correctpass" };
-
         var tenantId = Guid.NewGuid();
-
+        var expiredLicense = new License
+        {
+            Key = "abc123",
+            ExpiryDate = DateTime.UtcNow.AddDays(-1),
+        };
         var tenant = new Tenant
         {
             Id = tenantId,
             Name = "TenantZ",
-            License = new License { Key = "abc123", ExpiryDate = DateTime.UtcNow.AddDays(-1) },
+            License = expiredLicense,
         };
-
-        _dbContext.Tenants.Add(tenant);
-        _dbContext.SaveChanges();
 
         var fakeUser = new ApplicationUser
         {
@@ -300,6 +289,8 @@ public class AuthServiceTests
 
         _userManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
 
+        _tenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
+
         // Act
         var result = await _authService.LoginAsync(dto);
 
@@ -313,18 +304,14 @@ public class AuthServiceTests
     {
         // Arrange
         var dto = new LoginDTO { Email = "valid@example.com", Password = "validpass" };
-
         var tenantId = Guid.NewGuid();
-
+        var validLicense = new License { Key = "abc123", ExpiryDate = DateTime.UtcNow.AddDays(10) };
         var tenant = new Tenant
         {
             Id = tenantId,
             Name = "TenantA",
-            License = new License { Key = "abc123", ExpiryDate = DateTime.UtcNow.AddDays(10) },
+            License = validLicense,
         };
-
-        _dbContext.Tenants.Add(tenant);
-        _dbContext.SaveChanges();
 
         var user = new ApplicationUser
         {
@@ -339,19 +326,10 @@ public class AuthServiceTests
 
         _userManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
 
-        var jwtMock = new Mock<IJwtGenerator>();
-        jwtMock.Setup(j => j.Generate(It.IsAny<ApplicationUser>())).Returns("mocked-jwt-token");
-
-        var authService = new AuthService(
-            _userManager.Object,
-            _signInManager.Object,
-            _dbContext,
-            new ConfigurationBuilder().Build(),
-            jwtMock.Object
-        );
+        _tenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
 
         // Act
-        var result = await authService.LoginAsync(dto);
+        var result = await _authService.LoginAsync(dto);
 
         // Assert
         result.Success.ShouldBeTrue();
