@@ -1,7 +1,3 @@
-Absolutely — here’s the updated version of your documentation with the new `rollback`, `reset`, and `status` actions included 👇
-
----
-
 ## 🧰 EF Core CLI Helper (Windows PowerShell)
 
 To simplify working with migrations and updating your local dev database, a helper script `ef.ps1` is included in the root of the solution.
