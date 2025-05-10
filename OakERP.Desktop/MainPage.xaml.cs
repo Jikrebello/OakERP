@@ -1,4 +1,4 @@
-﻿namespace OakERP.Desktop;
+﻿namespace OakERP;
 
 public partial class MainPage : ContentPage
 {

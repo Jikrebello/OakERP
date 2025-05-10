@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace OakERP.Desktop;
+namespace OakERP;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

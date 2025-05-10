@@ -27,11 +27,11 @@
 	<ItemGroup>
 		<ProjectReference Include="..\OakERP.Auth\OakERP.Auth.csproj" />
 		<ProjectReference Include="..\OakERP.Infrastructure\OakERP.Infrastructure.csproj" />
-		<ProjectReference Include="..\OakERP.WebAPI\OakERP.WebAPI.csproj" />
+		<ProjectReference Include="..\OakERP.API\OakERP.API.csproj" />
 	</ItemGroup>
 
 	<Target Name="CopyTestHostDepsJson" AfterTargets="Build">
-		<Copy SourceFiles="..\OakERP.WebAPI\bin\Debug\net9.0\OakERP.WebAPI.deps.json" DestinationFiles="$(OutputPath)testhost.deps.json" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
+		<Copy SourceFiles="..\OakERP.API\bin\Debug\net9.0\OakERP.API.deps.json" DestinationFiles="$(OutputPath)testhost.deps.json" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
 	</Target>
 
 

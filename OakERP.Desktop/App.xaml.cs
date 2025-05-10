@@ -1,4 +1,4 @@
-﻿namespace OakERP.Desktop;
+﻿namespace OakERP;
 
 public partial class App : Application
 {
@@ -9,6 +9,6 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        return new Window(new MainPage()) { Title = "OakERP.Desktop" };
+        return new Window(new MainPage()) { Title = "OakERP" };
     }
 }

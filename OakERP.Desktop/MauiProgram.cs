@@ -1,6 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
+using Microsoft.FluentUI.AspNetCore.Components;
+using OakERP.Shared.Services;
+using OakERP.Services;
 
-namespace OakERP.Desktop;
+namespace OakERP;
 
 public static class MauiProgram
 {
@@ -14,13 +17,17 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             });
 
-        builder.Services.AddMauiBlazorWebView();
+        // Add device-specific services used by the OakERP.Shared project
+        builder.Services.AddSingleton<IFormFactor, FormFactor>();
 
-#if DEBUG
+        builder.Services.AddMauiBlazorWebView();
+        builder.Services.AddFluentUIComponents();
+
+        #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();
         builder.Logging.AddDebug();
 #endif
-
+        
         return builder.Build();
     }
 }
