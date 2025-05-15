@@ -3,24 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 using OakERP.Auth;
 using OakERP.Shared.DTOs.Auth;
 
-namespace OakERP.WebAPI.Controllers;
+namespace OakERP.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController(IAuthService authService) : ControllerBase
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
-    {
-        _authService = authService;
-    }
-
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<IActionResult> Register(RegisterDTO dto)
     {
-        var result = await _authService.RegisterAsync(dto);
+        var result = await authService.RegisterAsync(dto);
 
         return result.Success ? Ok(result) : BadRequest(result);
     }
@@ -29,7 +22,7 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Login(LoginDTO dto)
     {
-        var result = await _authService.LoginAsync(dto);
+        var result = await authService.LoginAsync(dto);
 
         return result.Success ? Ok(result) : Unauthorized(result);
     }

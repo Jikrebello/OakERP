@@ -4,14 +4,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OakERP.API.Swagger.Filters.Auth;
 using OakERP.Auth;
 using OakERP.Domain.Entities;
 using OakERP.Domain.Repositories;
 using OakERP.Infrastructure.Persistence;
 using OakERP.Infrastructure.Repositories;
-using OakERP.WebAPI.Swagger.Filters.Auth;
 
-namespace OakERP.WebAPI.Extensions;
+namespace OakERP.API.Extensions;
 
 public static class ServiceCollectionExtensions
 {

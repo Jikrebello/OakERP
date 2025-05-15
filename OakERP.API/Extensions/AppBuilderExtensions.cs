@@ -1,4 +1,4 @@
-﻿namespace OakERP.WebAPI.Extensions;
+﻿namespace OakERP.API.Extensions;
 
 public static class AppBuilderExtensions
 {

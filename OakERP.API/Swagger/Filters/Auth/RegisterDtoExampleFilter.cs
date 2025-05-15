@@ -3,7 +3,7 @@ using Microsoft.OpenApi.Models;
 using OakERP.Shared.DTOs.Auth;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace OakERP.WebAPI.Swagger.Filters.Auth;
+namespace OakERP.API.Swagger.Filters.Auth;
 
 public class RegisterDtoExampleFilter : ISchemaFilter
 {

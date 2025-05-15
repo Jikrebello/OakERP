@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace OakERP.WebAPI.Controllers;
+namespace OakERP.API.Controllers;
 
 [ApiController]
 [Authorize]

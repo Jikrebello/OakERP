@@ -1,5 +1,5 @@
+using OakERP.API.Extensions;
 using OakERP.Infrastructure.Persistence;
-using OakERP.WebAPI.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,5 +22,4 @@ await DbInitializer.SeedRolesAndAdminAsync(app.Services, app.Configuration);
 
 app.Run();
 
-public partial class Program
-{ }
+public partial class Program { }
