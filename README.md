@@ -40,7 +40,7 @@ OakERP is being built module-by-module. Initial release will include:
 /OakERP.Solution
 ├── Apps/              → Desktop, Web, Mobile (.NET MAUI Blazor)
 ├── Core/              → Domain, Application Logic, Shared DTOs
-├── Infrastructure/    → EF Core, Auth, Notifications
+├── Infrastructure/    → EF Core, Auth
 ├── UI/                → Shared Razor Components
 ├── Reports/           → Printable/exportable Razor reports
 ├── Tools/             → CLI Migration Tool
