@@ -13,8 +13,8 @@
 
 - ⚙️ **Unified UI**: Razor components shared across desktop and web
 - 🖥️ **Offline Desktop App**: Native .NET MAUI app for Windows and MacOS
-- 🌐 **Online Web Client**: Always-connected Blazor WebAssembly client
-- 📱 **Mobile Companion App**: Android/iOS support for POS, warehouse, and CRM
+- 🌐 **Online Web Client**: Always-connected Blazor Server client
+- 📱 **Mobile Companion App**: Android/iOS support for POS and warehouse
 - 🔄 **Sync Capability**: Offline-first model with eventual online sync
 - 🐳 **Easy Dev Setup**: Docker-based PostgreSQL and pgAdmin services
 
@@ -38,7 +38,7 @@ OakERP is being built module-by-module. Initial release will include:
 
 ```plaintext
 /OakERP.Solution
-├── Apps/              → Desktop, Web, Mobile (.NET MAUI Blazor)
+├── Apps/              → Desktop, Web, Mobile, API
 ├── Core/              → Domain, Application Logic, Shared DTOs
 ├── Infrastructure/    → EF Core, Auth
 ├── UI/                → Shared Razor Components
@@ -78,7 +78,8 @@ OakERP is designed for businesses who want a modern ERP system that:
 | ----------------------- | -------------- |
 | Docker DB Setup         | ✅ Complete     |
 | MAUI Blazor Shell       | ✅ Bootstrapped |
-| Core Modules (GL/AP/AR) | 🚧 In Progress  |
+| Multi Tenancy Login and Register flow front to back | 🚧 In Progress |  
+| Core Modules (GL/AP/AR) | 🛠️ Pending  |
 | Mobile POS App          | 🛠️ Pending      |
 | EF Migration Tool       | 🛠️ Scaffolded   |
 
