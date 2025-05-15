@@ -1,0 +1,38 @@
+﻿@page "/auth/login"
+@inject LoginViewModel vm
+
+<h3>Login</h3>
+
+<EditForm Model="vm" EditContext="@vm.EditContext">
+    <DataAnnotationsValidator />
+    <FluentValidationSummary />
+
+    <FluentTextField Label="Email"
+                     @bind-Value="vm.Email"
+                     Name="vm.Email" />
+
+    <FluentValidationMessage For="@(() => vm.Email)" />
+
+    <FluentTextField Label="Password"
+                     @bind-Value="vm.Password"
+                     Name="vm.Password"
+                     TextFieldType="TextFieldType.Password" />
+
+    <FluentValidationMessage For="@(() => vm.Password)" />
+
+    <FluentButton @onclick="vm.LoginAsync" Disabled="vm.IsBusy">
+        @if (vm.IsBusy)
+        {
+            <span>Logging in...</span>
+        }
+        else
+        {
+            <span>Login</span>
+        }
+    </FluentButton>
+</EditForm>
+
+@if (!string.IsNullOrWhiteSpace(vm.ErrorMessage))
+{
+    <div class="text-danger mt-2">@vm.ErrorMessage</div>
+}

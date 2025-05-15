@@ -1,4 +1,4 @@
-﻿using OakERP.Shared.DTOs.Auth;
+﻿using OakERP.Common.DTOs.Auth;
 
 namespace OakERP.Auth;
 

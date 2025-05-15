@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
+using OakERP.Common.DTOs.Auth;
 using OakERP.Domain.Entities;
 using OakERP.Domain.Repositories;
-using OakERP.Infrastructure.Persistence;
-using OakERP.Shared.DTOs.Auth;
 
 namespace OakERP.Auth;
 
@@ -11,40 +9,30 @@ public class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly ApplicationDbContext _db;
     private readonly IJwtGenerator _jwtGenerator;
     private readonly ITenantRepository _tenantRepository;
-    private readonly ILicenseRepository _licenseRepository;
-
-    private readonly IConfiguration _config;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        ApplicationDbContext db,
-        IConfiguration config,
         IJwtGenerator jwtGenerator,
-        ITenantRepository tenantRepository,
-        ILicenseRepository licenseRepository
+        ITenantRepository tenantRepository
     )
     {
         _userManager = userManager;
         _signInManager = signInManager;
-        _db = db;
-        _config = config;
         _jwtGenerator = jwtGenerator;
         _tenantRepository = tenantRepository;
-        _licenseRepository = licenseRepository;
     }
 
     public async Task<AuthResultDTO> RegisterAsync(RegisterDTO dto)
     {
         if (dto.Password != dto.ConfirmPassword)
-            return AuthResultDTO.Failed("Passwords do not match.");
+            return AuthResultDTO.Fail("Passwords do not match.");
 
         var existingUser = await _userManager.FindByEmailAsync(dto.Email);
         if (existingUser is not null)
-            return AuthResultDTO.Failed("Email already exists.");
+            return AuthResultDTO.Fail("Email already exists.");
 
         var tenant = new Tenant
         {
@@ -68,9 +56,10 @@ public class AuthService : IAuthService
 
         var result = await _userManager.CreateAsync(user, dto.Password);
         if (!result.Succeeded)
-            return AuthResultDTO.Failed(result.Errors.First().Description);
+            return AuthResultDTO.Fail(result.Errors.First().Description);
 
-        return AuthResultDTO.SuccessResult("registered");
+        var token = _jwtGenerator.Generate(user);
+        return AuthResultDTO.SuccessWith(token, userName: user.UserName);
     }
 
     public async Task<AuthResultDTO> LoginAsync(LoginDTO dto)
@@ -78,40 +67,31 @@ public class AuthService : IAuthService
         var result = await _signInManager.PasswordSignInAsync(
             dto.Email,
             dto.Password,
-            false,
-            false
+            isPersistent: false,
+            lockoutOnFailure: false
         );
 
         if (!result.Succeeded)
-        {
-            return AuthResultDTO.Failed("Invalid login credentials");
-        }
+            return AuthResultDTO.Fail("Invalid login credentials.");
 
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user is null)
-        {
-            return AuthResultDTO.Failed("User not found.");
-        }
+            return AuthResultDTO.Fail("User not found.");
 
         var tenant = await _tenantRepository.GetByIdAsync(user.TenantId);
-
         if (tenant is null)
-        {
-            return AuthResultDTO.Failed("Tenant not found.");
-        }
+            return AuthResultDTO.Fail("Tenant not found.");
 
         if (tenant.License is null)
-        {
-            return AuthResultDTO.Failed("License not found for tenant.");
-        }
+            return AuthResultDTO.Fail("License not found for tenant.");
 
         if (tenant.License.ExpiryDate is not null && tenant.License.ExpiryDate < DateTime.UtcNow)
-        {
-            return AuthResultDTO.Failed("License has expired.");
-        }
+            return AuthResultDTO.Fail("License has expired.");
 
         var token = _jwtGenerator.Generate(user);
 
-        return AuthResultDTO.SuccessResult(token);
+        var primaryRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "User";
+
+        return AuthResultDTO.SuccessWith(token, userName: user.UserName, role: primaryRole);
     }
 }

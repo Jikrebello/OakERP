@@ -1,4 +1,4 @@
-﻿namespace OakERP.Shared.DTOs.Auth;
+﻿namespace OakERP.Common.DTOs.Auth;
 
 public class LoginDTO
 {

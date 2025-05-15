@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.Content.PM;
 
-namespace OakERP.Mobile;
+namespace OakERP.Mobile.Platforms.Android;
 
 [Activity(
     Theme = "@style/Maui.SplashTheme",
@@ -13,5 +13,4 @@ namespace OakERP.Mobile;
         | ConfigChanges.SmallestScreenSize
         | ConfigChanges.Density
 )]
-public class MainActivity : MauiAppCompatActivity
-{ }
+public class MainActivity : MauiAppCompatActivity { }

@@ -17,4 +17,8 @@
     <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.11.9" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\OakERP.Common\OakERP.Common.csproj" />
+  </ItemGroup>
+
 </Project>

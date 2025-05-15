@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace OakERP;
+namespace OakERP.Platforms.MacCatalyst;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

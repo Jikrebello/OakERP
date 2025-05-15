@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using OakERP.Auth;
+using OakERP.Common.DTOs.Auth;
 using OakERP.Domain.Entities;
 using OakERP.Domain.Repositories;
-using OakERP.Shared.DTOs.Auth;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.Auth;
@@ -15,9 +15,8 @@ public class AuthServiceTests
     private readonly Mock<UserManager<ApplicationUser>> _userManager;
     private readonly Mock<SignInManager<ApplicationUser>> _signInManager;
     private readonly IJwtGenerator _jwtGenerator;
-    private readonly IAuthService _authService;
+    private readonly AuthService _authService;
     private readonly Mock<ITenantRepository> _tenantRepository;
-    private readonly Mock<ILicenseRepository> _licenseRepository;
 
     public AuthServiceTests()
     {
@@ -53,16 +52,12 @@ public class AuthServiceTests
         _jwtGenerator = jwtMock.Object;
 
         _tenantRepository = new Mock<ITenantRepository>();
-        _licenseRepository = new Mock<ILicenseRepository>();
 
         _authService = new AuthService(
             _userManager.Object,
             _signInManager.Object,
-            null!, // No longer using DbContext in AuthService!
-            configMock.Object,
             _jwtGenerator,
-            _tenantRepository.Object,
-            _licenseRepository.Object
+            _tenantRepository.Object
         );
     }
 
@@ -83,7 +78,7 @@ public class AuthServiceTests
 
         // Assert
         result.Success.ShouldBeFalse();
-        result.Error.ShouldBe("Passwords do not match.");
+        result.Message.ShouldBe("Passwords do not match.");
     }
 
     [Fact]
@@ -105,7 +100,7 @@ public class AuthServiceTests
 
         // Assert
         result.Success.ShouldBeFalse();
-        result.Error.ShouldBe("Email already exists.");
+        result.Message.ShouldBe("Email already exists.");
     }
 
     [Fact]
@@ -133,7 +128,7 @@ public class AuthServiceTests
 
         // Assert
         result.Success.ShouldBeFalse();
-        result.Error.ShouldBe("Invalid password.");
+        result.Message.ShouldBe("Invalid password.");
     }
 
     [Fact]
@@ -159,7 +154,7 @@ public class AuthServiceTests
 
         // Assert
         result.Success.ShouldBeTrue();
-        result.Token.ShouldBe("registered");
+        result.Token.ShouldBe("mock-token");
     }
 
     [Fact]
@@ -177,7 +172,7 @@ public class AuthServiceTests
 
         // Assert
         result.Success.ShouldBeFalse();
-        result.Error.ShouldBe("Invalid login credentials");
+        result.Message.ShouldBe("Invalid login credentials.");
     }
 
     [Fact]
@@ -197,7 +192,7 @@ public class AuthServiceTests
 
         // Assert
         result.Success.ShouldBeFalse();
-        result.Error.ShouldBe("User not found.");
+        result.Message.ShouldBe("User not found.");
     }
 
     [Fact]
@@ -225,7 +220,7 @@ public class AuthServiceTests
 
         // Assert
         result.Success.ShouldBeFalse();
-        result.Error.ShouldBe("Tenant not found.");
+        result.Message.ShouldBe("Tenant not found.");
     }
 
     [Fact]
@@ -255,7 +250,7 @@ public class AuthServiceTests
 
         // Assert
         result.Success.ShouldBeFalse();
-        result.Error.ShouldBe("License not found for tenant.");
+        result.Message.ShouldBe("License not found for tenant.");
     }
 
     [Fact]
@@ -296,7 +291,7 @@ public class AuthServiceTests
 
         // Assert
         result.Success.ShouldBeFalse();
-        result.Error.ShouldBe("License has expired.");
+        result.Message.ShouldBe("License has expired.");
     }
 
     [Fact]
@@ -325,6 +320,8 @@ public class AuthServiceTests
             .ReturnsAsync(SignInResult.Success);
 
         _userManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+
+        _userManager.Setup(u => u.GetRolesAsync(user)).ReturnsAsync(["User"]);
 
         _tenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
 

@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace OakERP.Mobile;
+namespace OakERP.Mobile.Platforms.iOS;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

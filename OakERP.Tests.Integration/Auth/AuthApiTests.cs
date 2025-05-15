@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
+using OakERP.Common.DTOs.Auth;
 using OakERP.Domain.Entities;
-using OakERP.Shared.DTOs.Auth;
 using OakERP.Tests.Integration.TestSetup;
 using Shouldly;
 
@@ -34,9 +34,13 @@ public class AuthApiTests : WebApiIntegrationTestBase
         // Assert
         result.ShouldNotBeNull();
         result.Success.ShouldBeTrue();
-        var tenant = DbFixture.DbContext.Tenants.FirstOrDefault(t => t.Name == dto.TenantName);
+        var tenant = await DbFixture.DbContext.Tenants.FirstOrDefaultAsync(t =>
+            t.Name == dto.TenantName
+        );
         tenant.ShouldNotBeNull();
-        var license = DbFixture.DbContext.Licenses.FirstOrDefault(l => l.TenantId == tenant!.Id);
+        var license = await DbFixture.DbContext.Licenses.FirstOrDefaultAsync(l =>
+            l.TenantId == tenant!.Id
+        );
         license.ShouldNotBeNull();
     }
 
@@ -61,7 +65,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
         // Assert
         result.ShouldNotBeNull();
         result.Success.ShouldBeFalse();
-        result.Error.ShouldContain("Passwords do not match");
+        result.Message.ShouldContain("Passwords do not match");
     }
 
     [Test]
@@ -101,7 +105,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
         // Assert
         result2.ShouldNotBeNull();
         result2.Success.ShouldBeFalse();
-        result2.Error.ShouldContain("Email already exists");
+        result2.Message.ShouldContain("Email already exists");
 
         // Cleanup second tenant if it somehow got created (defensive)
         var tenant2 = DbContext.Tenants.FirstOrDefault(t => t.Name == dto2.TenantName);
@@ -218,15 +222,15 @@ public class AuthApiTests : WebApiIntegrationTestBase
         );
 
         // Find the tenant (with license) and expire the license
-        var tenant = DbFixture
+        var tenant = await DbFixture
             .DbContext.Tenants.Include(t => t.License)
-            .FirstOrDefault(t => t.Name == registerDto.TenantName);
+            .FirstOrDefaultAsync(t => t.Name == registerDto.TenantName);
 
         tenant.ShouldNotBeNull();
         tenant!.License.ShouldNotBeNull();
 
         tenant.License.ExpiryDate = DateTime.UtcNow.AddDays(-1);
-        DbFixture.DbContext.SaveChanges();
+        await DbFixture.DbContext.SaveChangesAsync();
 
         var loginDto = new LoginDTO { Email = registerDto.Email, Password = registerDto.Password };
 
@@ -239,7 +243,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
         // Assert
         loginResult.ShouldNotBeNull();
         loginResult.Success.ShouldBeFalse();
-        loginResult.Error.ShouldBe("License has expired.");
+        loginResult.Message.ShouldBe("License has expired.");
     }
 
     [Test]
@@ -266,16 +270,16 @@ public class AuthApiTests : WebApiIntegrationTestBase
         );
 
         // Find the tenant and remove its license
-        var tenant = DbFixture
+        var tenant = await DbFixture
             .DbContext.Tenants.Include(t => t.License)
-            .FirstOrDefault(t => t.Name == registerDto.TenantName);
+            .FirstOrDefaultAsync(t => t.Name == registerDto.TenantName);
         tenant.ShouldNotBeNull();
 
         var license = tenant!.License;
         if (license != null)
         {
             DbFixture.DbContext.Licenses.Remove(license);
-            DbFixture.DbContext.SaveChanges();
+            await DbFixture.DbContext.SaveChangesAsync();
         }
 
         var loginDto = new LoginDTO { Email = registerDto.Email, Password = registerDto.Password };
@@ -289,6 +293,6 @@ public class AuthApiTests : WebApiIntegrationTestBase
         // Assert
         loginResult.ShouldNotBeNull();
         loginResult.Success.ShouldBeFalse();
-        loginResult.Error.ShouldContain("License not found for tenant.");
+        loginResult.Message.ShouldContain("License not found for tenant.");
     }
 }

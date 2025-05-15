@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OakERP.Auth;
-using OakERP.Shared.DTOs.Auth;
+using OakERP.Common.DTOs.Auth;
 
 namespace OakERP.API.Controllers;
 

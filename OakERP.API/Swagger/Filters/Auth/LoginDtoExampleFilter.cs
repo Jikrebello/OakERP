@@ -1,6 +1,6 @@
 ﻿using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
-using OakERP.Shared.DTOs.Auth;
+using OakERP.Common.DTOs.Auth;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace OakERP.API.Swagger.Filters.Auth;

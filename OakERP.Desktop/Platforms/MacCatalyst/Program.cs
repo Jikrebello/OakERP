@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace OakERP;
+namespace OakERP.Platforms.MacCatalyst;
 
 public class Program
 {

@@ -1,6 +1,6 @@
 ﻿using UIKit;
 
-namespace OakERP.Mobile;
+namespace OakERP.Mobile.Platforms.iOS;
 
 public class Program
 {

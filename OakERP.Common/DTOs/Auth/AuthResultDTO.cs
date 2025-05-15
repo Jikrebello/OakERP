@@ -1,13 +1,26 @@
-﻿namespace OakERP.Shared.DTOs.Auth;
+﻿using OakERP.Common.DTOs.Base;
 
-public class AuthResultDTO
+namespace OakERP.Common.DTOs.Auth;
+
+public class AuthResultDTO : BaseResultDTO
 {
-    public bool Success { get; set; }
     public string? Token { get; set; }
-    public string? Error { get; set; }
+    public string? UserName { get; set; }
+    public string? Role { get; set; }
 
-    public static AuthResultDTO Failed(string error) => new() { Success = false, Error = error };
+    public static AuthResultDTO SuccessWith(
+        string token,
+        string? userName = null,
+        string? role = null
+    ) =>
+        new()
+        {
+            Success = true,
+            Token = token,
+            UserName = userName,
+            Role = role,
+            Message = "Login successful",
+        };
 
-    public static AuthResultDTO SuccessResult(string token) =>
-        new() { Success = true, Token = token };
+    public static AuthResultDTO Fail(string message) => Fail<AuthResultDTO>(message);
 }

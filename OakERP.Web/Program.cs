@@ -1,31 +1,37 @@
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.FluentUI.AspNetCore.Components;
-using OakERP.Web.Components;
+using OakERP.Common.Abstractions;
+using OakERP.Shared.Extensions;
 using OakERP.Shared.Services;
+using OakERP.Web.Components;
 using OakERP.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+// Add Razor Components & Fluent UI
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddFluentUIComponents();
 
-// Add device-specific services used by the OakERP.Shared project
+// Add device-specific services used by OakERP.Shared
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
+builder.Services.AddScoped<ProtectedLocalStorage>();
+builder.Services.AddScoped<ITokenStore, BlazorTokenStore>();
+
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5001") });
+
+// Register shared Razor Class Library services
+builder.Services.AddOakClientServices();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// HTTP pipeline config
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
-
 app.UseAntiforgery();
 
 app.MapStaticAssets();
