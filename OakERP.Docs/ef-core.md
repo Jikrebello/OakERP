@@ -1,10 +1,18 @@
 ## 🧰 EF Core CLI Helper (Windows PowerShell)
 
-To simplify working with migrations and updating your local dev database, a helper script `ef.ps1` is included in the root of the solution.
+This PowerShell helper script `ef.ps1` lives at the root of the solution and simplifies working with EF Core migrations. It **automatically detects** your `*.Infrastructure.csproj` and `*.API.csproj` files based on naming conventions, so you don’t need to specify project paths every time.
 
-This script assumes:
-- Your **DbContext** lives in `OakERP.Infrastructure`
-- Your **Startup project** is `OakERP.WebAPI`
+It supports common EF Core tasks like adding migrations, updating the database, rolling back changes, and more.
+
+---
+
+### ⚙️ How It Works
+
+By default, the script:
+
+- Detects the first `*.Infrastructure.csproj` (as the **DbContext project**)
+- Detects the first `*.API.csproj` (as the **startup project**)
+- Uses `AppDbContext` as the default context (can be overridden)
 
 ---
 
@@ -12,7 +20,7 @@ This script assumes:
 
 ```powershell
 # Add a new migration
-.\ef.ps1 -action add -name AddTenantLicenseTable
+.\ef.ps1 -action add -name MigrationName
 
 # Apply migrations to the database
 .\ef.ps1 -action update
@@ -41,36 +49,76 @@ This script assumes:
 # Add a migration after modifying ApplicationUser
 .\ef.ps1 -action add -name AddUserTenantRelation
 
+# Remove the last added migration (undo AddUserTenantRelation)
+.\ef.ps1 -action remove
+
+# Apply the latest migrations to your local PostgreSQL database
+.\ef.ps1 -action update
+
 # Rollback a broken or unnecessary migration
 .\ef.ps1 -action rollback
+
+# Drop the current database completely
+.\ef.ps1 -action drop
 
 # Rebuild your database from scratch with a clean migration
 .\ef.ps1 -action drop
 .\ef.ps1 -action add -name InitSchema
 .\ef.ps1 -action update
 
-# Full reset (drop + apply latest migrations)
+# Full reset (drop + reapply all migrations from current model)
 .\ef.ps1 -action reset
+
+# View migration status (see applied and pending migrations)
+.\ef.ps1 -action status
 ```
 
+#### 💡 Tip: Positional Parameters Work Too
+
+You can omit `-action` and `-name` if you prefer a shorter syntax. The script supports **positional arguments**, meaning these are equivalent:
+
+```powershell
+# Explicit form
+.\ef.ps1 -action add -name AddUserTenantRelation
+
+# Shorthand positional form (works the same)
+.\ef.ps1 add AddUserTenantRelation
+```
+
+This works because:
+- The first parameter is treated as `-action`
+- The second (if present) is treated as `-name`
+
 ---
 
-### 🧼 When to Use This
+### 🧼 When to Use Each Command
 
-| Task       | Use This When                                                                 |
-|------------|-------------------------------------------------------------------------------|
-| `add`      | You’ve changed your models and want to capture the difference as a migration. |
-| `remove`   | You added a migration by mistake and want to remove it (before updating DB).  |
-| `update`   | You want to apply the latest migrations to the database.                      |
-| `drop`     | You want to nuke the DB during development and start over.                    |
-| `rollback` | You need to undo the last migration, both in DB and source code.              |
-| `reset`    | You want to fully reset the database and re-apply all migrations cleanly.     |
-| `status`   | You want to see which migrations exist and are applied.                       |
+| Command     | Purpose                                                                 |
+|-------------|-------------------------------------------------------------------------|
+| `add`       | You've changed your entities and want to create a new migration file.   |
+| `remove`    | You accidentally added a migration and want to delete it.               |
+| `update`    | Apply all pending migrations to your local dev DB.                      |
+| `drop`      | DANGER: Nuke your local DB for a fresh rebuild.                         |
+| `rollback`  | Undo the last applied migration (code + DB rollback).                   |
+| `reset`     | Drop the DB, then reapply all migrations cleanly.                       |
+| `status`    | View current and pending migrations.                                    |
 
 ---
 
-### 🛑 Warnings
+### 🚧 Warnings & Notes
 
-- This script is **only for local dev environments**.
-- Do **not** use `drop` or `rollback` in production or on shared environments.
-- If you're using Docker, ensure the `oakdb` service is running before using `update`, `reset`, or `rollback`.
+- This script is designed for **local development only**.
+- Never run `drop`, `rollback`, or `reset` on a shared or production environment.
+- Ensure Docker is running and your PostgreSQL container is healthy before using commands like `update`, `reset`, or `rollback`.
+
+---
+
+### ✅ Project Requirements
+
+This script assumes:
+
+- You are using **EF Core 9+**
+- You are targeting a PostgreSQL database
+- You are using a folder structure that includes:
+  - `MyApp.Infrastructure` (with your `DbContext`)
+  - `MyApp.API` (your startup project)
