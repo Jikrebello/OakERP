@@ -1,66 +1,79 @@
-﻿<#
+<#
 .SYNOPSIS
-  Utility script for managing EF Core migrations in OakERP.
-.DESCRIPTION
-  Targets OakERP.Infrastructure as the DbContext project
-  and OakERP.WebAPI as the startup project.
+  Smart EF Core migration utility that auto-detects your project files.
 
 .PARAMETER action
-  The action to perform: add, remove, update, drop, rollback, reset, status
+  The EF action: add, remove, update, drop, rollback, reset, status
 
 .PARAMETER name
-  The name of the migration (used with "add")
+  Name of the migration (used with "add")
+
+.PARAMETER context
+  The DbContext to use (optional)
 #>
 
 param(
     [ValidateSet("add", "remove", "update", "drop", "rollback", "reset", "status")]
     [string]$action = "add",
 
-    [string]$name = "InitSchema"
+    [string]$name = "InitSchema",
+
+    [string]$context = "AppDbContext"
 )
 
-$contextProject = "OakERP.Infrastructure"
-$startupProject = "OakERP.WebAPI"
+# Auto-detect project paths
+$infrastructureProj = Get-ChildItem -Recurse -Filter *.Infrastructure.csproj | Select-Object -First 1
+$startupProj = Get-ChildItem -Recurse -Filter *.API.csproj | Select-Object -First 1
+
+if (-not $infrastructureProj -or -not $startupProj) {
+    Write-Host "❌ Could not auto-detect project files."
+    if (-not $infrastructureProj) { Write-Host "⚠️ Missing: *.Infrastructure.csproj" }
+    if (-not $startupProj) { Write-Host "⚠️ Missing: *.API.csproj" }
+    exit 1
+}
+
+$project = $infrastructureProj.FullName
+$startupProject = $startupProj.FullName
 
 switch ($action) {
     "add" {
         Write-Host "📦 Adding new migration: $name"
-        dotnet ef migrations add $name --project $contextProject --startup-project $startupProject
+        dotnet ef migrations add $name --project $project --startup-project $startupProject --context $context
     }
     "remove" {
         Write-Host "🗑️ Removing last migration"
-        dotnet ef migrations remove --project $contextProject --startup-project $startupProject
+        dotnet ef migrations remove --project $project --startup-project $startupProject --context $context
     }
     "update" {
         Write-Host "⬆️ Updating database to latest migration"
-        dotnet ef database update --project $contextProject --startup-project $startupProject
+        dotnet ef database update --project $project --startup-project $startupProject --context $context
     }
     "drop" {
         Write-Host "🔥 Dropping database"
-        dotnet ef database drop --project $contextProject --startup-project $startupProject --force
+        dotnet ef database drop --project $project --startup-project $startupProject --context $context --force
     }
     "rollback" {
         Write-Host "⏪ Rolling back last migration..."
 
-        $migrations = dotnet ef migrations list --project $contextProject --startup-project $startupProject
+        $migrations = dotnet ef migrations list --project $project --startup-project $startupProject --context $context
         $previousMigration = $migrations | Select-Object -SkipLast 1 -Last 1
 
         if (-not $previousMigration) {
-            Write-Host "❌ No previous migration found. You might only have 1 migration, or none at all."
+            Write-Host "❌ No previous migration found."
         } else {
-            Write-Host "➡️ Reverting database to previous migration: $previousMigration"
-            dotnet ef database update $previousMigration --project $contextProject --startup-project $startupProject
-            dotnet ef migrations remove --project $contextProject --startup-project $startupProject
+            Write-Host "➡️ Reverting to: $previousMigration"
+            dotnet ef database update $previousMigration --project $project --startup-project $startupProject --context $context
+            dotnet ef migrations remove --project $project --startup-project $startupProject --context $context
         }
     }
     "reset" {
         Write-Host "🔁 Dropping and reapplying database migrations"
-        dotnet ef database drop --project $contextProject --startup-project $startupProject --force
-        dotnet ef database update --project $contextProject --startup-project $startupProject
+        dotnet ef database drop --project $project --startup-project $startupProject --context $context --force
+        dotnet ef database update --project $project --startup-project $startupProject --context $context
     }
     "status" {
         Write-Host "📋 Listing applied and available migrations"
-        dotnet ef migrations list --project $contextProject --startup-project $startupProject
+        dotnet ef migrations list --project $project --startup-project $startupProject --context $context
     }
     default {
         Write-Host "❌ Unknown action: $action"
