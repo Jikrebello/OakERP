@@ -1,6 +1,6 @@
 ﻿# 🌳 Oak ERP
 
-[![.NET](https://img.shields.io/badge/.NET%208+-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET%209+-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![MAUI](https://img.shields.io/badge/MAUI-Blazor-blueviolet?logo=microsoft&logoColor=white)](https://learn.microsoft.com/en-us/dotnet/maui/)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
