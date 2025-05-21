@@ -234,7 +234,7 @@ This ensures tests are isolated and the database remains clean.
 ---
 
 ## 🚀 Final Notes
-- Keep it updated as the test setup evolves.
+- Keep this updated as the test setup evolves.
 - Run tests frequently to maintain confidence in the codebase.
 
 Happy testing! 🎉
