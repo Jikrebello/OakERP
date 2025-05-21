@@ -4,6 +4,12 @@ using OakERP.Domain.Entities;
 
 namespace OakERP.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Configures the entity type <see cref="Tenant"/> for use with Entity Framework Core.
+/// </summary>
+/// <remarks>This configuration defines the primary key, required properties, default values, and relationships
+/// for the <see cref="Tenant"/> entity. It ensures that the <see cref="Tenant"/> entity is properly mapped to the
+/// database schema.</remarks>
 public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
 {
     public void Configure(EntityTypeBuilder<Tenant> builder)

@@ -5,6 +5,13 @@ using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories;
 
+/// <summary>
+/// Provides methods for managing tenant entities in the application database.
+/// </summary>
+/// <remarks>This repository offers functionality to retrieve, create, update, and delete tenant records. It
+/// interacts with the database context to perform operations on the <see cref="Tenant"/> entity, including related data
+/// such as licenses.</remarks>
+/// <param name="db"></param>
 public class TenantRepository(ApplicationDbContext db) : ITenantRepository
 {
     public async Task<Tenant?> GetByIdAsync(Guid id) =>

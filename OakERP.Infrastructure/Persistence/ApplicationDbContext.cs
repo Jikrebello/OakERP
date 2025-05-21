@@ -4,6 +4,14 @@ using OakERP.Domain.Entities;
 
 namespace OakERP.Infrastructure.Persistence;
 
+/// <summary>
+/// Represents the database context for the application, providing access to the application's data models and managing
+/// database interactions.
+/// </summary>
+/// <remarks>This context is derived from <see cref="IdentityDbContext{TUser}"/> and includes additional DbSet
+/// properties for application-specific entities. It also applies
+/// entity configurations from the assembly containing the <see cref="ApplicationDbContext"/> type.</remarks>
+/// <param name="options"></param>
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<ApplicationUser>(options)
 {
