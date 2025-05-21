@@ -17,23 +17,17 @@
             <FluentValidationMessage For="@(() => vm.Email)" />
 
             @* Password *@
-            <label style="margin-bottom: 5px; display: block; font-size: 0.875rem;">Password</label>
-            <FluentStack Orientation="Orientation.Horizontal" Style="width: 100%;">
-                <FluentTextField Placeholder="Enter your password"
-                                 @bind-Value="vm.Password"
-                                 Name="vm.Password"
-                                 TextFieldType="@PasswordFieldType"
-                                 Style="flex-grow: 1;" />
+            <FluentTextField Label="Password"
+                             Placeholder="Enter your password"
+                             @bind-Value="vm.Password"
+                             Name="vm.Password"
+                             TextFieldType="@PasswordFieldType"
+                             Style="width: 100%;">
 
-                <FluentButton Title="Toggle visibility"
-                              Appearance="Appearance.Stealth"
-                              Size="ButtonSize.Small"
-                              IconOnly="true"
-                              @onclick="TogglePasswordVisibility">
-                    <FluentIcon Value="@(isPasswordVisible ? (Icon)new Icons.Regular.Size20.EyeOff() : new Icons.Regular.Size20.Eye())" />
-                </FluentButton>
 
-            </FluentStack>
+                <FluentIcon Title="Toggle visibility" Slot="end" @onclick="TogglePasswordVisibility"
+                            Value="@(isPasswordVisible ? (Icon)new Icons.Regular.Size20.EyeOff() : new Icons.Regular.Size20.Eye())" />
+            </FluentTextField>
             <FluentValidationMessage For="@(() => vm.Password)" />
 
 
