@@ -1,38 +1,80 @@
 ﻿@page "/auth/login"
 @inject LoginViewModel vm
+@inject IToastService ToastService
 
-<h3>Login</h3>
+<div class="login-container">
+    <FluentCard Width="400px">
+        <h2 style="text-align: center; margin-bottom: 1rem;">Login</h2>
 
-<EditForm Model="vm" EditContext="@vm.EditContext">
-    <DataAnnotationsValidator />
-    <FluentValidationSummary />
+        <EditForm EditContext="@vm.EditContext">
+            <DataAnnotationsValidator />
 
-    <FluentTextField Label="Email"
-                     @bind-Value="vm.Email"
-                     Name="vm.Email" />
+            @* Email *@
+            <FluentTextField Label="Email" TextFieldType="TextFieldType.Email"
+                             Placeholder="Enter your email"
+                             @bind-Value="vm.Email"
+                             Name="vm.Email" Style="width: 100%;" />
+            <FluentValidationMessage For="@(() => vm.Email)" />
 
-    <FluentValidationMessage For="@(() => vm.Email)" />
+            @* Password *@
+            <label style="margin-bottom: 5px; display: block; font-size: 0.875rem;">Password</label>
+            <FluentStack Orientation="Orientation.Horizontal" Style="width: 100%;">
+                <FluentTextField Placeholder="Enter your password"
+                                 @bind-Value="vm.Password"
+                                 Name="vm.Password"
+                                 TextFieldType="@PasswordFieldType"
+                                 Style="flex-grow: 1;" />
 
-    <FluentTextField Label="Password"
-                     @bind-Value="vm.Password"
-                     Name="vm.Password"
-                     TextFieldType="TextFieldType.Password" />
+                <FluentButton Title="Toggle visibility"
+                              Appearance="Appearance.Stealth"
+                              Size="ButtonSize.Small"
+                              IconOnly="true"
+                              @onclick="TogglePasswordVisibility">
+                    <FluentIcon Value="@(isPasswordVisible ? (Icon)new Icons.Regular.Size20.EyeOff() : new Icons.Regular.Size20.Eye())" />
+                </FluentButton>
 
-    <FluentValidationMessage For="@(() => vm.Password)" />
+            </FluentStack>
+            <FluentValidationMessage For="@(() => vm.Password)" />
 
-    <FluentButton @onclick="vm.LoginAsync" Disabled="vm.IsBusy">
-        @if (vm.IsBusy)
-        {
-            <span>Logging in...</span>
-        }
-        else
-        {
-            <span>Login</span>
-        }
-    </FluentButton>
-</EditForm>
+
+
+            @* Login *@
+            <FluentButton Style="width: 100%; margin-top: 1rem;"
+                          Appearance="Appearance.Accent"
+                          @onclick="vm.LoginAsync"
+                          Disabled="vm.IsBusy">
+                @if (vm.IsBusy)
+                {
+                    <span>Logging in...</span>
+                }
+                else
+                {
+                    <span>Login</span>
+                }
+            </FluentButton>
+        </EditForm>
+
+        <div style="margin-top: 1rem; text-align: center;">
+            <a href="/auth/forgot" style="font-size: 0.9rem;">Forgot your password?</a>
+        </div>
+    </FluentCard>
+</div>
 
 @if (!string.IsNullOrWhiteSpace(vm.ErrorMessage))
 {
     <div class="text-danger mt-2">@vm.ErrorMessage</div>
+}
+
+
+@code
+{
+    private bool isPasswordVisible = false;
+
+    private TextFieldType PasswordFieldType =>
+        isPasswordVisible ? TextFieldType.Text : TextFieldType.Password;
+
+    private void TogglePasswordVisibility()
+    {
+        isPasswordVisible = !isPasswordVisible;
+    }
 }

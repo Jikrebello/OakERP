@@ -4,10 +4,10 @@ namespace OakERP.Services;
 
 public class MauiTokenStore : ITokenStore
 {
-    public async Task SaveToken(string token) =>
+    public async Task SaveTokenAsync(string token) =>
         await SecureStorage.Default.SetAsync("authToken", token);
 
-    public async Task<string?> GetToken() => await SecureStorage.Default.GetAsync("authToken");
+    public async Task<string?> GetTokenAsync() => await SecureStorage.Default.GetAsync("authToken");
 
-    public async Task DeleteToken() => SecureStorage.Default.Remove("authToken");
+    public async Task DeleteTokenAsync() => SecureStorage.Default.Remove("authToken");
 }

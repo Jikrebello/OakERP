@@ -1,0 +1,9 @@
+﻿@inject Microsoft.FluentUI.AspNetCore.Components.IToastService ToastService
+
+@code
+{
+    protected override void OnInitialized()
+    {
+        ToastService.ShowError("An unexpected error occurred while loading the page.");
+    }
+}

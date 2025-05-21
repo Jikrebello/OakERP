@@ -4,6 +4,7 @@ using OakERP.Common.Abstractions;
 using OakERP.Services;
 using OakERP.Shared.Extensions;
 using OakERP.Shared.Services;
+using OakERP.Shared.Services.Auth;
 
 namespace OakERP;
 
@@ -23,6 +24,8 @@ public static class MauiProgram
         // Device-specific services used by shared Razor UI
         builder.Services.AddSingleton<IFormFactor, FormFactor>();
         builder.Services.AddScoped<ITokenStore, MauiTokenStore>();
+        builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+        builder.Services.AddScoped<IPlatformService, MauiPlatformService>();
 
         builder.Services.AddScoped(sp => new HttpClient
         {

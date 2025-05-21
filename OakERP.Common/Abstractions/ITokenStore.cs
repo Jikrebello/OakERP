@@ -2,9 +2,9 @@
 
 public interface ITokenStore
 {
-    Task SaveToken(string token);
+    Task SaveTokenAsync(string token);
 
-    Task<string?> GetToken();
+    Task<string?> GetTokenAsync();
 
-    Task DeleteToken();
+    Task DeleteTokenAsync();
 }

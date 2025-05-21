@@ -48,7 +48,7 @@ public class LoginViewModel : BaseViewModel
 
         if (result is { Success: true })
         {
-            await _tokenStore.SaveToken(result.Token!);
+            await _tokenStore.SaveTokenAsync(result.Token!);
             Navigation.NavigateTo("/");
             return;
         }
