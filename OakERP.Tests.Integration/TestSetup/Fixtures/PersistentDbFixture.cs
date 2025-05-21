@@ -2,6 +2,12 @@
 
 namespace OakERP.Tests.Integration.TestSetup.Fixtures;
 
+/// <summary>
+/// Provides a fixture for integration tests that require persistent database operations.
+/// </summary>
+/// <remarks>This class disables transactional behavior by default, allowing tests to interact with the database
+/// in a persistent manner. It also provides functionality to register entities for cleanup after tests are executed,
+/// ensuring that the database state is reset.</remarks>
 public class PersistentDbFixture : IntegrationTestBase
 {
     protected override bool UseTransaction => false;

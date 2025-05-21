@@ -5,6 +5,12 @@ using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Tests.Integration.TestSetup;
 
+/// <summary>
+/// Provides a base class for integration tests that require a database context.
+/// </summary>
+/// <remarks>This class sets up a database connection and initializes an <see cref="ApplicationDbContext"/> for
+/// use in integration tests. It optionally uses a database transaction to isolate test cases and ensure a clean state.
+/// Derived classes can override <see cref="UseTransaction"/> to control whether transactions are used.</remarks>
 public abstract class IntegrationTestBase
 {
     internal ApplicationDbContext DbContext = null!;
