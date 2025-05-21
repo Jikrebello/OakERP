@@ -12,15 +12,15 @@
             @* Email *@
             <FluentTextField Label="Email" TextFieldType="TextFieldType.Email"
                              Placeholder="Enter your email"
-                             @bind-Value="vm.Email"
-                             Name="vm.Email" Style="width: 100%;" />
-            <FluentValidationMessage For="@(() => vm.Email)" />
+                             @bind-Value="vm.Form.Email"
+                             Name="Email" Style="width: 100%;" />
+            <FluentValidationMessage For="@(() => vm.Form.Email)" />
 
             @* Password *@
             <FluentTextField Label="Password"
                              Placeholder="Enter your password"
-                             @bind-Value="vm.Password"
-                             Name="vm.Password"
+                             @bind-Value="vm.Form.Password"
+                             Name="Password"
                              TextFieldType="@PasswordFieldType"
                              Style="width: 100%;">
 
@@ -28,7 +28,7 @@
                 <FluentIcon Title="Toggle visibility" Slot="end" @onclick="TogglePasswordVisibility"
                             Value="@(isPasswordVisible ? (Icon)new Icons.Regular.Size20.EyeOff() : new Icons.Regular.Size20.Eye())" />
             </FluentTextField>
-            <FluentValidationMessage For="@(() => vm.Password)" />
+            <FluentValidationMessage For="@(() => vm.Form.Password)" />
 
 
 
