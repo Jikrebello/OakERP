@@ -14,7 +14,7 @@
 - ⚙️ **Unified UI**: Razor components shared across desktop and web
 - 🖥️ **Offline Desktop App**: Native .NET MAUI app for Windows and MacOS
 - 🌐 **Online Web Client**: Always-connected Blazor Server client
-- 📱 **Mobile Companion App**: Android/iOS support for POS and warehouse
+- 📱 **Mobile Companion App**: Android/iOS support for POS and Inventory Asset tracking
 - 🔄 **Sync Capability**: Offline-first model with eventual online sync
 - 🐳 **Easy Dev Setup**: Docker-based PostgreSQL and pgAdmin services
 
