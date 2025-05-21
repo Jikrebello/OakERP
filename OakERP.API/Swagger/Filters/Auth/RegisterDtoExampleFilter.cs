@@ -5,6 +5,12 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace OakERP.API.Swagger.Filters.Auth;
 
+/// <summary>
+/// Provides an example schema for the <see cref="RegisterDTO"/> type in OpenAPI documentation.
+/// </summary>
+/// <remarks>This filter populates the example property of the OpenAPI schema for the <see cref="RegisterDTO"/>
+/// type. The example includes sample values for the properties <c>tenantName</c>, <c>email</c>, <c>password</c>,  and
+/// <c>confirmPassword</c>.</remarks>
 public class RegisterDtoExampleFilter : ISchemaFilter
 {
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)
