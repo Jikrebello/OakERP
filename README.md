@@ -1,6 +1,6 @@
 ﻿# 🌳 Oak ERP
 
-[![.NET](https://img.shields.io/badge/.NET%208+-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET%209+-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![MAUI](https://img.shields.io/badge/MAUI-Blazor-blueviolet?logo=microsoft&logoColor=white)](https://learn.microsoft.com/en-us/dotnet/maui/)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
@@ -14,7 +14,7 @@
 - ⚙️ **Unified UI**: Razor components shared across desktop and web
 - 🖥️ **Offline Desktop App**: Native .NET MAUI app for Windows and MacOS
 - 🌐 **Online Web Client**: Always-connected Blazor Server client
-- 📱 **Mobile Companion App**: Android/iOS support for POS and warehouse
+- 📱 **Mobile Companion App**: Android/iOS support for POS and Inventory Asset tracking
 - 🔄 **Sync Capability**: Offline-first model with eventual online sync
 - 🐳 **Easy Dev Setup**: Docker-based PostgreSQL and pgAdmin services
 
