@@ -18,6 +18,8 @@ public static class AppBuilderExtensions
         app.MapControllers();
 
         // Add authentication, CORS, etc. later here
+        app.UseCors("OakCors");
+
         return app;
     }
 }

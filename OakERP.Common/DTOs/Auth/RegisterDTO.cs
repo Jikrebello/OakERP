@@ -9,7 +9,22 @@
 public class RegisterDTO
 {
     /// <summary>
-    /// Gets or sets the name of the tenant associated with the current context.
+    /// Gets or sets the first name of the individual.
+    /// </summary>
+    public string FirstName { get; set; } = default!;
+
+    /// <summary>
+    /// Gets or sets the last name of the individual.
+    /// </summary>
+    public string LastName { get; set; } = default!;
+
+    /// <summary>
+    /// Gets or sets the phone number associated with the entity.
+    /// </summary>
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the name of the tenant/ company name associated with the current context.
     /// </summary>
     public string TenantName { get; set; } = default!;
 

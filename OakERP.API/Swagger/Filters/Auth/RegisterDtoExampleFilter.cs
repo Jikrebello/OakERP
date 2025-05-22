@@ -8,9 +8,9 @@ namespace OakERP.API.Swagger.Filters.Auth;
 /// <summary>
 /// Provides an example schema for the <see cref="RegisterDTO"/> type in OpenAPI documentation.
 /// </summary>
-/// <remarks>This filter populates the example property of the OpenAPI schema for the <see cref="RegisterDTO"/>
-/// type. The example includes sample values for the properties <c>tenantName</c>, <c>email</c>, <c>password</c>,  and
-/// <c>confirmPassword</c>.</remarks>
+/// <remarks>This filter populates the OpenAPI schema with a sample object for the <see cref="RegisterDTO"/> type,
+/// demonstrating typical values for its properties. The example includes fields such as tenant name, first name, last
+/// name, phone number, email, password, and confirm password.</remarks>
 public class RegisterDtoExampleFilter : ISchemaFilter
 {
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)
@@ -20,6 +20,9 @@ public class RegisterDtoExampleFilter : ISchemaFilter
             schema.Example = new OpenApiObject
             {
                 ["tenantName"] = new OpenApiString("Acme Inc."),
+                ["firstName"] = new OpenApiString("John"),
+                ["lastName"] = new OpenApiString("Doe"),
+                ["phoneNumber"] = new OpenApiString("+1234567890"),
                 ["email"] = new OpenApiString("user1@acme.com"),
                 ["password"] = new OpenApiString("acmePass123"),
                 ["confirmPassword"] = new OpenApiString("acmePass123"),

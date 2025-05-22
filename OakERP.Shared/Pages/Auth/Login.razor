@@ -1,6 +1,5 @@
 ﻿@page "/auth/login"
 @inject LoginViewModel vm
-@inject IToastService ToastService
 
 <div class="login-container">
     <FluentCard Width="400px">
@@ -10,19 +9,18 @@
             <DataAnnotationsValidator />
 
             @* Email *@
-            <FluentTextField Label="Email" TextFieldType="TextFieldType.Email"
-                             Placeholder="Enter your email"
+            <FluentTextField TextFieldType="TextFieldType.Email"
+                             Placeholder="Email Address"
                              @bind-Value="vm.Form.Email"
-                             Name="Email" Style="width: 100%;" />
+                             Name="Email" Style="width: 100%; margin-bottom: 1rem;" />
             <FluentValidationMessage For="@(() => vm.Form.Email)" />
 
             @* Password *@
-            <FluentTextField Label="Password"
-                             Placeholder="Enter your password"
+            <FluentTextField Placeholder="Password"
                              @bind-Value="vm.Form.Password"
                              Name="Password"
                              TextFieldType="@PasswordFieldType"
-                             Style="width: 100%;">
+                             Style="width: 100%; ">
 
 
                 <FluentIcon Title="Toggle visibility" Slot="end" @onclick="TogglePasswordVisibility"
@@ -30,6 +28,9 @@
             </FluentTextField>
             <FluentValidationMessage For="@(() => vm.Form.Password)" />
 
+            <div style="margin-top: 1rem; text-align: right;">
+                <a href="/auth/forgot" style="font-size: smaller;">Forgot password?</a>
+            </div>
 
 
             @* Login *@
@@ -49,16 +50,12 @@
         </EditForm>
 
         <div style="margin-top: 1rem; text-align: center;">
-            <a href="/auth/forgot" style="font-size: 0.9rem;">Forgot your password?</a>
+            <a style="font-size: small;">Don't have an account?</a>
+            <a href="/auth/register" style="font-size: small; ">Register</a>
         </div>
+
     </FluentCard>
 </div>
-
-@if (!string.IsNullOrWhiteSpace(vm.ErrorMessage))
-{
-    <div class="text-danger mt-2">@vm.ErrorMessage</div>
-}
-
 
 @code
 {

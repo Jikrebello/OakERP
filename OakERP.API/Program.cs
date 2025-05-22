@@ -8,10 +8,26 @@ builder.Services.AddControllers();
 // Register all services (modular)
 builder
     .Services.AddApplicationDb(builder.Configuration)
+    .AddPersistenceServices()
     .AddIdentityServices()
     .AddJwtAuth(builder.Configuration)
     .AddAuthServices()
     .AddSwaggerDocs();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "OakCors",
+        policy =>
+        {
+            policy
+                .WithOrigins("https://localhost:7094") // Blazor Server UI
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+    );
+});
 
 var app = builder.Build();
 
@@ -22,4 +38,5 @@ await DbInitializer.SeedRolesAndAdminAsync(app.Services, app.Configuration);
 
 app.Run();
 
-public partial class Program { }
+public partial class Program
+{ }

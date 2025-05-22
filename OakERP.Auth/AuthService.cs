@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.DTOs.Auth;
 using OakERP.Domain.Entities;
 using OakERP.Domain.Repositories;
@@ -25,56 +27,94 @@ public class AuthService(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
     IJwtGenerator jwtGenerator,
-    ITenantRepository tenantRepository
+    ITenantRepository tenantRepository,
+    IUnitOfWork unitOfWork,
+    ILogger<AuthService> logger
 ) : IAuthService
 {
     /// <summary>
     /// Registers a new user and creates a tenant with an associated license.
     /// </summary>
     /// <remarks>This method performs the following steps: <list type="bullet"> <item>Validates that the
-    /// provided password matches the confirmation password.</item> <item>Checks if a user with the specified email
-    /// already exists.</item> <item>Creates a new tenant with a license valid for one year.</item> <item>Registers the
-    /// user under the newly created tenant.</item> <item>Generates a JWT token for the registered user upon successful
-    /// registration.</item> </list></remarks>
-    /// <param name="dto">The registration details, including user credentials, tenant name, and password confirmation.</param>
+    /// provided passwords match.</item> <item>Checks if the email is already registered.</item> <item>Creates a new
+    /// tenant with a license valid for one year.</item> <item>Registers the user under the tenant and assigns the
+    /// "TenantAdmin" role.</item> <item>Generates a JWT token for the newly registered user upon success.</item>
+    /// </list> If any step fails, the operation is rolled back, and an appropriate error message is returned.</remarks>
+    /// <param name="dto">The registration details, including user information, tenant name, and password.</param>
     /// <returns>An <see cref="AuthResultDTO"/> indicating the result of the registration process.  If successful, the result
-    /// contains a JWT token and the username of the newly registered user.  If unsuccessful, the result contains an
-    /// error message describing the failure.</returns>
+    /// contains a JWT token and the user's full name.  If unsuccessful, the result contains an error message.</returns>
     public async Task<AuthResultDTO> RegisterAsync(RegisterDTO dto)
     {
+        var email = dto.Email.Trim();
+        var normalizedEmail = email.ToUpperInvariant();
+
         if (dto.Password != dto.ConfirmPassword)
             return AuthResultDTO.Fail("Passwords do not match.");
 
-        var existingUser = await userManager.FindByEmailAsync(dto.Email);
+        var existingUser = await userManager.FindByEmailAsync(email);
         if (existingUser is not null)
             return AuthResultDTO.Fail("Email already exists.");
 
-        var tenant = new Tenant
+        await unitOfWork.BeginTransactionAsync();
+        try
         {
-            Name = dto.TenantName,
-            License = new License
+            var tenant = new Tenant
             {
-                Key = Guid.NewGuid().ToString("N"),
-                CreatedAt = DateTime.UtcNow,
-                ExpiryDate = DateTime.UtcNow.AddYears(1),
-            },
-        };
+                Name = dto.TenantName,
+                License = new License
+                {
+                    Key = Guid.NewGuid().ToString("N"),
+                    CreatedAt = DateTime.UtcNow,
+                    ExpiryDate = DateTime.UtcNow.AddYears(1),
+                },
+            };
 
-        await tenantRepository.CreateAsync(tenant);
+            await tenantRepository.CreateAsync(tenant);
 
-        var user = new ApplicationUser
+            var user = new ApplicationUser
+            {
+                UserName = email,
+                NormalizedUserName = normalizedEmail,
+                Email = email,
+                NormalizedEmail = normalizedEmail,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                PhoneNumber = dto.PhoneNumber,
+                EmailConfirmed = true,
+                TenantId = tenant.Id,
+            };
+
+            var createUserResult = await userManager.CreateAsync(user, dto.Password);
+            if (!createUserResult.Succeeded)
+            {
+                await unitOfWork.RollbackAsync();
+                return AuthResultDTO.Fail(createUserResult.Errors.First().Description);
+            }
+
+            var addToRoleResult = await userManager.AddToRoleAsync(user, "TenantAdmin");
+            if (!addToRoleResult.Succeeded)
+            {
+                await unitOfWork.RollbackAsync();
+                return AuthResultDTO.Fail("User created but failed to assign role.");
+            }
+
+            await unitOfWork.CommitAsync();
+
+            logger.LogInformation(
+                "New user registered: {Email} under tenant {TenantName}",
+                user.Email,
+                tenant.Name
+            );
+
+            var token = jwtGenerator.Generate(user);
+            return AuthResultDTO.SuccessWith(token, $"{user.FirstName} {user.LastName}");
+        }
+        catch (Exception ex)
         {
-            UserName = dto.Email,
-            Email = dto.Email,
-            TenantId = tenant.Id,
-        };
-
-        var result = await userManager.CreateAsync(user, dto.Password);
-        if (!result.Succeeded)
-            return AuthResultDTO.Fail(result.Errors.First().Description);
-
-        var token = jwtGenerator.Generate(user);
-        return AuthResultDTO.SuccessWith(token, userName: user.UserName);
+            await unitOfWork.RollbackAsync();
+            logger.LogError(ex, "Registration failed for email: {Email}", dto.Email);
+            return AuthResultDTO.Fail("An unexpected error occurred during registration.");
+        }
     }
 
     /// <summary>

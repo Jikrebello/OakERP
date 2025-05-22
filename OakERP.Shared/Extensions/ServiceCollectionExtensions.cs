@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
 
         // ViewModels
         services.AddScoped<LoginViewModel>();
+        services.AddScoped<RegisterViewModel>();
 
         return services;
     }

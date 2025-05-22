@@ -4,5 +4,7 @@ namespace OakERP.Shared.Services.Auth;
 
 public interface IAuthService
 {
-    Task<AuthResultDTO?> LoginAsync(string email, string password);
+    Task<AuthResultDTO?> LoginAsync(LoginDTO loginDTO);
+
+    Task<AuthResultDTO?> RegisterAsync(RegisterDTO registerDTO);
 }

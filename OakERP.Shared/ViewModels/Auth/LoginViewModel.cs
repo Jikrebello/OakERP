@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.FluentUI.AspNetCore.Components;
 using OakERP.Common.Abstractions;
 using OakERP.Shared.Models.Auth;
 using OakERP.Shared.Services.Api;
@@ -23,7 +24,8 @@ public class LoginViewModel(
     IAuthService authService,
     ITokenStore tokenStore,
     IApiClient api,
-    NavigationManager nav
+    NavigationManager nav,
+    IToastService toast
 ) : BaseFormViewModel<LoginFormModel>(api, nav)
 {
     /// <summary>
@@ -42,7 +44,7 @@ public class LoginViewModel(
 
         IsBusy = true;
 
-        var result = await authService.LoginAsync(Form.Email, Form.Password);
+        var result = await authService.LoginAsync(Form);
 
         if (result is { Success: true })
         {
@@ -51,7 +53,7 @@ public class LoginViewModel(
             return;
         }
 
-        ErrorMessage = result?.Message ?? "Login failed.";
+        toast.ShowError(result?.Message ?? "Login failed.");
         IsBusy = false;
     }
 }

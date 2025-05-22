@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OakERP.API.Swagger.Filters.Auth;
+using OakERP.Application.Interfaces.Persistence;
 using OakERP.Auth;
 using OakERP.Domain.Entities;
 using OakERP.Domain.Repositories;
@@ -23,6 +24,13 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(config.GetConnectionString("DefaultConnection"))
         );
+
+        return services;
+    }
+
+    public static IServiceCollection AddPersistenceServices(this IServiceCollection services)
+    {
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }

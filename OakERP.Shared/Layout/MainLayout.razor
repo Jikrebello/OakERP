@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using OakERP.Shared.Extensions
+@inherits LayoutComponentBase
 @inject ICurrentUserService CurrentUser;
 @inject NavigationManager Navigation;
 
@@ -53,12 +54,12 @@ else
             try
             {
                 isAuthenticated = await CurrentUser.IsAuthenticatedAsync();
-                var isAtLogin = Navigation.Uri.Contains("/auth/login");
 
-                if (!isAuthenticated && !isAtLogin)
+                if (!isAuthenticated && !Navigation.IsOnPublicRoute("auth/login", "auth/register"))
                 {
                     Navigation.NavigateTo("/auth/login", forceLoad: true);
                 }
+
             }
             catch
             {

@@ -4,6 +4,7 @@ using OakERP.Common.Abstractions;
 using OakERP.Services;
 using OakERP.Shared.Extensions;
 using OakERP.Shared.Services;
+using OakERP.Shared.Services.Api;
 using OakERP.Shared.Services.Auth;
 
 namespace OakERP;
@@ -27,9 +28,16 @@ public static class MauiProgram
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         builder.Services.AddScoped<IPlatformService, MauiPlatformService>();
 
-        builder.Services.AddScoped(sp => new HttpClient
+        builder.Services.AddScoped<AuthTokenHandler>();
+
+        builder.Services.AddScoped<IApiClient>(sp =>
         {
-            BaseAddress = new Uri("http://localhost:5001"),
+            var handler = sp.GetRequiredService<AuthTokenHandler>();
+            var client = new HttpClient(handler)
+            {
+                BaseAddress = new Uri("https://localhost:7057/api/"),
+            };
+            return new ApiClient(client);
         });
 
         // Shared Razor Class Lib services

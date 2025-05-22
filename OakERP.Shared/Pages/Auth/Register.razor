@@ -1,0 +1,106 @@
+﻿@page "/auth/register"
+@inject RegisterViewModel vm
+
+<div class="login-container">
+    <FluentCard Width="400px">
+        <h2 style="text-align: center; margin-bottom: 1rem;">Register</h2>
+
+        <EditForm EditContext="@vm.EditContext">
+            <DataAnnotationsValidator />
+
+            @* First Name *@
+            <FluentTextField Placeholder="First name"
+                             @bind-Value="vm.Form.FirstName"
+                             Name="FirstName" Style="width: 100%; margin-bottom: 1rem;" />
+            <FluentValidationMessage For="@(() => vm.Form.FirstName)" />
+
+            @* Last Name *@
+            <FluentTextField Placeholder="Last name"
+                             @bind-Value="vm.Form.LastName"
+                             Name="LastName" Style="width: 100%; margin-bottom: 1rem;" />
+            <FluentValidationMessage For="@(() => vm.Form.LastName)" />
+
+            @* Company / Tenant Name  *@
+            <FluentTextField Placeholder="Company name"
+                             @bind-Value="vm.Form.TenantName"
+                             Name="TenantName" Style="width: 100%; margin-bottom: 1rem;" />
+            <FluentValidationMessage For="@(() => vm.Form.TenantName)" />
+
+            @* Phone Number *@
+            <FluentTextField Placeholder="Phone Number (e.g. +1234567890)"
+                             TextFieldType="TextFieldType.Tel"
+                             @bind-Value="vm.Form.PhoneNumber"
+                             Name="PhoneNumber"
+                             Style="width: 100%; margin-bottom: 1rem;" />
+            <FluentValidationMessage For="@(() => vm.Form.PhoneNumber)" />
+
+            @* Email *@
+            <FluentTextField TextFieldType="TextFieldType.Email"
+                             Placeholder="Email Address"
+                             @bind-Value="vm.Form.Email"
+                             Name="Email" Style="width: 100%; margin-bottom: 1rem;" />
+            <FluentValidationMessage For="@(() => vm.Form.Email)" />
+
+            @* Password *@
+            <FluentTextField Placeholder="Password"
+                             @bind-Value="vm.Form.Password"
+                             Name="Password"
+                             TextFieldType="@PasswordFieldType"
+                             Style="width: 100%; margin-bottom: 1rem;">
+                <FluentIcon Title="Toggle visibility"
+                            Slot="end"
+                            @onclick="TogglePasswordVisibility"
+                            Value="@(isPasswordVisible ? (Icon)new Icons.Regular.Size20.EyeOff() : new Icons.Regular.Size20.Eye())" />
+            </FluentTextField>
+            <FluentValidationMessage For="@(() => vm.Form.Password)" />
+
+            @* Confirm Password *@
+            <FluentTextField Placeholder="Confirm Password"
+                             @bind-Value="vm.Form.ConfirmPassword"
+                             Name="ConfirmPassword"
+                             TextFieldType="@PasswordFieldType"
+                             Style="width: 100%; margin-bottom: 1rem;">
+                <FluentIcon Title="Toggle visibility"
+                            Slot="end"
+                            @onclick="TogglePasswordVisibility"
+                            Value="@(isPasswordVisible ? (Icon)new Icons.Regular.Size20.EyeOff() : new Icons.Regular.Size20.Eye())" />
+            </FluentTextField>
+            <FluentValidationMessage For="@(() => vm.Form.ConfirmPassword)" />
+
+            @* Submit *@
+            <FluentButton Style="width: 100%; margin-top: 1rem;"
+                          Appearance="Appearance.Accent"
+                          @onclick="vm.RegisterAsync"
+                          Disabled="vm.IsBusy">
+                @if (vm.IsBusy)
+                {
+                    <span>Registering...</span>
+                }
+                else
+                {
+                    <span>Register</span>
+                }
+            </FluentButton>
+
+        </EditForm>
+
+        <div style="margin-top: 1rem; text-align: center;">
+            <a style="font-size: small;">Already have an account?</a>
+            <a href="/auth/login" style="font-size: small;">Login</a>
+        </div>
+    </FluentCard>
+</div>
+
+@code
+{
+    private bool isPasswordVisible = false;
+
+    private TextFieldType PasswordFieldType =>
+        isPasswordVisible ? TextFieldType.Text : TextFieldType.Password;
+
+    private void TogglePasswordVisibility()
+    {
+        isPasswordVisible = !isPasswordVisible;
+    }
+
+}

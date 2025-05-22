@@ -3,6 +3,7 @@ using Microsoft.FluentUI.AspNetCore.Components;
 using OakERP.Common.Abstractions;
 using OakERP.Shared.Extensions;
 using OakERP.Shared.Services;
+using OakERP.Shared.Services.Api;
 using OakERP.Shared.Services.Auth;
 using OakERP.Web.Components;
 using OakERP.Web.Services;
@@ -20,7 +21,14 @@ builder.Services.AddScoped<ITokenStore, BlazorTokenStore>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IPlatformService, BlazorPlatformService>();
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5001") });
+builder.Services.AddScoped<AuthTokenHandler>();
+
+builder
+    .Services.AddHttpClient<IApiClient, ApiClient>(client =>
+    {
+        client.BaseAddress = new Uri("https://localhost:7057/api/");
+    })
+    .AddHttpMessageHandler<AuthTokenHandler>();
 
 // Register shared Razor Class Library services
 builder.Services.AddOakClientServices();
