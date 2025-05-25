@@ -4,7 +4,6 @@ using OakERP.Common.Abstractions;
 using OakERP.Shared.Extensions;
 using OakERP.Shared.Services;
 using OakERP.Shared.Services.Api;
-using OakERP.Shared.Services.Auth;
 using OakERP.Web.Components;
 using OakERP.Web.Services;
 
@@ -18,7 +17,6 @@ builder.Services.AddFluentUIComponents();
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
 builder.Services.AddScoped<ProtectedLocalStorage>();
 builder.Services.AddScoped<ITokenStore, BlazorTokenStore>();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IPlatformService, BlazorPlatformService>();
 
 builder.Services.AddScoped<AuthTokenHandler>();

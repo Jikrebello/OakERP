@@ -36,7 +36,7 @@
             @* Login *@
             <FluentButton Style="width: 100%; margin-top: 1rem;"
                           Appearance="Appearance.Accent"
-                          @onclick="vm.LoginAsync"
+                          @onclick="TriggerLogin"
                           Disabled="vm.IsBusy">
                 @if (vm.IsBusy)
                 {
@@ -59,8 +59,8 @@
 
 @code
 {
-    private bool isPasswordVisible = false;
 
+    private bool isPasswordVisible = false;
     private TextFieldType PasswordFieldType =>
         isPasswordVisible ? TextFieldType.Text : TextFieldType.Password;
 
@@ -68,4 +68,10 @@
     {
         isPasswordVisible = !isPasswordVisible;
     }
+
+    private async Task TriggerLogin()
+    {
+        await vm.LoginAsync();
+    }
+
 }

@@ -1,7 +1,6 @@
-﻿@using OakERP.Shared.Extensions
-@inherits LayoutComponentBase
-@inject ICurrentUserService CurrentUser;
+﻿@inherits LayoutComponentBase
 @inject NavigationManager Navigation;
+@inject IAuthSessionManager Session
 
 
 @if (!hasBootstrapped)
@@ -46,28 +45,46 @@ else
 {
     private bool isAuthenticated = false;
     private bool hasBootstrapped = false;
+    private bool shouldRedirectToLogin = false;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (firstRender && !hasBootstrapped)
+        isAuthenticated = await Session.IsAuthenticatedAsync();
+
+        Session.OnUserChanged += async () =>
         {
-            try
-            {
-                isAuthenticated = await CurrentUser.IsAuthenticatedAsync();
+            isAuthenticated = await Session.IsAuthenticatedAsync();
 
-                if (!isAuthenticated && !Navigation.IsOnPublicRoute("auth/login", "auth/register"))
-                {
-                    Navigation.NavigateTo("/auth/login", forceLoad: true);
-                }
-
-            }
-            catch
+            if (!isAuthenticated && !Navigation.IsOnPublicRoute("auth/login", "auth/register"))
             {
-                // Optionally log or swallow
+                Navigation.NavigateTo("/auth/login");
             }
 
-            hasBootstrapped = true;
-            StateHasChanged(); // Trigger render
+            if (isAuthenticated && Navigation.IsOnPublicRoute("auth/login"))
+            {
+                Navigation.NavigateTo("/");
+            }
+
+            StateHasChanged();
+        };
+
+        if (!isAuthenticated && !Navigation.IsOnPublicRoute("auth/login", "auth/register"))
+        {
+            shouldRedirectToLogin = true;
+        }
+
+        hasBootstrapped = true;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (shouldRedirectToLogin)
+        {
+            shouldRedirectToLogin = false;
+            Navigation.NavigateTo("/auth/login", forceLoad: true);
         }
     }
 }
+
+
+

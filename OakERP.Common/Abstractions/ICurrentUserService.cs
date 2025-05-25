@@ -55,4 +55,6 @@ public interface ICurrentUserService
     /// <returns>A task that represents the asynchronous operation. The task result contains  <see langword="true"/> if the user
     /// is authenticated; otherwise, <see langword="false"/>.</returns>
     Task<bool> IsAuthenticatedAsync();
+
+    Task<ClaimsPrincipal> RefreshAsync();
 }

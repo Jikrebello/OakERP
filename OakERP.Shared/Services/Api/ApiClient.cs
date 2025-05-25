@@ -2,8 +2,15 @@
 
 namespace OakERP.Shared.Services.Api;
 
-public class ApiClient(HttpClient http) : IApiClient
+public class ApiClient : IApiClient
 {
+    private readonly HttpClient _http;
+
+    public ApiClient(HttpClient http)
+    {
+        _http = http;
+    }
+
     public async Task<ApiResult<TResponse>> PostAsync<TRequest, TResponse>(
         string url,
         TRequest payload
@@ -11,7 +18,10 @@ public class ApiClient(HttpClient http) : IApiClient
     {
         try
         {
-            var response = await http.PostAsJsonAsync(url, payload);
+            Console.WriteLine($"HttpClient BaseAddress: {_http.BaseAddress}");
+            Console.WriteLine($"URL: {url}");
+
+            var response = await _http.PostAsJsonAsync(url, payload);
 
             if (response.IsSuccessStatusCode)
             {
@@ -32,7 +42,7 @@ public class ApiClient(HttpClient http) : IApiClient
     {
         try
         {
-            var response = await http.GetAsync(url);
+            var response = await _http.GetAsync(url);
 
             if (response.IsSuccessStatusCode)
             {

@@ -6,12 +6,24 @@ namespace OakERP.Shared.Services.Auth;
 
 public class CurrentUserService(ITokenStore tokenStore) : ICurrentUserService
 {
+    private ClaimsPrincipal? _cachedUser;
+
     public async Task<ClaimsPrincipal> GetUserAsync()
     {
+        if (_cachedUser is not null)
+            return _cachedUser;
+
+        return await RefreshAsync();
+    }
+
+    public async Task<ClaimsPrincipal> RefreshAsync()
+    {
         var token = await tokenStore.GetTokenAsync();
+
         if (string.IsNullOrWhiteSpace(token))
         {
-            return new ClaimsPrincipal(new ClaimsIdentity());
+            _cachedUser = new ClaimsPrincipal(new ClaimsIdentity());
+            return _cachedUser;
         }
 
         var handler = new JwtSecurityTokenHandler();
@@ -19,7 +31,9 @@ public class CurrentUserService(ITokenStore tokenStore) : ICurrentUserService
 
         var claims = jwt.Claims.ToList();
         var identity = new ClaimsIdentity(claims, "jwt");
-        return new ClaimsPrincipal(identity);
+        _cachedUser = new ClaimsPrincipal(identity);
+
+        return _cachedUser;
     }
 
     public async Task<string?> GetUserIdAsync() =>

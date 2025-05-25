@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.FluentUI.AspNetCore.Components;
-using OakERP.Common.Abstractions;
 using OakERP.Shared.Models.Auth;
 using OakERP.Shared.Services.Api;
 using OakERP.Shared.Services.Auth;
@@ -21,8 +20,8 @@ namespace OakERP.Shared.ViewModels.Auth;
 /// <param name="api"></param>
 /// <param name="nav"></param>
 public class LoginViewModel(
+    IAuthSessionManager session,
     IAuthService authService,
-    ITokenStore tokenStore,
     IApiClient api,
     NavigationManager nav,
     IToastService toast
@@ -35,12 +34,12 @@ public class LoginViewModel(
     /// If the login is successful, the authentication token is saved, and the user is redirected to the home page.  If
     /// the login fails, an error message is set.</remarks>
     /// <returns></returns>
-    public async Task LoginAsync()
+    public async Task<bool> LoginAsync()
     {
         ErrorMessage = null;
 
         if (!EditContext.Validate())
-            return;
+            return false;
 
         IsBusy = true;
 
@@ -48,12 +47,12 @@ public class LoginViewModel(
 
         if (result is { Success: true })
         {
-            await tokenStore.SaveTokenAsync(result.Token!);
-            Navigation.NavigateTo("/");
-            return;
+            await session.SetTokenAsync(result.Token!);
+            return true;
         }
 
         toast.ShowError(result?.Message ?? "Login failed.");
         IsBusy = false;
+        return false;
     }
 }

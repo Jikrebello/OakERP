@@ -1,74 +1,38 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using OakERP.Domain.Entities;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Npgsql;
+using OakERP.Infrastructure.Persistence.Seeding;
 
 namespace OakERP.Infrastructure.Persistence;
 
-public static class DbInitializer
+public class DbInitializer(
+    IEnumerable<ISeeder> seeders,
+    ILogger<DbInitializer> logger,
+    IHostEnvironment hostEnv
+)
 {
-    public static async Task SeedRolesAndAdminAsync(
-        IServiceProvider serviceProvider,
-        IConfiguration configuration
-    )
+    private readonly IEnumerable<ISeeder> _seeders =
+    [
+        .. seeders.Where(s => s.IsEnabled(hostEnv.EnvironmentName)).OrderBy(s => s.Order),
+    ];
+
+    private readonly string _environment = hostEnv.EnvironmentName;
+
+    public async Task SeedDbAsync()
     {
-        using var scope = serviceProvider.CreateScope();
+        logger.LogInformation(
+            "🌱 Starting database seed for {Environment} environment",
+            _environment
+        );
 
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-        // 1. Ensure role exists
-        string[] roles = ["Admin", "User"];
-        foreach (var role in roles)
+        foreach (var seeder in _seeders)
         {
-            if (!await roleManager.RoleExistsAsync(role))
-            {
-                await roleManager.CreateAsync(new IdentityRole(role));
-            }
+            logger.LogInformation("🔸 Executing seeder: {Seeder}", seeder.GetType().Name);
+            await seeder.SeedAsync();
         }
 
-        // 2. Create default tenant
-        var tenant = db.Tenants.FirstOrDefault(t => t.Name == "SystemTenant");
-        if (tenant is null)
-        {
-            tenant = new Tenant
-            {
-                Name = "SystemTenant",
-                License = new License
-                {
-                    Key = Guid.NewGuid().ToString("N"),
-                    ExpiryDate = DateTime.UtcNow.AddYears(1),
-                },
-            };
-            db.Tenants.Add(tenant);
-            await db.SaveChangesAsync();
-        }
-
-        // 3. Create admin user
-        var adminEmail = configuration["Seed:AdminEmail"] ?? "admin@oak.local";
-        var adminPass = configuration["Seed:AdminPassword"] ?? "admin123";
-
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
-        if (adminUser is null)
-        {
-            adminUser = new ApplicationUser
-            {
-                Email = adminEmail,
-                UserName = adminEmail,
-                TenantId = tenant.Id,
-                EmailConfirmed = true,
-            };
-
-            var result = await userManager.CreateAsync(adminUser, adminPass);
-            if (!result.Succeeded)
-            {
-                throw new Exception(
-                    "Failed to seed admin user: " + result.Errors.First().Description
-                );
-            }
-
-            await userManager.AddToRoleAsync(adminUser, "Admin");
-        }
+        logger.LogInformation("✅ Seeding complete.");
     }
 }
