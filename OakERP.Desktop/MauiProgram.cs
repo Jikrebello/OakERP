@@ -30,8 +30,10 @@ public static class MauiProgram
 
         builder.Services.AddScoped<IApiClient>(sp =>
         {
-            var handler = sp.GetRequiredService<AuthTokenHandler>();
-            var client = new HttpClient(handler)
+            var tokenHandler = sp.GetRequiredService<AuthTokenHandler>();
+            tokenHandler.InnerHandler = new HttpClientHandler();
+
+            var client = new HttpClient(tokenHandler)
             {
                 BaseAddress = new Uri("https://localhost:7057/api/"),
             };

@@ -16,6 +16,7 @@ builder.Services.AddFluentUIComponents();
 // Add device-specific services used by OakERP.Shared
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
 builder.Services.AddScoped<ProtectedLocalStorage>();
+builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<ITokenStore, BlazorTokenStore>();
 builder.Services.AddScoped<IPlatformService, BlazorPlatformService>();
 
