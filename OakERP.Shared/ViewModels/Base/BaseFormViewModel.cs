@@ -29,7 +29,7 @@ public abstract class BaseFormViewModel<TModel> : BaseViewModel
     /// interact with form validation logic.</remarks>
     public EditContext EditContext { get; }
 
-    protected BaseFormViewModel(IApiClient api, NavigationManager navigation)
+    protected BaseFormViewModel(IApiClient api, NavigationManager? navigation = null)
         : base(api, navigation)
     {
         Form = new TModel();

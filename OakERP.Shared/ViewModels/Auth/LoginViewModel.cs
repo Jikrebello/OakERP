@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
+﻿using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.FluentUI.AspNetCore.Components;
 using OakERP.Shared.Models.Auth;
 using OakERP.Shared.Services.Api;
@@ -19,40 +18,29 @@ namespace OakERP.Shared.ViewModels.Auth;
 /// <param name="tokenStore"></param>
 /// <param name="api"></param>
 /// <param name="nav"></param>
-public class LoginViewModel(
+internal class LoginViewModel(
     IAuthSessionManager session,
     IAuthService authService,
     IApiClient api,
-    NavigationManager nav,
     IToastService toast
-) : BaseFormViewModel<LoginFormModel>(api, nav)
+) : BaseFormViewModel<LoginFormModel>(api)
 {
-    /// <summary>
-    /// Attempts to log in the user with the provided credentials.
-    /// </summary>
-    /// <remarks>This method validates the input form, performs the login operation, and handles the result.
-    /// If the login is successful, the authentication token is saved, and the user is redirected to the home page.  If
-    /// the login fails, an error message is set.</remarks>
-    /// <returns></returns>
-    public async Task<bool> LoginAsync()
+    public async Task LoginAsync()
     {
-        ErrorMessage = null;
-
         if (!EditContext.Validate())
-            return false;
-
-        IsBusy = true;
+            IsBusy = true;
 
         var result = await authService.LoginAsync(Form);
 
         if (result is { Success: true })
         {
             await session.SetTokenAsync(result.Token!);
-            return true;
+        }
+        else
+        {
+            toast.ShowError(result?.Message ?? "Login failed.");
         }
 
-        toast.ShowError(result?.Message ?? "Login failed.");
         IsBusy = false;
-        return false;
     }
 }

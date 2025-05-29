@@ -70,7 +70,7 @@
             @* Submit *@
             <FluentButton Style="width: 100%; margin-top: 1rem;"
                           Appearance="Appearance.Accent"
-                          @onclick="vm.RegisterAsync"
+                          @onclick="TriggerRegister"
                           Disabled="vm.IsBusy">
                 @if (vm.IsBusy)
                 {
@@ -101,6 +101,11 @@
     private void TogglePasswordVisibility()
     {
         isPasswordVisible = !isPasswordVisible;
+    }
+
+    private async Task TriggerRegister()
+    {
+        await vm.RegisterAsync();
     }
 
 }

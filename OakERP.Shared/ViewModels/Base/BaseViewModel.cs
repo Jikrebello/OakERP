@@ -13,11 +13,11 @@ namespace OakERP.Shared.ViewModels.Base;
 /// validation.</remarks>
 /// <param name="api"></param>
 /// <param name="navigation"></param>
-public abstract class BaseViewModel(IApiClient api, NavigationManager navigation)
+public abstract class BaseViewModel(IApiClient api, NavigationManager? navigation = null)
 {
-    protected readonly NavigationManager Navigation = navigation;
-
     protected readonly IApiClient Api = api;
+
+    protected readonly NavigationManager? Navigation = navigation;
 
     /// <summary>
     /// Indicates whether the UI should show a loading spinner or disable inputs.
