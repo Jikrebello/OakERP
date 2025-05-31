@@ -14,7 +14,7 @@ namespace OakERP.API.Controllers;
 /// <param name="authService"></param>
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController(IAuthService authService) : BaseApiController
 {
     /// <summary>
     /// Registers a new user with the provided registration details.
@@ -30,7 +30,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         var result = await authService.RegisterAsync(dto);
 
-        return result.Success ? Ok(result) : BadRequest(result);
+        return ApiResult(result);
     }
 
     /// <summary>
@@ -48,6 +48,6 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         var result = await authService.LoginAsync(dto);
 
-        return result.Success ? Ok(result) : Unauthorized(result);
+        return ApiResult(result);
     }
 }

@@ -10,7 +10,13 @@ public class AuthTokenHandler(ITokenStore tokenStore) : DelegatingHandler
         CancellationToken cancellationToken
     )
     {
+        var path = request.RequestUri?.AbsolutePath;
+
+        if (path != null && (path.Contains("/register") || path.Contains("/login")))
+            return await base.SendAsync(request, cancellationToken);
+
         var token = await tokenStore.GetTokenAsync();
+
         if (!string.IsNullOrWhiteSpace(token))
         {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);

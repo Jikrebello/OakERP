@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Identity;
 using Moq;
 using OakERP.Auth;
 using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Persistence;
 using OakERP.Domain.Entities;
-using OakERP.Domain.Repositories;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.Auth;
@@ -20,60 +18,11 @@ namespace OakERP.Tests.Unit.Auth;
 /// from external systems like the database, user manager, and tenant repository.</remarks>
 public class AuthServiceTests
 {
-    private readonly Mock<UserManager<ApplicationUser>> _userManager;
-    private readonly Mock<SignInManager<ApplicationUser>> _signInManager;
-    private readonly IJwtGenerator _jwtGenerator;
-    private readonly AuthService _authService;
-    private readonly Mock<ITenantRepository> _tenantRepository;
+    private readonly AuthServiceTestFactory _factory;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AuthServiceTests"/> class.
-    /// </summary>
-    /// <remarks>This constructor sets up the necessary mocks and dependencies required for testing the  <see
-    /// cref="AuthService"/> class. It initializes mocked instances of <see cref="UserManager{TUser}"/>,  <see
-    /// cref="SignInManager{TUser}"/>, <see cref="IJwtGenerator"/>, and <see cref="ITenantRepository"/>  to facilitate
-    /// unit testing without relying on external dependencies.</remarks>
     public AuthServiceTests()
     {
-        var userStore = new Mock<IUserStore<ApplicationUser>>();
-        _userManager = new Mock<UserManager<ApplicationUser>>(
-            userStore.Object,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
-
-        var contextAccessor = new Mock<IHttpContextAccessor>();
-        var claimsFactory = new Mock<IUserClaimsPrincipalFactory<ApplicationUser>>();
-        _signInManager = new Mock<SignInManager<ApplicationUser>>(
-            _userManager.Object,
-            contextAccessor.Object,
-            claimsFactory.Object,
-            null,
-            null,
-            null,
-            null
-        );
-
-        var configMock = new Mock<IConfiguration>();
-
-        var jwtMock = new Mock<IJwtGenerator>();
-        jwtMock.Setup(j => j.Generate(It.IsAny<ApplicationUser>())).Returns("mock-token");
-        _jwtGenerator = jwtMock.Object;
-
-        _tenantRepository = new Mock<ITenantRepository>();
-
-        _authService = new AuthService(
-            _userManager.Object,
-            _signInManager.Object,
-            _jwtGenerator,
-            _tenantRepository.Object
-        );
+        _factory = new AuthServiceTestFactory();
     }
 
     /// <summary>
@@ -95,9 +44,10 @@ public class AuthServiceTests
             ConfirmPassword = "different",
             TenantName = "TenantA",
         };
+        var service = _factory.CreateService();
 
         // Act
-        var result = await _authService.RegisterAsync(dto);
+        var result = await service.RegisterAsync(dto);
 
         // Assert
         result.Success.ShouldBeFalse();
@@ -123,10 +73,13 @@ public class AuthServiceTests
             TenantName = "TenantB",
         };
 
-        _userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(new ApplicationUser());
+        _factory
+            .UserManager.Setup(m => m.FindByEmailAsync(dto.Email))
+            .ReturnsAsync(new ApplicationUser());
+        var service = _factory.CreateService();
 
         // Act
-        var result = await _authService.RegisterAsync(dto);
+        var result = await service.RegisterAsync(dto);
 
         // Assert
         result.Success.ShouldBeFalse();
@@ -152,16 +105,24 @@ public class AuthServiceTests
             TenantName = "TenantC",
         };
 
-        _userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync((ApplicationUser)null!);
+        _factory
+            .UserManager.Setup(m => m.FindByEmailAsync(dto.Email))
+            .ReturnsAsync((ApplicationUser)null!);
 
-        _userManager
-            .Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), dto.Password))
+        _factory
+            .UserManager.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), dto.Password))
             .ReturnsAsync(
                 IdentityResult.Failed(new IdentityError { Description = "Invalid password." })
             );
 
+        _factory
+            .TenantRepository.Setup(r => r.CreateAsync(It.IsAny<Tenant>()))
+            .Returns(Task.CompletedTask);
+
+        var service = _factory.CreateService();
+
         // Act
-        var result = await _authService.RegisterAsync(dto);
+        var result = await service.RegisterAsync(dto);
 
         // Assert
         result.Success.ShouldBeFalse();
@@ -169,12 +130,13 @@ public class AuthServiceTests
     }
 
     /// <summary>
-    /// Tests that the <see cref="IAuthService.RegisterAsync"/> method succeeds when provided with valid registration
-    /// data.
+    /// Tests that the <c>RegisterAsync</c> method successfully registers a new user when valid data is provided.
     /// </summary>
-    /// <remarks>This test verifies that the registration process completes successfully when the input data
-    /// is valid,  ensuring that a new user is created and a token is returned. It mocks dependencies such as the user
-    /// manager  to simulate expected behavior.</remarks>
+    /// <remarks>This test verifies that the <c>RegisterAsync</c> method performs the following actions: <list
+    /// type="bullet"> <item>Ensures the user does not already exist by checking their email.</item> <item>Creates a new
+    /// user with the provided password.</item> <item>Assigns the user to the "Admin" role.</item> <item>Creates a new
+    /// tenant associated with the user.</item> </list> The test asserts that the operation succeeds and a valid token
+    /// is returned.</remarks>
     /// <returns></returns>
     [Fact]
     public async Task RegisterAsync_Should_Succeed_When_Data_Is_Valid()
@@ -188,14 +150,26 @@ public class AuthServiceTests
             TenantName = "TenantD",
         };
 
-        _userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync((ApplicationUser)null!);
+        _factory
+            .UserManager.Setup(m => m.FindByEmailAsync(dto.Email))
+            .ReturnsAsync((ApplicationUser)null!);
 
-        _userManager
-            .Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), dto.Password))
+        _factory
+            .UserManager.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), dto.Password))
             .ReturnsAsync(IdentityResult.Success);
 
+        _factory
+            .UserManager.Setup(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), UserRoles.Admin))
+            .ReturnsAsync(IdentityResult.Success);
+
+        _factory
+            .TenantRepository.Setup(r => r.CreateAsync(It.IsAny<Tenant>()))
+            .Returns(Task.CompletedTask);
+
+        var service = _factory.CreateService();
+
         // Act
-        var result = await _authService.RegisterAsync(dto);
+        var result = await service.RegisterAsync(dto);
 
         // Assert
         result.Success.ShouldBeTrue();
@@ -215,12 +189,13 @@ public class AuthServiceTests
         // Arrange
         var dto = new LoginDTO { Email = "test@example.com", Password = "wrongpass" };
 
-        _signInManager
-            .Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
+        _factory
+            .SignInManager.Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
             .ReturnsAsync(SignInResult.Failed);
+        var service = _factory.CreateService();
 
         // Act
-        var result = await _authService.LoginAsync(dto);
+        var result = await service.LoginAsync(dto);
 
         // Assert
         result.Success.ShouldBeFalse();
@@ -239,14 +214,17 @@ public class AuthServiceTests
         // Arrange
         var dto = new LoginDTO { Email = "missing@example.com", Password = "correctpass" };
 
-        _signInManager
-            .Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
+        _factory
+            .SignInManager.Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
             .ReturnsAsync(SignInResult.Success);
 
-        _userManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync((ApplicationUser)null!);
+        _factory
+            .UserManager.Setup(u => u.FindByEmailAsync(dto.Email))
+            .ReturnsAsync((ApplicationUser)null!);
+        var service = _factory.CreateService();
 
         // Act
-        var result = await _authService.LoginAsync(dto);
+        var result = await service.LoginAsync(dto);
 
         // Assert
         result.Success.ShouldBeFalse();
@@ -272,16 +250,19 @@ public class AuthServiceTests
             TenantId = Guid.NewGuid(),
         };
 
-        _signInManager
-            .Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
+        _factory
+            .SignInManager.Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
             .ReturnsAsync(SignInResult.Success);
 
-        _userManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
+        _factory.UserManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
 
-        _tenantRepository.Setup(r => r.GetByIdAsync(fakeUser.TenantId)).ReturnsAsync((Tenant)null!); // Not found
+        _factory
+            .TenantRepository.Setup(r => r.GetByIdAsync(fakeUser.TenantId))
+            .ReturnsAsync((Tenant)null!); // Not found
+        var service = _factory.CreateService();
 
         // Act
-        var result = await _authService.LoginAsync(dto);
+        var result = await service.LoginAsync(dto);
 
         // Assert
         result.Success.ShouldBeFalse();
@@ -309,16 +290,17 @@ public class AuthServiceTests
         };
         var tenant = new Tenant { Id = tenantId, Name = "NoLicenseTenant" };
 
-        _signInManager
-            .Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
+        _factory
+            .SignInManager.Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
             .ReturnsAsync(SignInResult.Success);
 
-        _userManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
+        _factory.UserManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
 
-        _tenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
+        _factory.TenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
+        var service = _factory.CreateService();
 
         // Act
-        var result = await _authService.LoginAsync(dto);
+        var result = await service.LoginAsync(dto);
 
         // Assert
         result.Success.ShouldBeFalse();
@@ -357,16 +339,17 @@ public class AuthServiceTests
             TenantId = tenantId,
         };
 
-        _signInManager
-            .Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
+        _factory
+            .SignInManager.Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
             .ReturnsAsync(SignInResult.Success);
 
-        _userManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
+        _factory.UserManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
 
-        _tenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
+        _factory.TenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
+        var service = _factory.CreateService();
 
         // Act
-        var result = await _authService.LoginAsync(dto);
+        var result = await service.LoginAsync(dto);
 
         // Assert
         result.Success.ShouldBeFalse();
@@ -402,18 +385,19 @@ public class AuthServiceTests
             TenantId = tenantId,
         };
 
-        _signInManager
-            .Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
+        _factory
+            .SignInManager.Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
             .ReturnsAsync(SignInResult.Success);
 
-        _userManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+        _factory.UserManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
 
-        _userManager.Setup(u => u.GetRolesAsync(user)).ReturnsAsync(["User"]);
+        _factory.UserManager.Setup(u => u.GetRolesAsync(user)).ReturnsAsync(["User"]);
 
-        _tenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
+        _factory.TenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
+        var service = _factory.CreateService();
 
         // Act
-        var result = await _authService.LoginAsync(dto);
+        var result = await service.LoginAsync(dto);
 
         // Assert
         result.Success.ShouldBeTrue();

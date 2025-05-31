@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using OakERP.Common.Persistence;
 using OakERP.Domain.Entities;
 
 namespace OakERP.Infrastructure.Persistence.Seeding;
@@ -17,8 +18,7 @@ public class RoleAndAdminSeeder(
     public override async Task SeedAsync()
     {
         // Roles
-        string[] roles = ["Admin", "User"];
-        foreach (var role in roles)
+        foreach (var role in UserRoles.All)
         {
             if (!await roleManager.RoleExistsAsync(role))
                 await roleManager.CreateAsync(new IdentityRole(role));
@@ -59,7 +59,7 @@ public class RoleAndAdminSeeder(
             var result = await userManager.CreateAsync(admin, pass);
             if (!result.Succeeded)
             {
-                throw new Exception(
+                throw new InvalidOperationException(
                     "Failed to seed admin user: " + result.Errors.First().Description
                 );
             }

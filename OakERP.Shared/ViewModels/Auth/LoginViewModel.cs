@@ -34,7 +34,7 @@ internal class LoginViewModel(
 
         if (result is { Success: true })
         {
-            await session.SetTokenAsync(result.Token!);
+            await session.SetTokenAsync(result.Data.Token!);
         }
         else
         {

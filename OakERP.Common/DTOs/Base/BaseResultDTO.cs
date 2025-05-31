@@ -1,4 +1,6 @@
-﻿namespace OakERP.Common.DTOs.Base;
+﻿using System.Net;
+
+namespace OakERP.Common.DTOs.Base;
 
 /// <summary>
 /// Represents a base class for result objects, encapsulating the success status and an optional message.
@@ -8,15 +10,11 @@
 /// failure results.</remarks>
 public abstract class BaseResultDTO
 {
-    /// <summary>
-    /// Gets or sets a value indicating whether the operation was successful.
-    /// </summary>
     public bool Success { get; set; }
 
-    /// <summary>
-    /// Gets or sets the message associated with the current operation or context.
-    /// </summary>
     public string? Message { get; set; }
+
+    public int? StatusCode { get; set; }
 
     /// <summary>
     /// Creates a new instance of the specified result type with a success status and an optional message.
@@ -32,16 +30,23 @@ public abstract class BaseResultDTO
     }
 
     /// <summary>
-    /// Creates a new instance of the specified result type with a failure state and an associated error message.
+    /// Creates a new instance of the specified result type with a failure state.
     /// </summary>
-    /// <typeparam name="T">The type of the result, which must inherit from <see cref="BaseResultDTO"/> and have a parameterless
+    /// <typeparam name="T">The type of the result object, which must inherit from <see cref="BaseResultDTO"/> and have a parameterless
     /// constructor.</typeparam>
-    /// <param name="message">The error message describing the reason for the failure. Cannot be null.</param>
-    /// <returns>A new instance of type <typeparamref name="T"/> with <see cref="BaseResultDTO.Success"/> set to <see
-    /// langword="false"/> and <see cref="BaseResultDTO.Message"/> set to the specified <paramref name="message"/>.</returns>
-    public static T Fail<T>(string message)
+    /// <param name="message">The error message describing the failure.</param>
+    /// <param name="statusCode">The HTTP status code associated with the failure.</param>
+    /// <returns>A new instance of type <typeparamref name="T"/> with <c>Success</c> set to <see langword="false"/>,
+    /// <c>Message</c> set to the specified <paramref name="message"/>, and <c>StatusCode</c> set to the integer value
+    /// of <paramref name="statusCode"/>.</returns>
+    public static T Fail<T>(string message, HttpStatusCode statusCode)
         where T : BaseResultDTO, new()
     {
-        return new T { Success = false, Message = message };
+        return new T
+        {
+            Success = false,
+            Message = message,
+            StatusCode = (int)statusCode,
+        };
     }
 }

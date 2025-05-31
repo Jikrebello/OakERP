@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Net;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Persistence;
 using OakERP.Domain.Entities;
 using OakERP.Domain.Repositories;
 
@@ -49,11 +51,11 @@ public class AuthService(
         var normalizedEmail = email.ToUpperInvariant();
 
         if (dto.Password != dto.ConfirmPassword)
-            return AuthResultDTO.Fail("Passwords do not match.");
+            return AuthResultDTO.Fail("Passwords do not match.", HttpStatusCode.BadRequest);
 
         var existingUser = await userManager.FindByEmailAsync(email);
         if (existingUser is not null)
-            return AuthResultDTO.Fail("Email already exists.");
+            return AuthResultDTO.Fail("Email already exists.", HttpStatusCode.Conflict);
 
         await unitOfWork.BeginTransactionAsync();
         try
@@ -88,14 +90,20 @@ public class AuthService(
             if (!createUserResult.Succeeded)
             {
                 await unitOfWork.RollbackAsync();
-                return AuthResultDTO.Fail(createUserResult.Errors.First().Description);
+                return AuthResultDTO.Fail(
+                    createUserResult.Errors.First().Description,
+                    HttpStatusCode.BadRequest
+                );
             }
 
-            var addToRoleResult = await userManager.AddToRoleAsync(user, "TenantAdmin");
+            var addToRoleResult = await userManager.AddToRoleAsync(user, UserRoles.Admin);
             if (!addToRoleResult.Succeeded)
             {
                 await unitOfWork.RollbackAsync();
-                return AuthResultDTO.Fail("User created but failed to assign role.");
+                return AuthResultDTO.Fail(
+                    "User created but failed to assign role.",
+                    HttpStatusCode.InternalServerError
+                );
             }
 
             await unitOfWork.CommitAsync();
@@ -113,7 +121,10 @@ public class AuthService(
         {
             await unitOfWork.RollbackAsync();
             logger.LogError(ex, "Registration failed for email: {Email}", dto.Email);
-            return AuthResultDTO.Fail("An unexpected error occurred during registration.");
+            return AuthResultDTO.Fail(
+                "An unexpected error occurred during registration.",
+                HttpStatusCode.InternalServerError
+            );
         }
     }
 
@@ -139,21 +150,21 @@ public class AuthService(
         );
 
         if (!result.Succeeded)
-            return AuthResultDTO.Fail("Invalid login credentials.");
+            return AuthResultDTO.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
 
         var user = await userManager.FindByEmailAsync(dto.Email);
         if (user is null)
-            return AuthResultDTO.Fail("User not found.");
+            return AuthResultDTO.Fail("User not found.", HttpStatusCode.NotFound);
 
         var tenant = await tenantRepository.GetByIdAsync(user.TenantId);
         if (tenant is null)
-            return AuthResultDTO.Fail("Tenant not found.");
+            return AuthResultDTO.Fail("Tenant not found.", HttpStatusCode.NotFound);
 
         if (tenant.License is null)
-            return AuthResultDTO.Fail("License not found for tenant.");
+            return AuthResultDTO.Fail("License not found for tenant.", HttpStatusCode.NotFound);
 
         if (tenant.License.ExpiryDate is not null && tenant.License.ExpiryDate < DateTime.UtcNow)
-            return AuthResultDTO.Fail("License has expired.");
+            return AuthResultDTO.Fail("License has expired.", HttpStatusCode.Forbidden);
 
         var token = jwtGenerator.Generate(user);
 

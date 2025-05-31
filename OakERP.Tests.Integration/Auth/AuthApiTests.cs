@@ -35,6 +35,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         {
             Email = $"apiuser_{guid}@oak.test",
             Password = "TestPass123!",
+            FirstName = "TestFirstname",
+            LastName = "TestLastname",
+            PhoneNumber = "123456789",
             ConfirmPassword = "TestPass123!",
             TenantName = $"ApiTenant_{guid}",
         };
@@ -74,6 +77,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         var dto = new RegisterDTO
         {
             Email = $"badpw_{Guid.NewGuid():N}@oak.test",
+            FirstName = "TestFirstname",
+            LastName = "TestLastname",
+            PhoneNumber = "123456789",
             Password = "GoodPass123!",
             ConfirmPassword = "MismatchPass123!",
             TenantName = $"BadPwTenant_{Guid.NewGuid():N}",
@@ -108,6 +114,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         {
             Email = $"duplicate_{guid}@oak.test",
             Password = "TestPass123!",
+            FirstName = "TestFirstname",
+            LastName = "TestLastname",
+            PhoneNumber = "123456789",
             ConfirmPassword = "TestPass123!",
             TenantName = $"DupTenant_{guid}",
         };
@@ -123,6 +132,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         {
             Email = dto.Email,
             Password = "TestPass123!",
+            FirstName = "TestFirstname2",
+            LastName = "TestLastname2",
+            PhoneNumber = "987654321",
             ConfirmPassword = "TestPass123!",
             TenantName = $"DupTenant2_{guid}",
         };
@@ -160,6 +172,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         {
             Email = $"api_login_{guid}@oak.test",
             Password = "TestPass123!",
+            FirstName = "TestFirstname",
+            LastName = "TestLastname",
+            PhoneNumber = "123456789",
             ConfirmPassword = "TestPass123!",
             TenantName = $"ApiTenant_{guid}",
         };
@@ -198,6 +213,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         {
             Email = $"api_badpass_{guid}@oak.test",
             Password = "TestPass123!",
+            FirstName = "TestFirstName",
+            LastName = "TestLastName",
+            PhoneNumber = "1234567890",
             ConfirmPassword = "TestPass123!",
             TenantName = $"ApiTenant_{guid}",
         };
@@ -266,6 +284,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         var registerDto = new RegisterDTO
         {
             Email = $"api_expired_{guid}@oak.test",
+            FirstName = "TestFirstname",
+            LastName = "TestLastname",
+            PhoneNumber = "123456789",
             Password = "TestPass123!",
             ConfirmPassword = "TestPass123!",
             TenantName = $"ApiTenant_{guid}",
@@ -323,6 +344,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         {
             Email = $"api_nolicense_{guid}@oak.test",
             Password = "TestPass123!",
+            FirstName = "TestFirstname",
+            LastName = "TestLastname",
+            PhoneNumber = "123456789",
             ConfirmPassword = "TestPass123!",
             TenantName = $"ApiTenant_{guid}",
         };

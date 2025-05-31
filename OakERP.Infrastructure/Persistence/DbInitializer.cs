@@ -1,8 +1,5 @@
-﻿using System.Diagnostics;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 using OakERP.Infrastructure.Persistence.Seeding;
 
 namespace OakERP.Infrastructure.Persistence;

@@ -6,18 +6,13 @@ namespace OakERP.Shared.Services.Auth;
 
 public class AuthService(IApiClient api) : IAuthService
 {
-    public async Task<AuthResultDTO?> LoginAsync(LoginDTO loginDTO)
+    public async Task<ApiResult<AuthResultDTO>> LoginAsync(LoginDTO loginDTO)
     {
-        var result = await api.PostAsync<LoginDTO, AuthResultDTO>(AuthRoutes.Login, loginDTO);
-        return result.Data;
+        return await api.PostAsync<LoginDTO, AuthResultDTO>(AuthRoutes.Login, loginDTO);
     }
 
-    public async Task<AuthResultDTO?> RegisterAsync(RegisterDTO registerDTO)
+    public async Task<ApiResult<AuthResultDTO>> RegisterAsync(RegisterDTO registerDTO)
     {
-        var result = await api.PostAsync<RegisterDTO, AuthResultDTO>(
-            AuthRoutes.Register,
-            registerDTO
-        );
-        return result.Data;
+        return await api.PostAsync<RegisterDTO, AuthResultDTO>(AuthRoutes.Register, registerDTO);
     }
 }

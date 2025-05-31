@@ -37,7 +37,9 @@ public static class MauiProgram
             {
                 BaseAddress = new Uri("https://localhost:7057/api/"),
             };
-            return new ApiClient(client);
+
+            var logger = sp.GetRequiredService<ILogger<ApiClient>>();
+            return new ApiClient(client, logger);
         });
 
         // Shared Razor Class Lib services
