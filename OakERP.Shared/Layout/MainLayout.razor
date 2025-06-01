@@ -9,7 +9,6 @@
         <p>Loading...</p>
     </div>
 }
-
 else if (isAuthenticated)
 {
     <FluentLayout>
@@ -60,7 +59,7 @@ else
                 Navigation.NavigateTo("/auth/login");
             }
 
-            if (isAuthenticated && Navigation.IsOnPublicRoute("auth/login"))
+            if (isAuthenticated && Navigation.IsOnPublicRoute("auth/login", "auth/register"))
             {
                 Navigation.NavigateTo("/");
             }

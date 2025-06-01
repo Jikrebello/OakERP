@@ -70,7 +70,6 @@ public class AuthService(
                     ExpiryDate = DateTime.UtcNow.AddYears(1),
                 },
             };
-
             await tenantRepository.CreateAsync(tenant);
 
             var user = new ApplicationUser
