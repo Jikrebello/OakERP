@@ -1,17 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Users;
-using OakERP.Domain.Repositories;
+using OakERP.Domain.Repositories.Users;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories;
 
-/// <summary>
-/// Provides methods for managing tenant entities in the application database.
-/// </summary>
-/// <remarks>This repository offers functionality to retrieve, create, update, and delete tenant records. It
-/// interacts with the database context to perform operations on the <see cref="Tenant"/> entity, including related data
-/// such as licenses.</remarks>
-/// <param name="db"></param>
 public class TenantRepository(ApplicationDbContext db) : ITenantRepository
 {
     public async Task<Tenant?> GetByIdAsync(Guid id) =>
@@ -20,8 +13,7 @@ public class TenantRepository(ApplicationDbContext db) : ITenantRepository
     public async Task<Tenant?> GetByNameAsync(string name) =>
         await db.Tenants.Include(t => t.License).FirstOrDefaultAsync(t => t.Name == name);
 
-    public async Task<IEnumerable<Tenant>> GetAllAsync() =>
-        await db.Tenants.Include(t => t.License).ToListAsync();
+    public IQueryable<Tenant> Query() => db.Tenants.Include(t => t.License).AsNoTracking();
 
     public async Task CreateAsync(Tenant tenant)
     {

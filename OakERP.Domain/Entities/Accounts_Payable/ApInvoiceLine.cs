@@ -1,4 +1,5 @@
 ﻿using OakERP.Domain.Entities.General_Ledger;
+using OakERP.Domain.Entities.Inventory;
 using OakERP.Domain.Shared;
 
 namespace OakERP.Domain.Entities.Accounts_Payable;

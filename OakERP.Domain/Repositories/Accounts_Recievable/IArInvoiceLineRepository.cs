@@ -1,0 +1,16 @@
+﻿using OakERP.Domain.Entities.Accounts_Recievable;
+
+namespace OakERP.Domain.Repositories.Accounts_Recievable;
+
+public interface IArInvoiceLineRepository
+{
+    Task<ArInvoiceLine?> GetByIdAsync(Guid id);
+
+    IQueryable<ArInvoiceLine> Query();
+
+    Task CreateAsync(ArInvoiceLine arInvoiceLine);
+
+    Task UpdateAsync(ArInvoiceLine arInvoiceLine);
+
+    Task DeleteAsync(ArInvoiceLine arInvoiceLine);
+}

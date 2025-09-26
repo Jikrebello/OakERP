@@ -1,6 +1,6 @@
 ﻿using OakERP.Domain.Entities.Users;
 
-namespace OakERP.Domain.Repositories;
+namespace OakERP.Domain.Repositories.Users;
 
 /// <summary>
 /// Defines a contract for managing and retrieving license data in a persistent store.
@@ -14,7 +14,7 @@ public interface ILicenseRepository
 
     Task<License?> GetByIdAsync(Guid id);
 
-    Task<IEnumerable<License>> GetAllAsync();
+    IQueryable<License> Query();
 
     Task CreateAsync(License license);
 

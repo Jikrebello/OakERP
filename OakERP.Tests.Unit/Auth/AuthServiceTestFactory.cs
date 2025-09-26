@@ -5,7 +5,7 @@ using Moq;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Auth;
 using OakERP.Domain.Entities.Users;
-using OakERP.Domain.Repositories;
+using OakERP.Domain.Repositories.Users;
 
 namespace OakERP.Tests.Unit.Auth;
 

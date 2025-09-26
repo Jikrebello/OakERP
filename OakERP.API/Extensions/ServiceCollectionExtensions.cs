@@ -8,7 +8,7 @@ using OakERP.API.Swagger.Filters.Auth;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Auth;
 using OakERP.Domain.Entities.Users;
-using OakERP.Domain.Repositories;
+using OakERP.Domain.Repositories.Users;
 using OakERP.Infrastructure.Persistence;
 using OakERP.Infrastructure.Repositories;
 
