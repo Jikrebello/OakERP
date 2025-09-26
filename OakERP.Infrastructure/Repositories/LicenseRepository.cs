@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OakERP.Domain.Entities;
+using OakERP.Domain.Entities.Users;
 using OakERP.Domain.Repositories;
 using OakERP.Infrastructure.Persistence;
 

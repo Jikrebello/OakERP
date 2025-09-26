@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using OakERP.Domain.Entities;
+using OakERP.Domain.Entities.Users;
 
 namespace OakERP.Infrastructure.Persistence;
 

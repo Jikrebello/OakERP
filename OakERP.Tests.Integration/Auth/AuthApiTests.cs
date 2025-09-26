@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using OakERP.Common.DTOs.Auth;
-using OakERP.Domain.Entities;
+using OakERP.Domain.Entities.Users;
 using OakERP.Tests.Integration.TestSetup;
 using Shouldly;
 

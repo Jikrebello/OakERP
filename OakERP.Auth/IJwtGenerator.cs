@@ -1,4 +1,4 @@
-﻿using OakERP.Domain.Entities;
+﻿using OakERP.Domain.Entities.Users;
 
 namespace OakERP.Auth;
 

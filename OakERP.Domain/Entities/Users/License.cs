@@ -1,4 +1,4 @@
-﻿namespace OakERP.Domain.Entities;
+﻿namespace OakERP.Domain.Entities.Users;
 
 /// <summary>
 /// Represents a license associated with a tenant, including its unique identifier, key, creation date, and optional

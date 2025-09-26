@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using OakERP.Common.Persistence;
 using OakERP.Domain.Entities;
+using OakERP.Domain.Entities.Users;
 
 namespace OakERP.Infrastructure.Persistence.Seeding;
 

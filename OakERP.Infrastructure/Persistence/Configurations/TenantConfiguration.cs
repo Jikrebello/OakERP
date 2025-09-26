@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using OakERP.Domain.Entities;
+using OakERP.Domain.Entities.Users;
 
 namespace OakERP.Infrastructure.Persistence.Configurations;
 

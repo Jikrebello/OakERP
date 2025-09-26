@@ -1,4 +1,4 @@
-﻿namespace OakERP.Domain.Entities;
+﻿namespace OakERP.Domain.Entities.Users;
 
 /// <summary>
 ///Represents a tenant in a multi-tenant system, including its unique identifier, name, creation date, and associated

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace OakERP.Domain.Entities;
+namespace OakERP.Domain.Entities.Users;
 
 /// <summary>
 /// Represents an application user with multi-tenancy support.

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Auth;
-using OakERP.Domain.Entities;
+using OakERP.Domain.Entities.Users;
 using OakERP.Domain.Repositories;
 
 namespace OakERP.Tests.Unit.Auth;

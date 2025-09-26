@@ -3,7 +3,7 @@ using Moq;
 using OakERP.Auth;
 using OakERP.Common.DTOs.Auth;
 using OakERP.Common.Persistence;
-using OakERP.Domain.Entities;
+using OakERP.Domain.Entities.Users;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.Auth;
