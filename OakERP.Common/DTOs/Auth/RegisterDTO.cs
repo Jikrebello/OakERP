@@ -8,38 +8,17 @@
 /// request.</remarks>
 public class RegisterDTO
 {
-    /// <summary>
-    /// Gets or sets the first name of the individual.
-    /// </summary>
     public string FirstName { get; set; } = default!;
 
-    /// <summary>
-    /// Gets or sets the last name of the individual.
-    /// </summary>
     public string LastName { get; set; } = default!;
 
-    /// <summary>
-    /// Gets or sets the phone number associated with the entity.
-    /// </summary>
     public string PhoneNumber { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Gets or sets the name of the tenant/ company name associated with the current context.
-    /// </summary>
     public string TenantName { get; set; } = default!;
 
-    /// <summary>
-    /// Gets or sets the email address associated with the user.
-    /// </summary>
     public string Email { get; set; } = default!;
 
-    /// <summary>
-    /// Gets or sets the password associated with the user or system.
-    /// </summary>
     public string Password { get; set; } = default!;
 
-    /// <summary>
-    /// Gets or sets the confirmation password entered by the user.
-    /// </summary>
     public string ConfirmPassword { get; set; } = default!;
 }

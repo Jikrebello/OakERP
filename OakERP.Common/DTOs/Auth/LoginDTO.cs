@@ -7,13 +7,7 @@
 /// login process. It is intended to be passed to authentication services or APIs.</remarks>
 public class LoginDTO
 {
-    /// <summary>
-    /// Gets or sets the email address associated with the user.
-    /// </summary>
     public string Email { get; set; } = default!;
 
-    /// <summary>
-    /// Gets or sets the password associated with the user or system.
-    /// </summary>
     public string Password { get; set; } = default!;
 }

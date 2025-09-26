@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -17,9 +16,15 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Key = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ExpiryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false)
+                    CreatedAt = table.Column<DateTime>(
+                        type: "timestamp with time zone",
+                        nullable: false
+                    ),
+                    ExpiryDate = table.Column<DateTime>(
+                        type: "timestamp with time zone",
+                        nullable: true
+                    ),
+                    TenantId = table.Column<Guid>(type: "uuid", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -29,21 +34,23 @@ namespace OakERP.Infrastructure.Migrations
                         column: x => x.TenantId,
                         principalTable: "Tenants",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Licenses_TenantId",
                 table: "Licenses",
                 column: "TenantId",
-                unique: true);
+                unique: true
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Licenses");
+            migrationBuilder.DropTable(name: "Licenses");
         }
     }
 }

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.DTOs.Auth;
 using OakERP.Common.Persistence;
-using OakERP.Domain.Entities;
 using OakERP.Domain.Entities.Users;
 using OakERP.Domain.Repositories.Users;
 
