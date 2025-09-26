@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using OakERP.Shared.ApiRoutes
+@inherits LayoutComponentBase
 @inject NavigationManager Navigation;
 @inject IAuthSessionManager Session
 
@@ -54,12 +55,12 @@ else
         {
             isAuthenticated = await Session.IsAuthenticatedAsync();
 
-            if (!isAuthenticated && !Navigation.IsOnPublicRoute("auth/login", "auth/register"))
+            if (!isAuthenticated && !Navigation.IsOnPublicRoute(AuthRoutes.Login, AuthRoutes.Register))
             {
-                Navigation.NavigateTo("/auth/login");
+                Navigation.NavigateTo("/" + AuthRoutes.Login);
             }
 
-            if (isAuthenticated && Navigation.IsOnPublicRoute("auth/login", "auth/register"))
+            if (isAuthenticated && Navigation.IsOnPublicRoute(AuthRoutes.Login, AuthRoutes.Register))
             {
                 Navigation.NavigateTo("/");
             }
@@ -67,7 +68,7 @@ else
             StateHasChanged();
         };
 
-        if (!isAuthenticated && !Navigation.IsOnPublicRoute("auth/login", "auth/register"))
+        if (!isAuthenticated && !Navigation.IsOnPublicRoute(AuthRoutes.Login, AuthRoutes.Register))
         {
             shouldRedirectToLogin = true;
         }
@@ -80,7 +81,7 @@ else
         if (shouldRedirectToLogin)
         {
             shouldRedirectToLogin = false;
-            Navigation.NavigateTo("/auth/login", forceLoad: true);
+            Navigation.NavigateTo("/" + AuthRoutes.Login, forceLoad: true);
         }
     }
 }

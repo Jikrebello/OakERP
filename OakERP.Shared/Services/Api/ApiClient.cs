@@ -31,6 +31,18 @@ public class ApiClient : IApiClient
         _logger = logger;
     }
 
+    /// <summary>
+    /// Sends an HTTP POST request to the specified URL with the provided payload and processes the response.
+    /// </summary>
+    /// <remarks>This method logs any exceptions that occur during the request and returns a failure result
+    /// with an appropriate error message and HTTP status code.</remarks>
+    /// <typeparam name="TRequest">The type of the payload to be sent in the request body.</typeparam>
+    /// <typeparam name="TResponse">The type of the expected response object.</typeparam>
+    /// <param name="url">The URL to which the POST request is sent. Cannot be null or empty.</param>
+    /// <param name="payload">The payload to include in the request body. Cannot be null.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains an <see
+    /// cref="ApiResult{TResponse}"/> object that indicates the success or failure of the operation and, if successful,
+    /// the deserialized response.</returns>
     public async Task<ApiResult<TResponse>> PostAsync<TRequest, TResponse>(
         string url,
         TRequest payload
@@ -48,6 +60,18 @@ public class ApiClient : IApiClient
         }
     }
 
+    /// <summary>
+    /// Sends an asynchronous HTTP GET request to the specified URL and processes the response.
+    /// </summary>
+    /// <remarks>This method logs any exceptions that occur during the request or response handling. If an
+    /// exception is thrown, the returned <see cref="ApiResult{TResponse}"/> will indicate failure with an appropriate
+    /// error message and HTTP status code.</remarks>
+    /// <typeparam name="TResponse">The type to which the response content will be deserialized.</typeparam>
+    /// <param name="url">The URL to send the GET request to. Must be a valid, non-null, and non-empty URI.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains an <see
+    /// cref="ApiResult{TResponse}"/> object that indicates the success or failure of the operation. On success, the
+    /// result contains the deserialized response content of type <typeparamref name="TResponse"/>. On failure, the
+    /// result contains error details.</returns>
     public async Task<ApiResult<TResponse>> GetAsync<TResponse>(string url)
     {
         try

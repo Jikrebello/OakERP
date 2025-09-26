@@ -25,6 +25,13 @@ internal class LoginViewModel(
     IToastService toast
 ) : BaseFormViewModel<LoginFormModel>(api)
 {
+    /// <summary>
+    /// Attempts to log in the user using the provided form data.
+    /// </summary>
+    /// <remarks>This method validates the form data before initiating the login process. If the login is
+    /// successful, the authentication token is stored in the session. If the login fails, an error message is displayed
+    /// to the user.</remarks>
+    /// <returns>A task that represents the asynchronous login operation.</returns>
     public async Task LoginAsync()
     {
         if (!EditContext.Validate())
@@ -32,9 +39,9 @@ internal class LoginViewModel(
 
         var result = await authService.LoginAsync(Form);
 
-        if (result is { Success: true })
+        if (result is { Success: true } && result.Data?.Token is not null)
         {
-            await session.SetTokenAsync(result.Data.Token!);
+            await session.SetTokenAsync(result.Data.Token);
         }
         else
         {

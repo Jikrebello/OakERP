@@ -24,6 +24,13 @@ internal class RegisterViewModel(
     IToastService toast
 ) : BaseFormViewModel<RegisterFormModel>(api)
 {
+    /// <summary>
+    /// Registers a new user asynchronously using the provided form data.
+    /// </summary>
+    /// <remarks>This method validates the current form context before attempting registration. If
+    /// registration is successful and a token is returned, the token is stored in the session. Otherwise, an error
+    /// message is displayed.</remarks>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task RegisterAsync()
     {
         if (!EditContext.Validate())
@@ -31,9 +38,9 @@ internal class RegisterViewModel(
 
         var result = await authService.RegisterAsync(Form);
 
-        if (result is { Success: true })
+        if (result is { Success: true } && result.Data?.Token is not null)
         {
-            await session.SetTokenAsync(result.Data.Token!);
+            await session.SetTokenAsync(result.Data.Token);
         }
         else
         {
