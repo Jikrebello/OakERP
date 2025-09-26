@@ -1,4 +1,4 @@
-﻿using OakERP.Domain.Shared.Enums;
+﻿using OakERP.Common.Enums;
 
 namespace OakERP.Domain.Entities.General_Ledger;
 
@@ -13,5 +13,5 @@ public sealed class GlJournal
     public string? CreatedBy { get; set; }
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string? UpdatedBy { get; set; }
-    public ICollection<GlJournalLine> Lines { get; set; } = new List<GlJournalLine>();
+    public ICollection<GlJournalLine> Lines { get; set; } = [];
 }

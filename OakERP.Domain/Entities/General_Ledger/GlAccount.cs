@@ -1,4 +1,4 @@
-﻿using OakERP.Domain.Shared.Enums;
+﻿using OakERP.Common.Enums;
 
 namespace OakERP.Domain.Entities.General_Ledger;
 
@@ -14,5 +14,5 @@ public sealed class GlAccount
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public GlAccount? Parent { get; set; }
-    public ICollection<GlAccount> Children { get; set; } = new List<GlAccount>();
+    public ICollection<GlAccount> Children { get; set; } = [];
 }

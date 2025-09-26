@@ -1,5 +1,5 @@
-﻿using OakERP.Domain.Entities.Bank;
-using OakERP.Domain.Shared.Enums;
+﻿using OakERP.Common.Enums;
+using OakERP.Domain.Entities.Bank;
 
 namespace OakERP.Domain.Entities.Accounts_Recievable;
 
@@ -21,6 +21,5 @@ public sealed class ArReceipt
     public Customer Customer { get; set; } = default!;
     public BankAccount BankAccount { get; set; } = default!;
 
-    public ICollection<ArReceiptAllocation> Allocations { get; set; } =
-        new List<ArReceiptAllocation>();
+    public ICollection<ArReceiptAllocation> Allocations { get; set; } = [];
 }

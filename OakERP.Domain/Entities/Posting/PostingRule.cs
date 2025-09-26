@@ -1,4 +1,4 @@
-﻿using OakERP.Domain.Shared.Enums;
+﻿using OakERP.Common.Enums;
 
 namespace OakERP.Domain.Entities.Posting;
 
@@ -12,5 +12,5 @@ public sealed class PostingRule
     // optimistic concurrency safety
     public string ConcurrencyStamp { get; set; } = Guid.NewGuid().ToString("N");
 
-    public ICollection<PostingRuleLine> Lines { get; set; } = new List<PostingRuleLine>();
+    public ICollection<PostingRuleLine> Lines { get; set; } = [];
 }

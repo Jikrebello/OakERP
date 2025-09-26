@@ -2,18 +2,14 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OakERP.Domain.Entities.Users;
 
-namespace OakERP.Infrastructure.Persistence.Configurations;
+namespace OakERP.Infrastructure.Persistence.Configurations.Users;
 
-/// <summary>
-/// Configures the entity type <see cref="Tenant"/> for use with Entity Framework Core.
-/// </summary>
-/// <remarks>This configuration defines the primary key, required properties, default values, and relationships
-/// for the <see cref="Tenant"/> entity. It ensures that the <see cref="Tenant"/> entity is properly mapped to the
-/// database schema.</remarks>
 public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
 {
     public void Configure(EntityTypeBuilder<Tenant> builder)
     {
+        builder.ToTable("tenants");
+
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();

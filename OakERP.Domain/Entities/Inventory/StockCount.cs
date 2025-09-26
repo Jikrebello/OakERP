@@ -1,4 +1,4 @@
-﻿using OakERP.Domain.Shared.Enums;
+﻿using OakERP.Common.Enums;
 
 namespace OakERP.Domain.Entities.Inventory;
 
@@ -15,5 +15,5 @@ public sealed class StockCount
     public string? UpdatedBy { get; set; }
 
     public Location Location { get; set; } = default!;
-    public ICollection<StockCountLine> Lines { get; set; } = new List<StockCountLine>();
+    public ICollection<StockCountLine> Lines { get; set; } = [];
 }

@@ -1,4 +1,4 @@
-﻿namespace OakERP.Domain.Shared.Enums;
+﻿namespace OakERP.Common.Enums;
 
 public enum DocStatus
 {

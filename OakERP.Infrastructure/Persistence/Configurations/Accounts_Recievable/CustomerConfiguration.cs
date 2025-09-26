@@ -1,0 +1,17 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using OakERP.Domain.Entities.Accounts_Recievable;
+
+namespace OakERP.Infrastructure.Persistence.Configurations.Accounts_Recievable;
+
+public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
+{
+    public void Configure(EntityTypeBuilder<Customer> builder)
+    {
+        builder.ToTable("customers");
+
+        builder.HasKey(x => x.Id);
+
+        builder.HasIndex(x => x.CustomerCode).IsUnique();
+    }
+}

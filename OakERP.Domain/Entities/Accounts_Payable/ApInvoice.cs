@@ -1,4 +1,4 @@
-﻿using OakERP.Domain.Shared.Enums;
+﻿using OakERP.Common.Enums;
 
 namespace OakERP.Domain.Entities.Accounts_Payable;
 
@@ -21,5 +21,5 @@ public sealed class ApInvoice
     public string? UpdatedBy { get; set; }
 
     public Vendor Vendor { get; set; } = default!;
-    public ICollection<ApInvoiceLine> Lines { get; set; } = new List<ApInvoiceLine>();
+    public ICollection<ApInvoiceLine> Lines { get; set; } = [];
 }

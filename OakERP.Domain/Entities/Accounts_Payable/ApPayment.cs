@@ -1,5 +1,5 @@
-﻿using OakERP.Domain.Entities.Bank;
-using OakERP.Domain.Shared.Enums;
+﻿using OakERP.Common.Enums;
+using OakERP.Domain.Entities.Bank;
 
 namespace OakERP.Domain.Entities.Accounts_Payable;
 
@@ -21,6 +21,5 @@ public sealed class ApPayment
     public Vendor Vendor { get; set; } = default!;
     public BankAccount BankAccount { get; set; } = default!;
 
-    public ICollection<ApPaymentAllocation> Allocations { get; set; } =
-        new List<ApPaymentAllocation>();
+    public ICollection<ApPaymentAllocation> Allocations { get; set; } = [];
 }
