@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.Inventory;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Inventory;
 
-public class LocationConfiguration : IEntityTypeConfiguration<Location>
+internal class LocationConfiguration : IEntityTypeConfiguration<Location>
 {
     public void Configure(EntityTypeBuilder<Location> builder)
     {

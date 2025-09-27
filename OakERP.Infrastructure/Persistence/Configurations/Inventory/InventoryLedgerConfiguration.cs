@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.Inventory;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Inventory;
 
-public class InventoryLedgerConfiguration : IEntityTypeConfiguration<InventoryLedger>
+internal class InventoryLedgerConfiguration : IEntityTypeConfiguration<InventoryLedger>
 {
     public void Configure(EntityTypeBuilder<InventoryLedger> builder)
     {

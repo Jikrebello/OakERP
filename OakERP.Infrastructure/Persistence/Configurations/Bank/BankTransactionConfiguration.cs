@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.Bank;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Bank;
 
-public class BankTransactionConfiguration : IEntityTypeConfiguration<BankTransaction>
+internal class BankTransactionConfiguration : IEntityTypeConfiguration<BankTransaction>
 {
     public void Configure(EntityTypeBuilder<BankTransaction> builder)
     {

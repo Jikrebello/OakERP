@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.Accounts_Payable;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Accounts_Payable;
 
-public class ApInvoiceConfiguration : IEntityTypeConfiguration<ApInvoice>
+internal class ApInvoiceConfiguration : IEntityTypeConfiguration<ApInvoice>
 {
     public void Configure(EntityTypeBuilder<ApInvoice> builder)
     {

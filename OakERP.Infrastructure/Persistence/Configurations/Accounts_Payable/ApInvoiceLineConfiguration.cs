@@ -5,7 +5,7 @@ using InvItem = OakERP.Domain.Entities.Inventory.Item;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Accounts_Payable;
 
-public class ApInvoiceLineConfiguration : IEntityTypeConfiguration<ApInvoiceLine>
+internal class ApInvoiceLineConfiguration : IEntityTypeConfiguration<ApInvoiceLine>
 {
     public void Configure(EntityTypeBuilder<ApInvoiceLine> builder)
     {

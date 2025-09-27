@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.Inventory;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Inventory;
 
-public class ItemCategoryConfiguration : IEntityTypeConfiguration<ItemCategory>
+internal class ItemCategoryConfiguration : IEntityTypeConfiguration<ItemCategory>
 {
     public void Configure(EntityTypeBuilder<ItemCategory> builder)
     {

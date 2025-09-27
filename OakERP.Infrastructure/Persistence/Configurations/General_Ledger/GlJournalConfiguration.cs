@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.General_Ledger;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.General_Ledger;
 
-public class GlJournalConfiguration : IEntityTypeConfiguration<GlJournal>
+internal class GlJournalConfiguration : IEntityTypeConfiguration<GlJournal>
 {
     public void Configure(EntityTypeBuilder<GlJournal> builder)
     {

@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.Inventory;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Inventory;
 
-public class StockCountLineConfiguration : IEntityTypeConfiguration<StockCountLine>
+internal class StockCountLineConfiguration : IEntityTypeConfiguration<StockCountLine>
 {
     public void Configure(EntityTypeBuilder<StockCountLine> builder)
     {

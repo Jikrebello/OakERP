@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.General_Ledger;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.General_Ledger;
 
-public class GlEntryConfiguration : IEntityTypeConfiguration<GlEntry>
+internal class GlEntryConfiguration : IEntityTypeConfiguration<GlEntry>
 {
     public void Configure(EntityTypeBuilder<GlEntry> builder)
     {

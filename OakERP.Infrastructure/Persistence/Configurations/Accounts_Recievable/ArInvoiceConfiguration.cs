@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.Accounts_Receivable;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Accounts_Recievable;
 
-public class ArInvoiceConfiguration : IEntityTypeConfiguration<ArInvoice>
+internal class ArInvoiceConfiguration : IEntityTypeConfiguration<ArInvoice>
 {
     public void Configure(EntityTypeBuilder<ArInvoice> builder)
     {

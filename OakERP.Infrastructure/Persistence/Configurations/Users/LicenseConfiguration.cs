@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.Users;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Users;
 
-public class LicenseConfiguration : IEntityTypeConfiguration<License>
+internal class LicenseConfiguration : IEntityTypeConfiguration<License>
 {
     public void Configure(EntityTypeBuilder<License> builder)
     {

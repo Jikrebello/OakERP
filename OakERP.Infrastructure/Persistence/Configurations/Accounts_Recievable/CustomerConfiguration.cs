@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.Accounts_Receivable;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Accounts_Recievable;
 
-public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
+internal class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 {
     public void Configure(EntityTypeBuilder<Customer> builder)
     {

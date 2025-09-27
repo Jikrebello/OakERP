@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.General_Ledger;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.General_Ledger;
 
-public class FiscalPeriodConfiguration : IEntityTypeConfiguration<FiscalPeriod>
+internal class FiscalPeriodConfiguration : IEntityTypeConfiguration<FiscalPeriod>
 {
     public void Configure(EntityTypeBuilder<FiscalPeriod> builder)
     {

@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.Users;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Users;
 
-public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
+internal class TenantConfiguration : IEntityTypeConfiguration<Tenant>
 {
     public void Configure(EntityTypeBuilder<Tenant> builder)
     {

@@ -4,7 +4,7 @@ using OakERP.Domain.Entities.Accounts_Payable;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Accounts_Payable;
 
-public class VendorConfiguration : IEntityTypeConfiguration<Vendor>
+internal class VendorConfiguration : IEntityTypeConfiguration<Vendor>
 {
     public void Configure(EntityTypeBuilder<Vendor> builder)
     {
