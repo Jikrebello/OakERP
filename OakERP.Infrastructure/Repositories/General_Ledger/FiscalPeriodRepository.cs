@@ -8,7 +8,7 @@ namespace OakERP.Infrastructure.Repositories.General_Ledger;
 public class FiscalPeriodRepository(ApplicationDbContext db) : IFiscalPeriodRepository
 {
     public async Task<FiscalPeriod?> GetByIdAsync(Guid id) =>
-        await db.FiscalPeriods.FirstOrDefaultAsync(v => v.Id == id);
+        await db.FiscalPeriods.FirstOrDefaultAsync(fp => fp.Id == id);
 
     public IQueryable<FiscalPeriod> Query() => db.FiscalPeriods.AsNoTracking();
 

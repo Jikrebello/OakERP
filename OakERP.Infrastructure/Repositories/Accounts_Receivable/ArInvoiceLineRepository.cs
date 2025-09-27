@@ -8,7 +8,7 @@ namespace OakERP.Infrastructure.Repositories.Accounts_Receivable;
 public class ArInvoiceLineRepository(ApplicationDbContext db) : IArInvoiceLineRepository
 {
     public async Task<ArInvoiceLine?> GetByIdAsync(Guid id) =>
-        await db.ArInvoiceLines.FirstOrDefaultAsync(v => v.Id == id);
+        await db.ArInvoiceLines.FirstOrDefaultAsync(il => il.Id == id);
 
     public IQueryable<ArInvoiceLine> Query() => db.ArInvoiceLines.AsNoTracking();
 

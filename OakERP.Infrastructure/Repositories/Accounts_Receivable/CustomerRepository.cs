@@ -8,7 +8,7 @@ namespace OakERP.Infrastructure.Repositories.Accounts_Receivable;
 public class CustomerRepository(ApplicationDbContext db) : ICustomerRepository
 {
     public async Task<Customer?> GetByIdAsync(Guid id) =>
-        await db.Customers.FirstOrDefaultAsync(v => v.Id == id);
+        await db.Customers.FirstOrDefaultAsync(c => c.Id == id);
 
     public IQueryable<Customer> Query() => db.Customers.AsNoTracking();
 

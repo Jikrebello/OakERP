@@ -8,7 +8,7 @@ namespace OakERP.Infrastructure.Repositories.General_Ledger;
 public class GlAccountRepository(ApplicationDbContext db) : IGlAccountRepository
 {
     public async Task<GlAccount?> GetByAccountNoAsync(string accountNo) =>
-        await db.GlAccounts.FirstOrDefaultAsync(v => v.AccountNo == accountNo);
+        await db.GlAccounts.FirstOrDefaultAsync(a => a.AccountNo == accountNo);
 
     public IQueryable<GlAccount> Query() => db.GlAccounts.AsNoTracking();
 

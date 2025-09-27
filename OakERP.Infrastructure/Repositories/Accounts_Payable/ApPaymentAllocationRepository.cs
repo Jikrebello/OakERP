@@ -8,7 +8,7 @@ namespace OakERP.Infrastructure.Repositories.Accounts_Payable;
 public class ApPaymentAllocationRepository(ApplicationDbContext db) : IApPaymentAllocationRepository
 {
     public async Task<ApPaymentAllocation?> GetByIdAsync(Guid id) =>
-        await db.ApPaymentAllocations.FirstOrDefaultAsync(v => v.Id == id);
+        await db.ApPaymentAllocations.FirstOrDefaultAsync(pa => pa.Id == id);
 
     public IQueryable<ApPaymentAllocation> Query() => db.ApPaymentAllocations.AsNoTracking();
 

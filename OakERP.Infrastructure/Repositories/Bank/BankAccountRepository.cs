@@ -8,7 +8,7 @@ namespace OakERP.Infrastructure.Repositories.Bank;
 public class BankAccountRepository(ApplicationDbContext db) : IBankAccountRepository
 {
     public async Task<BankAccount?> GetByIdAsync(Guid id) =>
-        await db.BankAccounts.FirstOrDefaultAsync(v => v.Id == id);
+        await db.BankAccounts.FirstOrDefaultAsync(a => a.Id == id);
 
     public IQueryable<BankAccount> Query() => db.BankAccounts.AsNoTracking();
 

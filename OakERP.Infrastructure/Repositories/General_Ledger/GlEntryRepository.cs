@@ -8,7 +8,7 @@ namespace OakERP.Infrastructure.Repositories.General_Ledger;
 public class GlEntryRepository(ApplicationDbContext db) : IGlEntryRepository
 {
     public async Task<GlEntry?> GetByIdAsync(Guid id) =>
-        await db.GlEntries.FirstOrDefaultAsync(v => v.Id == id);
+        await db.GlEntries.FirstOrDefaultAsync(e => e.Id == id);
 
     public IQueryable<GlEntry> Query() => db.GlEntries.AsNoTracking();
 
