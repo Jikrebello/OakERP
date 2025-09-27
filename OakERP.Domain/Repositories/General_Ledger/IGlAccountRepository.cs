@@ -4,7 +4,7 @@ namespace OakERP.Domain.Repositories.General_Ledger;
 
 public interface IGlAccountRepository
 {
-    Task<GlAccount?> GetByIdAsync(Guid id);
+    Task<GlAccount?> GetByAccountNoAsync(string accountNo);
 
     IQueryable<GlAccount> Query();
 

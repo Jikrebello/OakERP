@@ -25,7 +25,6 @@
 
 	<ItemGroup>
 	  <Folder Include="Migrations\" />
-	  <Folder Include="Repositories\General_Ledger\" />
 	  <Folder Include="Repositories\Inventory\" />
 	</ItemGroup>
 
