@@ -1,7 +1,7 @@
 ﻿using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Bank;
 
-namespace OakERP.Domain.Entities.Accounts_Recievable;
+namespace OakERP.Domain.Entities.Accounts_Receivable;
 
 public sealed class ArReceipt
 {

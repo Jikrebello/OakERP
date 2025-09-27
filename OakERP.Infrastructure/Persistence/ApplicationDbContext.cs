@@ -5,7 +5,7 @@ using OakERP.Application.Views.Accounts_Recievable;
 using OakERP.Application.Views.Inventory;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Accounts_Payable;
-using OakERP.Domain.Entities.Accounts_Recievable;
+using OakERP.Domain.Entities.Accounts_Receivable;
 using OakERP.Domain.Entities.Bank;
 using OakERP.Domain.Entities.General_Ledger;
 using OakERP.Domain.Entities.Inventory;

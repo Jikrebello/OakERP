@@ -2,7 +2,7 @@
 using OakERP.Domain.Entities.Inventory;
 using OakERP.Domain.Shared;
 
-namespace OakERP.Domain.Entities.Accounts_Recievable;
+namespace OakERP.Domain.Entities.Accounts_Receivable;
 
 public sealed class ArInvoiceLine
 {

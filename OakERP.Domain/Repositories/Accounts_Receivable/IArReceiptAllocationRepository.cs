@@ -1,6 +1,6 @@
-﻿using OakERP.Domain.Entities.Accounts_Recievable;
+﻿using OakERP.Domain.Entities.Accounts_Receivable;
 
-namespace OakERP.Domain.Repositories.Accounts_Recievable;
+namespace OakERP.Domain.Repositories.Accounts_Receivable;
 
 public interface IArReceiptAllocationRepository
 {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OakERP.Infrastructure.Repositories.Accounts_Recievable;
+namespace OakERP.Infrastructure.Repositories.Accounts_Receivable;
+
 internal class ArInvoiceRepository
-{
-}
+{ }
