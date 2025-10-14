@@ -1,4 +1,4 @@
-﻿namespace OakERP.Application.Views.Inventory;
+﻿namespace OakERP.Infrastructure.Persistence.Seeding.Views.Inventory;
 
 public sealed class ItemBalanceView
 {

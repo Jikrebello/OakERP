@@ -10,26 +10,65 @@ internal class ApInvoiceConfiguration : IEntityTypeConfiguration<ApInvoice>
     {
         builder.ToTable("ap_invoices");
 
+        // PK
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.DocNo).HasMaxLength(40).IsRequired();
+        builder.Property(x => x.InvoiceNo).HasMaxLength(40).IsRequired();
+        builder.Property(x => x.Memo).HasMaxLength(512);
 
-        builder.HasIndex(x => x.DocNo).IsUnique();
-        builder.HasIndex(x => new { x.VendorId, x.DueDate });
+        builder.Property(x => x.CurrencyCode).HasMaxLength(3).IsRequired();
 
-        // Money
+        builder
+            .HasOne(x => x.Currency)
+            .WithMany(c => c.ApInvoices)
+            .HasForeignKey(x => x.CurrencyCode)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Property(x => x.TaxTotal).HasColumnType("numeric(18,2)");
         builder.Property(x => x.DocTotal).HasColumnType("numeric(18,2)");
 
-        // Dates
         builder.Property(x => x.InvoiceDate).HasColumnType("date");
         builder.Property(x => x.DueDate).HasColumnType("date");
+
+        builder.Property(x => x.Status).IsRequired();
+
+        builder
+            .Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now() at time zone 'utc'")
+            .ValueGeneratedOnAdd();
+
+        builder
+            .Property(x => x.UpdatedAt)
+            .HasDefaultValueSql("now() at time zone 'utc'")
+            .ValueGeneratedOnAddOrUpdate();
 
         // Relationships
         builder
             .HasOne(x => x.Vendor)
-            .WithMany()
+            .WithMany(v => v.ApInvoices)
             .HasForeignKey(x => x.VendorId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Indexes
+        builder.HasIndex(x => x.DocNo).IsUnique();
+        builder.HasIndex(x => new { x.VendorId, x.InvoiceNo }).IsUnique();
+        builder.HasIndex(x => new { x.VendorId, x.DueDate });
+        builder.HasIndex(x => x.InvoiceDate);
+        builder.HasIndex(x => x.Status);
+
+        // Data integrity checks
+        builder.ToTable(t =>
+        {
+            t.HasCheckConstraint(
+                "ck_apinvoice_totals_nonnegative",
+                "(\"TaxTotal\" >= 0) AND (\"DocTotal\" >= 0)"
+            );
+            t.HasCheckConstraint(
+                "ck_apinvoice_due_after_invoice",
+                "\"DueDate\" >= \"InvoiceDate\""
+            );
+            t.HasCheckConstraint("ck_apinvoice_currency_len3", "char_length(\"CurrencyCode\") = 3");
+        });
     }
 }

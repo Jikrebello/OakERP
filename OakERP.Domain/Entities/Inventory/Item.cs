@@ -1,4 +1,5 @@
 ﻿using OakERP.Common.Enums;
+using OakERP.Domain.Entities.Accounts_Payable;
 
 namespace OakERP.Domain.Entities.Inventory;
 
@@ -16,4 +17,6 @@ public sealed class Item
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public ItemCategory? Category { get; set; }
+
+    public ICollection<ApInvoiceLine> ApInvoiceLines { get; set; } = [];
 }

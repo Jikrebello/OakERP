@@ -12,6 +12,52 @@ internal class VendorConfiguration : IEntityTypeConfiguration<Vendor>
 
         builder.HasKey(x => x.Id);
 
-        builder.HasIndex(x => x.VendorCode).IsUnique();
+        // Columns
+        builder.Property(v => v.VendorCode).HasMaxLength(40).IsRequired();
+        builder.Property(v => v.Name).HasMaxLength(200).IsRequired();
+
+        builder.Property(v => v.Phone).HasMaxLength(40);
+        builder.Property(v => v.Email).HasMaxLength(256);
+        builder.Property(v => v.Address).HasMaxLength(512);
+        builder.Property(v => v.TaxNumber).HasMaxLength(40);
+
+        // Timestamps
+        builder
+            .Property(v => v.CreatedAt)
+            .HasDefaultValueSql("now() at time zone 'utc'")
+            .ValueGeneratedOnAdd();
+
+        builder
+            .Property(v => v.UpdatedAt)
+            .HasDefaultValueSql("now() at time zone 'utc'")
+            .ValueGeneratedOnAddOrUpdate();
+
+        builder.Property(v => v.TermsDays).IsRequired();
+
+        // Indexes
+        builder.HasIndex(v => v.VendorCode).IsUnique();
+        builder.HasIndex(v => v.Name);
+        builder.HasIndex(v => v.IsActive);
+
+        builder.HasIndex(v => v.Email).IsUnique().HasFilter("\"Email\" IS NOT NULL");
+
+        builder.HasIndex(v => v.TaxNumber).IsUnique().HasFilter("\"TaxNumber\" IS NOT NULL");
+
+        // Data integrity
+        builder.ToTable(t =>
+        {
+            // no empty/whitespace vendor codes or names
+            t.HasCheckConstraint("ck_vendor_code_not_blank", "btrim(\"VendorCode\") <> ''");
+            t.HasCheckConstraint("ck_vendor_name_not_blank", "btrim(\"Name\") <> ''");
+
+            // sane terms range (tweak to preference)
+            t.HasCheckConstraint("ck_vendor_termsdays_range", "\"TermsDays\" BETWEEN 0 AND 180");
+
+            // ultra-light email shape check (optional; not a full regex)
+            t.HasCheckConstraint(
+                "ck_vendor_email_basic_shape",
+                "\"Email\" IS NULL OR (position('@' in \"Email\") > 1 AND position('.' in \"Email\") > 3)"
+            );
+        });
     }
 }

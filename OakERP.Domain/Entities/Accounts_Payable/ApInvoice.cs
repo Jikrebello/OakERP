@@ -1,4 +1,5 @@
 ﻿using OakERP.Common.Enums;
+using OakERP.Domain.Entities.Common;
 
 namespace OakERP.Domain.Entities.Accounts_Payable;
 
@@ -11,7 +12,8 @@ public sealed class ApInvoice
     public DateOnly InvoiceDate { get; set; }
     public DateOnly DueDate { get; set; }
     public DocStatus Status { get; set; } = DocStatus.Draft;
-    public string Currency { get; set; } = "BASE";
+    public string CurrencyCode { get; set; } = "R";
+    public Currency Currency { get; set; } = default!;
     public string? Memo { get; set; }
     public decimal TaxTotal { get; set; }
     public decimal DocTotal { get; set; }
@@ -22,4 +24,5 @@ public sealed class ApInvoice
 
     public Vendor Vendor { get; set; } = default!;
     public ICollection<ApInvoiceLine> Lines { get; set; } = [];
+    public ICollection<ApPaymentAllocation> Allocations { get; set; } = [];
 }

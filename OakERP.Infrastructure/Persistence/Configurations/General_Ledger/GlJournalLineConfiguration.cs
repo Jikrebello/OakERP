@@ -12,6 +12,20 @@ internal class GlJournalLineConfiguration : IEntityTypeConfiguration<GlJournalLi
 
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.AccountNo).HasMaxLength(20).IsRequired();
+
         builder.HasIndex(x => new { x.JournalId, x.LineNo }).IsUnique();
+
+        builder
+            .HasOne(x => x.Journal)
+            .WithMany(j => j.Lines)
+            .HasForeignKey(x => x.JournalId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasOne(x => x.Account)
+            .WithMany(a => a.JournalLines)
+            .HasForeignKey(x => x.AccountNo)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

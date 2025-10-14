@@ -1,6 +1,8 @@
 using OakERP.API.Extensions;
 using OakERP.Infrastructure.Persistence;
-using OakERP.Infrastructure.Persistence.Seeding;
+using OakERP.Infrastructure.Persistence.Seeding.Accounts;
+using OakERP.Infrastructure.Persistence.Seeding.Base;
+using OakERP.Infrastructure.Persistence.Seeding.Views;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +17,10 @@ builder
     .AddAuthServices()
     .AddSwaggerDocs();
 
+// Register all seeders (modular)
 builder.Services.AddScoped<ISeeder, RoleAndAdminSeeder>();
+builder.Services.AddScoped<ISeeder, SqlViewSeeder>();
+
 builder.Services.AddScoped<DbInitializer>();
 
 builder.Services.AddCors(options =>
@@ -47,5 +52,4 @@ using (var scope = app.Services.CreateScope())
 
 await app.RunAsync();
 
-public partial class Program
-{ }
+public partial class Program { }

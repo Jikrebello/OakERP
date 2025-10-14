@@ -1,4 +1,4 @@
-﻿namespace OakERP.Domain.Shared;
+﻿namespace OakERP.Domain.Entities.Common;
 
 public sealed class TaxRate
 {

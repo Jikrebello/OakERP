@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OakERP.Infrastructure.Persistence.Seeding;
+using OakERP.Infrastructure.Persistence.Seeding.Base;
 
 namespace OakERP.Infrastructure.Persistence;
 

@@ -1,4 +1,4 @@
-﻿namespace OakERP.Infrastructure.Persistence.Seeding;
+﻿namespace OakERP.Infrastructure.Persistence.Seeding.Base;
 
 public abstract class BaseSeeder : ISeeder
 {
@@ -9,14 +9,10 @@ public abstract class BaseSeeder : ISeeder
 
     public virtual bool IsEnabled(string environment)
     {
-        return (
-                environment.Equals("Development", StringComparison.OrdinalIgnoreCase)
+        return environment.Equals("Development", StringComparison.OrdinalIgnoreCase)
                 && RunInDevelopment
-            )
-            || (
-                environment.Equals("Production", StringComparison.OrdinalIgnoreCase)
-                && RunInProduction
-            );
+            || environment.Equals("Production", StringComparison.OrdinalIgnoreCase)
+                && RunInProduction;
     }
 
     public abstract Task SeedAsync();

@@ -1,4 +1,5 @@
-﻿using OakERP.Domain.Entities.General_Ledger;
+﻿using OakERP.Domain.Entities.Accounts_Payable;
+using OakERP.Domain.Entities.General_Ledger;
 
 namespace OakERP.Domain.Entities.Bank;
 
@@ -16,4 +17,6 @@ public sealed class BankAccount
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public GlAccount GlAccount { get; set; } = default!;
+
+    public ICollection<ApPayment> ApPayments { get; set; } = [];
 }

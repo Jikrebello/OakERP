@@ -11,5 +11,52 @@ internal class ApPaymentAllocationConfiguration : IEntityTypeConfiguration<ApPay
         builder.ToTable("ap_payment_allocations");
 
         builder.HasKey(x => x.Id);
+
+        // Columns
+        builder.Property(x => x.AllocationDate).HasColumnType("date");
+        builder.Property(x => x.AmountApplied).HasColumnType("numeric(18,2)");
+        builder.Property(x => x.DiscountTaken).HasColumnType("numeric(18,2)");
+        builder.Property(x => x.WriteOffAmount).HasColumnType("numeric(18,2)");
+        builder.Property(x => x.Memo).HasMaxLength(512);
+
+        // Indexes / uniqueness
+        builder.HasIndex(x => new { x.ApPaymentId, x.AllocationDate });
+        builder.HasIndex(x => new { x.ApInvoiceId, x.AllocationDate });
+        builder.HasIndex(x => x.ApPaymentId);
+        builder.HasIndex(x => x.ApInvoiceId);
+
+        // Relationships
+        builder
+            .HasOne(x => x.Payment)
+            .WithMany(p => p.Allocations)
+            .HasForeignKey(x => x.ApPaymentId)
+            .OnDelete(DeleteBehavior.Cascade); // delete payment → delete its allocation events
+
+        builder
+            .HasOne(x => x.Invoice)
+            .WithMany(i => i.Allocations)
+            .HasForeignKey(x => x.ApInvoiceId)
+            .OnDelete(DeleteBehavior.Restrict); // protect invoices that have been allocated
+
+        // Data integrity
+        builder.ToTable(t =>
+        {
+            t.HasCheckConstraint("ck_apalloc_amount_positive", "\"AmountApplied\" > 0");
+            t.HasCheckConstraint(
+                "ck_apalloc_discount_nonneg",
+                "\"DiscountTaken\" IS NULL OR \"DiscountTaken\" >= 0"
+            );
+            t.HasCheckConstraint(
+                "ck_apalloc_writeoff_nonneg",
+                "\"WriteOffAmount\" IS NULL OR \"WriteOffAmount\" >= 0"
+            );
+            // Disallow “everything zero”
+            t.HasCheckConstraint(
+                "ck_apalloc_has_value",
+                "(\"AmountApplied\" > 0) OR "
+                    + "(COALESCE(\"DiscountTaken\",0) > 0) OR "
+                    + "(COALESCE(\"WriteOffAmount\",0) > 0)"
+            );
+        });
     }
 }

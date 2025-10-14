@@ -1,0 +1,18 @@
+CREATE OR REPLACE VIEW public.v_ar_open_items AS
+
+SELECT
+	i.id	AS invoice_id,
+	i.doc_no,
+	i.customer_id,
+	i.invoice_date,
+	i.due_date,
+	i.doc_total,
+	COALESCE(SUM(a.amount_applied),0) AS amount_applied,
+	(i.doc_total - COALESCE(SUM(a.amount_applied),0)) AS balance
+FROM public.ar_invoices i
+
+LEFT JOIN public.ar_receipt_allocations a ON a.ar_invoice_id = i.id
+
+WHERE i.status IN ('Posted','Closed')
+
+GROUP BY i.id, i.doc_no, i.customer_id, i.invoice_date, i.due_date, i.doc_total;

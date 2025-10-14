@@ -1,10 +1,10 @@
-﻿namespace OakERP.Application.Views.Accounts_Recievable;
+﻿namespace OakERP.Infrastructure.Persistence.Seeding.Views.Accounts_Payable;
 
-public sealed class AROpenItemView
+public sealed class APOpenItemView
 {
     public Guid InvoiceId { get; set; }
     public string DocNo { get; set; } = default!;
-    public Guid CustomerId { get; set; }
+    public Guid VendorId { get; set; }
     public DateOnly InvoiceDate { get; set; }
     public DateOnly DueDate { get; set; }
     public decimal DocTotal { get; set; }

@@ -30,16 +30,15 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Register_Endpoint_Should_Create_Tenant_And_License()
     {
         // Arrange
-        var guid = Guid.NewGuid().ToString("N")[..8];
         var dto = new RegisterDTO
         {
-            Email = $"apiuser_{guid}@oak.test",
+            Email = $"apiuser_{TestId}@oak.test",
             Password = "TestPass123!",
             FirstName = "TestFirstname",
             LastName = "TestLastname",
             PhoneNumber = "123456789",
             ConfirmPassword = "TestPass123!",
-            TenantName = $"ApiTenant_{guid}",
+            TenantName = $"ApiTenant_{TestId}",
         };
 
         // Act
@@ -76,13 +75,13 @@ public class AuthApiTests : WebApiIntegrationTestBase
         // Arrange
         var dto = new RegisterDTO
         {
-            Email = $"badpw_{Guid.NewGuid():N}@oak.test",
+            Email = $"badpw_{TestId}@oak.test",
             FirstName = "TestFirstname",
             LastName = "TestLastname",
             PhoneNumber = "123456789",
             Password = "GoodPass123!",
             ConfirmPassword = "MismatchPass123!",
-            TenantName = $"BadPwTenant_{Guid.NewGuid():N}",
+            TenantName = $"BadPwTenant_{TestId}",
         };
 
         // Act
@@ -109,16 +108,15 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Register_Endpoint_Should_Fail_If_Email_Already_Exists()
     {
         // Arrange
-        var guid = Guid.NewGuid().ToString("N")[..8];
         var dto = new RegisterDTO
         {
-            Email = $"duplicate_{guid}@oak.test",
+            Email = $"duplicate_{TestId}@oak.test",
             Password = "TestPass123!",
             FirstName = "TestFirstname",
             LastName = "TestLastname",
             PhoneNumber = "123456789",
             ConfirmPassword = "TestPass123!",
-            TenantName = $"DupTenant_{guid}",
+            TenantName = $"DupTenant_{TestId}",
         };
 
         await PostAndMarkAsync<RegisterDTO, AuthResultDTO, Tenant>(
@@ -136,7 +134,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
             LastName = "TestLastname2",
             PhoneNumber = "987654321",
             ConfirmPassword = "TestPass123!",
-            TenantName = $"DupTenant2_{guid}",
+            TenantName = $"DupTenant2_{TestId}",
         };
 
         // Act
@@ -167,16 +165,15 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Login_Endpoint_Should_Succeed_With_Valid_Credentials()
     {
         // Arrange
-        var guid = Guid.NewGuid().ToString("N")[..8];
         var registerDto = new RegisterDTO
         {
-            Email = $"api_login_{guid}@oak.test",
+            Email = $"api_login_{TestId}@oak.test",
             Password = "TestPass123!",
             FirstName = "TestFirstname",
             LastName = "TestLastname",
             PhoneNumber = "123456789",
             ConfirmPassword = "TestPass123!",
-            TenantName = $"ApiTenant_{guid}",
+            TenantName = $"ApiTenant_{TestId}",
         };
 
         // Register the user and mark the tenant for cleanup automatically
@@ -208,16 +205,15 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Login_Endpoint_Should_Fail_With_Invalid_Password()
     {
         // Arrange
-        var guid = Guid.NewGuid().ToString("N")[..8];
         var registerDto = new RegisterDTO
         {
-            Email = $"api_badpass_{guid}@oak.test",
+            Email = $"api_badpass_{TestId}@oak.test",
             Password = "TestPass123!",
             FirstName = "TestFirstName",
             LastName = "TestLastName",
             PhoneNumber = "1234567890",
             ConfirmPassword = "TestPass123!",
-            TenantName = $"ApiTenant_{guid}",
+            TenantName = $"ApiTenant_{TestId}",
         };
 
         // Register the user and mark the tenant for cleanup
@@ -253,7 +249,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
         // Arrange
         var loginDto = new LoginDTO
         {
-            Email = $"doesnotexist_{Guid.NewGuid():N}@oak.test",
+            Email = $"doesnotexist_{TestId}@oak.test",
             Password = "AnyPassword123!",
         };
 
@@ -280,16 +276,15 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Login_Endpoint_Should_Fail_If_License_Expired()
     {
         // Arrange
-        var guid = Guid.NewGuid().ToString("N")[..8];
         var registerDto = new RegisterDTO
         {
-            Email = $"api_expired_{guid}@oak.test",
+            Email = $"api_expired_{TestId}@oak.test",
             FirstName = "TestFirstname",
             LastName = "TestLastname",
             PhoneNumber = "123456789",
             Password = "TestPass123!",
             ConfirmPassword = "TestPass123!",
-            TenantName = $"ApiTenant_{guid}",
+            TenantName = $"ApiTenant_{TestId}",
         };
 
         // Register the user (and mark tenant for cleanup)
@@ -339,16 +334,15 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Login_Endpoint_Should_Fail_If_No_License_Assigned()
     {
         // Arrange
-        var guid = Guid.NewGuid().ToString("N")[..8];
         var registerDto = new RegisterDTO
         {
-            Email = $"api_nolicense_{guid}@oak.test",
+            Email = $"api_nolicense_{TestId}@oak.test",
             Password = "TestPass123!",
             FirstName = "TestFirstname",
             LastName = "TestLastname",
             PhoneNumber = "123456789",
             ConfirmPassword = "TestPass123!",
-            TenantName = $"ApiTenant_{guid}",
+            TenantName = $"ApiTenant_{TestId}",
         };
 
         // Register the user (and mark tenant for cleanup)

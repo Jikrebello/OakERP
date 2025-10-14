@@ -15,4 +15,6 @@ public sealed class Vendor
     public string? CreatedBy { get; set; }
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string? UpdatedBy { get; set; }
+    public ICollection<ApInvoice> ApInvoices { get; set; } = [];
+    public ICollection<ApPayment> ApPayments { get; set; } = [];
 }

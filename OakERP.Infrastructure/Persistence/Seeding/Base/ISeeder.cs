@@ -1,4 +1,4 @@
-﻿namespace OakERP.Infrastructure.Persistence.Seeding;
+﻿namespace OakERP.Infrastructure.Persistence.Seeding.Base;
 
 public interface ISeeder
 {

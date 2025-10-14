@@ -14,7 +14,6 @@ public class PersistentDbFixture : IntegrationTestBase
 
     private readonly HashSet<object> _entitiesToCleanup = [];
 
-    // Call this in your test's [TearDown]
     public void RegisterEntitiesForCleanup(params object[] entities)
     {
         foreach (var entity in entities)
@@ -73,8 +72,5 @@ public class PersistentDbFixture : IntegrationTestBase
         await base.TearDown();
     }
 
-    public override async Task SetUp()
-    {
-        await base.SetUp();
-    }
+    public override async Task SetUp() => await base.SetUp();
 }

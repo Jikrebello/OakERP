@@ -17,6 +17,7 @@ public abstract class WebApiIntegrationTestBase
     protected PersistentDbFixture DbFixture;
     protected HttpClient Client;
     private List<object> _entitiesToCleanup;
+    protected readonly string TestId = Guid.NewGuid().ToString("N")[..8];
 
     [SetUp]
     public async Task BaseSetUp()

@@ -1,16 +1,16 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using OakERP.Application.Views.Accounts_Payable;
-using OakERP.Application.Views.Accounts_Recievable;
-using OakERP.Application.Views.Inventory;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Accounts_Payable;
 using OakERP.Domain.Entities.Accounts_Receivable;
 using OakERP.Domain.Entities.Bank;
+using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.General_Ledger;
 using OakERP.Domain.Entities.Inventory;
 using OakERP.Domain.Entities.Users;
-using OakERP.Domain.Shared;
+using OakERP.Infrastructure.Persistence.Seeding.Views.Accounts_Payable;
+using OakERP.Infrastructure.Persistence.Seeding.Views.Accounts_Recievable;
+using OakERP.Infrastructure.Persistence.Seeding.Views.Inventory;
 
 namespace OakERP.Infrastructure.Persistence;
 
@@ -96,25 +96,44 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
         base.OnModelCreating(builder);
 
+        // PostgreSQL enums
         builder.HasPostgresEnum<GlAccountType>();
         builder.HasPostgresEnum<DocStatus>();
         builder.HasPostgresEnum<ItemType>();
         builder.HasPostgresEnum<InventoryTransactionType>();
 
-        builder.Entity<ItemBalanceView>().ToView("v_item_balance").HasNoKey();
-        builder.Entity<AROpenItemView>().ToView("v_ar_open_items").HasNoKey();
-        builder.Entity<APOpenItemView>().ToView("v_ap_open_items").HasNoKey();
-
-        builder.Entity<AppSetting>().Property(x => x.ValueJson).HasColumnType("jsonb");
-
+        // Apply all IEntityTypeConfiguration<> in this assembly
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
+        // Database views
+        builder.Entity<ItemBalanceView>().ToView("public.v_item_balance").HasNoKey();
+        builder.Entity<AROpenItemView>().ToView("public.v_ar_open_items").HasNoKey();
+        builder.Entity<APOpenItemView>().ToView("public.v_ap_open_items").HasNoKey();
+
         foreach (
-            var p in builder
+            var prop in builder
                 .Model.GetEntityTypes()
-                .SelectMany(t => t.GetProperties())
+                .SelectMany(et => et.GetProperties())
                 .Where(p => p.ClrType == typeof(DateOnly))
         )
-            p.SetColumnType("date");
+        {
+            prop.SetColumnType("date");
+        }
+
+        // Add xmin optimistic concurrency to all table-backed, key (i.e., updatable) entities
+        foreach (var et in builder.Model.GetEntityTypes())
+        {
+            if (et.IsKeyless)
+                continue;
+            if (et.GetTableName() is null)
+                continue;
+
+            builder
+                .Entity(et.ClrType)
+                .Property<uint>("xmin")
+                .HasColumnName("xmin")
+                .IsConcurrencyToken()
+                .ValueGeneratedOnAddOrUpdate();
+        }
     }
 }

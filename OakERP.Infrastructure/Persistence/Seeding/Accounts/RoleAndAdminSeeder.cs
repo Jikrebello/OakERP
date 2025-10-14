@@ -2,8 +2,9 @@
 using Microsoft.Extensions.Configuration;
 using OakERP.Common.Persistence;
 using OakERP.Domain.Entities.Users;
+using OakERP.Infrastructure.Persistence.Seeding.Base;
 
-namespace OakERP.Infrastructure.Persistence.Seeding;
+namespace OakERP.Infrastructure.Persistence.Seeding.Accounts;
 
 public class RoleAndAdminSeeder(
     RoleManager<IdentityRole> roleManager,

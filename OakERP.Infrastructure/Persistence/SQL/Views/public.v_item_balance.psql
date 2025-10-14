@@ -1,0 +1,14 @@
+CREATE OR REPLACE VIEW public.v_item_balance AS
+
+SELECT
+    il.item_id,
+    il.location_id,
+    SUM(il.qty)          AS qty_on_hand,
+    SUM(il.value_change) AS value_on_hand,
+    CASE WHEN SUM(il.qty) = 0 THEN 0
+        ELSE ROUND(SUM(il.value_change) / NULLIF(SUM(il.qty),0), 4)
+    END                  AS moving_avg_cost
+
+FROM public.inventory_ledgers il
+
+GROUP BY il.item_id, il.location_id;
