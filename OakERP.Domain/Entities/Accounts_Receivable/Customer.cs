@@ -16,4 +16,7 @@ public sealed class Customer
     public string? CreatedBy { get; set; }
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string? UpdatedBy { get; set; }
+
+    public ICollection<ArInvoice> ArInvoices { get; set; } = [];
+    public ICollection<ArReceipt> ArReceipts { get; set; } = [];
 }

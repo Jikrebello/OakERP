@@ -1,4 +1,5 @@
 ﻿using OakERP.Domain.Entities.Accounts_Payable;
+using OakERP.Domain.Entities.Accounts_Receivable;
 using OakERP.Domain.Entities.General_Ledger;
 
 namespace OakERP.Domain.Entities.Bank;
@@ -19,4 +20,5 @@ public sealed class BankAccount
     public GlAccount GlAccount { get; set; } = default!;
 
     public ICollection<ApPayment> ApPayments { get; set; } = [];
+    public ICollection<ArReceipt> ArReceipts { get; set; } = [];
 }

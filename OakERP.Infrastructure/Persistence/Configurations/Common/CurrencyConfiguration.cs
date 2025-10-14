@@ -13,10 +13,14 @@ internal sealed class CurrencyConfiguration : IEntityTypeConfiguration<Currency>
         builder.HasKey(c => c.Code);
 
         builder.Property(c => c.Code).HasMaxLength(3).IsRequired();
+
+        builder.Property(c => c.NumericCode).IsRequired();
+
         builder.Property(c => c.Name).HasMaxLength(80).IsRequired();
-        builder.Property(c => c.Symbol).HasMaxLength(8).IsRequired();
+
+        builder.Property(c => c.Symbol).HasMaxLength(8);
+
         builder.Property(c => c.Decimals).IsRequired();
-        builder.Property(c => c.IsActive).IsRequired();
 
         builder
             .Property(c => c.CreatedAt)
@@ -30,11 +34,14 @@ internal sealed class CurrencyConfiguration : IEntityTypeConfiguration<Currency>
 
         // Indexes
         builder.HasIndex(c => c.IsActive);
+        builder.HasIndex(c => c.NumericCode).IsUnique();
 
         builder.ToTable(t =>
         {
             t.HasCheckConstraint("ck_currency_code_len3", "char_length(\"Code\") = 3");
+            t.HasCheckConstraint("ck_currency_code_upper", "\"Code\" = upper(\"Code\")");
             t.HasCheckConstraint("ck_currency_decimals_range", "\"Decimals\" BETWEEN 0 AND 4");
+            t.HasCheckConstraint("ck_currency_numeric_range", "\"NumericCode\" BETWEEN 1 AND 999");
         });
     }
 }

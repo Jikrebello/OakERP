@@ -1,5 +1,6 @@
 ﻿using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Accounts_Payable;
+using OakERP.Domain.Entities.Accounts_Receivable;
 
 namespace OakERP.Domain.Entities.Inventory;
 
@@ -19,4 +20,5 @@ public sealed class Item
     public ItemCategory? Category { get; set; }
 
     public ICollection<ApInvoiceLine> ApInvoiceLines { get; set; } = [];
+    public ICollection<ArInvoiceLine> ArInvoiceLines { get; set; } = [];
 }

@@ -1,5 +1,6 @@
 ﻿using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Accounts_Payable;
+using OakERP.Domain.Entities.Accounts_Receivable;
 
 namespace OakERP.Domain.Entities.General_Ledger;
 
@@ -22,4 +23,5 @@ public sealed class GlAccount
 
     public ICollection<GlJournalLine> JournalLines { get; set; } = [];
     public ICollection<ApInvoiceLine> ApInvoiceLines { get; set; } = [];
+    public ICollection<ArInvoiceLine> ArInvoiceLines { get; set; } = [];
 }

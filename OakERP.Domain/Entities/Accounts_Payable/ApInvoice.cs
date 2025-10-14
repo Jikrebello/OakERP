@@ -12,7 +12,7 @@ public sealed class ApInvoice
     public DateOnly InvoiceDate { get; set; }
     public DateOnly DueDate { get; set; }
     public DocStatus Status { get; set; } = DocStatus.Draft;
-    public string CurrencyCode { get; set; } = "R";
+    public string CurrencyCode { get; set; } = CountryISOCodes.ZAR.ToString();
     public Currency Currency { get; set; } = default!;
     public string? Memo { get; set; }
     public decimal TaxTotal { get; set; }

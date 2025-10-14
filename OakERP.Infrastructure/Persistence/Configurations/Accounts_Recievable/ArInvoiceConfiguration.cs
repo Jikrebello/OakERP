@@ -12,10 +12,75 @@ internal class ArInvoiceConfiguration : IEntityTypeConfiguration<ArInvoice>
 
         builder.HasKey(x => x.Id);
 
-        builder.HasIndex(x => x.DocNo).IsUnique();
-        builder.HasIndex(x => new { x.CustomerId, x.DueDate });
+        builder.Property(x => x.DocNo).HasMaxLength(40).IsRequired();
+        builder.Property(x => x.CurrencyCode).HasMaxLength(3).IsRequired();
+        builder.Property(x => x.ShipTo).HasMaxLength(512);
+        builder.Property(x => x.Memo).HasMaxLength(512);
 
         builder.Property(x => x.TaxTotal).HasColumnType("numeric(18,2)");
         builder.Property(x => x.DocTotal).HasColumnType("numeric(18,2)");
+
+        builder.Property(x => x.InvoiceDate).HasColumnType("date");
+        builder.Property(x => x.DueDate).HasColumnType("date");
+        builder.Property(x => x.PostingDate).HasColumnType("date");
+
+        builder.Property(x => x.Status).IsRequired();
+
+        // Timestamps
+        builder
+            .Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now() at time zone 'utc'")
+            .ValueGeneratedOnAdd();
+
+        builder
+            .Property(x => x.UpdatedAt)
+            .HasDefaultValueSql("now() at time zone 'utc'")
+            .ValueGeneratedOnAddOrUpdate();
+
+        // Relationships
+        builder
+            .HasOne(x => x.Customer)
+            .WithMany(c => c.ArInvoices)
+            .HasForeignKey(x => x.CustomerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(x => x.Currency)
+            .WithMany(c => c.ArInvoices)
+            .HasForeignKey(x => x.CurrencyCode)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Indexes
+        builder.HasIndex(x => x.DocNo).IsUnique();
+        builder.HasIndex(x => new { x.CustomerId, x.DueDate });
+        builder.HasIndex(x => x.InvoiceDate);
+        builder.HasIndex(x => x.PostingDate);
+        builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => x.CurrencyCode);
+
+        // Data integrity
+        builder.ToTable(t =>
+        {
+            // Nonnegative totals
+            t.HasCheckConstraint(
+                "ck_arinvoice_totals_nonnegative",
+                "(\"TaxTotal\" >= 0) AND (\"DocTotal\" >= 0)"
+            );
+
+            // Due date after or equal to invoice date
+            t.HasCheckConstraint(
+                "ck_arinvoice_due_after_invoice",
+                "\"DueDate\" >= \"InvoiceDate\""
+            );
+
+            // When Posted, PostingDate must be present
+            t.HasCheckConstraint(
+                "ck_arinvoice_posted_requires_postingdate",
+                "(\"Status\" <> 'posted'::docstatus) OR (\"PostingDate\" IS NOT NULL)"
+            );
+
+            // Currency code must be 3 letters (DB guard in addition to length)
+            t.HasCheckConstraint("ck_arinvoice_currency_len3", "char_length(\"CurrencyCode\") = 3");
+        });
     }
 }
