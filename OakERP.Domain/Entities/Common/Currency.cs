@@ -1,5 +1,6 @@
 ﻿using OakERP.Domain.Entities.Accounts_Payable;
 using OakERP.Domain.Entities.Accounts_Receivable;
+using OakERP.Domain.Entities.Bank;
 
 namespace OakERP.Domain.Entities.Common;
 
@@ -19,4 +20,5 @@ public sealed class Currency
 
     public ICollection<ApInvoice> ApInvoices { get; set; } = [];
     public ICollection<ArInvoice> ArInvoices { get; set; } = [];
+    public ICollection<BankAccount> BankAccounts { get; set; } = [];
 }

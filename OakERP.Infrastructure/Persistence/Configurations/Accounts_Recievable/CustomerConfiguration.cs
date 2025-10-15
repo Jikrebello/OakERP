@@ -24,6 +24,10 @@ internal class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.Property(c => c.TermsDays).IsRequired();
         builder.Property(c => c.CreditLimit).HasColumnType("numeric(18,2)");
 
+        builder.Property(c => c.IsOnHold).IsRequired();
+        builder.Property(c => c.CreditHoldReason).HasMaxLength(256);
+        builder.Property(c => c.CreditHoldUntil).HasColumnType("date");
+
         // Timestamps
         builder
             .Property(c => c.CreatedAt)
@@ -39,6 +43,7 @@ internal class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.HasIndex(c => c.CustomerCode).IsUnique();
         builder.HasIndex(c => c.Name);
         builder.HasIndex(c => c.IsActive);
+        builder.HasIndex(c => c.IsOnHold);
 
         // Optional uniques (filtered so NULLs are allowed)
         builder.HasIndex(c => c.Email).IsUnique().HasFilter("\"Email\" IS NOT NULL");
@@ -64,6 +69,11 @@ internal class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             t.HasCheckConstraint(
                 "ck_customer_email_basic_shape",
                 "\"Email\" IS NULL OR (position('@' in \"Email\") > 1 AND position('.' in \"Email\") > 3)"
+            );
+
+            t.HasCheckConstraint(
+                "ck_customer_hold_until_future",
+                "\"CreditHoldUntil\" IS NULL OR \"CreditHoldUntil\" >= CURRENT_DATE"
             );
         });
     }

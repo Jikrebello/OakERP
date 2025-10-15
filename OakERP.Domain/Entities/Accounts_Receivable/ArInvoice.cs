@@ -16,7 +16,7 @@ public sealed class ArInvoice
 
     public DocStatus Status { get; set; } = DocStatus.Draft;
 
-    public string CurrencyCode { get; set; } = CountryISOCodes.ZAR.ToString();
+    public string CurrencyCode { get; set; } = CurrencyISOCodes.ZAR.ToString();
     public Currency Currency { get; set; } = default!;
 
     public string? ShipTo { get; set; }

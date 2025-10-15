@@ -17,6 +17,10 @@ public sealed class Customer
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string? UpdatedBy { get; set; }
 
+    public bool IsOnHold { get; set; } = false;
+    public string? CreditHoldReason { get; set; } // optional
+    public DateOnly? CreditHoldUntil { get; set; } // optional (auto-expire window)
+
     public ICollection<ArInvoice> ArInvoices { get; set; } = [];
     public ICollection<ArReceipt> ArReceipts { get; set; } = [];
 }
