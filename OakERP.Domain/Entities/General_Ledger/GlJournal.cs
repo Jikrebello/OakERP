@@ -11,7 +11,7 @@ public sealed class GlJournal
     public DateOnly? PostingDate { get; set; }
     public Guid? PeriodId { get; set; }
 
-    public DocStatus Status { get; set; } = DocStatus.Draft;
+    public DocStatus DocStatus { get; set; } = DocStatus.Draft;
     public string? Memo { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string? CreatedBy { get; set; }

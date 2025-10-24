@@ -17,10 +17,11 @@ internal class ItemCategoryConfiguration : IEntityTypeConfiguration<ItemCategory
         builder.Property(x => x.InventoryAccount).HasMaxLength(20);
         builder.Property(x => x.CogsAccount).HasMaxLength(20);
         builder.Property(x => x.AdjustAccount).HasMaxLength(20);
-
-        builder.Property(x => x.GetType().GetProperty("Code") != null ? "Code" : "Name"); // no-op to hint code existence
-        builder.Property(x => x.Code).HasMaxLength(20).IsRequired();
         builder.Property(x => x.RevenueAccount).HasMaxLength(20);
+        builder.Property(x => x.Code).HasMaxLength(20).IsRequired();
+        builder.Property(x => x.Name).HasMaxLength(120).IsRequired();
+        builder.HasIndex(x => x.Code).IsUnique();
+        builder.HasIndex(x => x.Name).IsUnique();
 
         // Timestamps
         builder

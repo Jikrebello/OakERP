@@ -18,7 +18,7 @@ internal class GlJournalConfiguration : IEntityTypeConfiguration<GlJournal>
         builder.Property(x => x.JournalDate).HasColumnType("date");
         builder.Property(x => x.PostingDate).HasColumnType("date");
         builder.Property(x => x.Memo).HasMaxLength(512);
-        builder.Property(x => x.Status).IsRequired();
+        builder.Property(x => x.DocStatus).IsRequired();
 
         // Timestamps
         builder
@@ -35,7 +35,7 @@ internal class GlJournalConfiguration : IEntityTypeConfiguration<GlJournal>
         builder.HasIndex(x => x.JournalNo).IsUnique();
         builder.HasIndex(x => x.JournalDate);
         builder.HasIndex(x => x.PostingDate);
-        builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => x.DocStatus);
 
         // Relationship
         builder
@@ -53,7 +53,7 @@ internal class GlJournalConfiguration : IEntityTypeConfiguration<GlJournal>
             // if Posted, require a PostingDate (keeps GL timing explicit)
             t.HasCheckConstraint(
                 "ck_gljournal_posted_requires_postingdate",
-                "(\"Status\" <> 'posted'::docstatus) OR (\"PostingDate\" IS NOT NULL)"
+                "(\"DocStatus\" <> 'posted'::doc_status) OR (\"PostingDate\" IS NOT NULL)"
             );
 
             // PostingDate not before JournalDate

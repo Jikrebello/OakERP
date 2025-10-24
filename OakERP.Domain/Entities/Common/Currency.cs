@@ -21,4 +21,5 @@ public sealed class Currency
     public ICollection<ApInvoice> ApInvoices { get; set; } = [];
     public ICollection<ArInvoice> ArInvoices { get; set; } = [];
     public ICollection<BankAccount> BankAccounts { get; set; } = [];
+    public ICollection<ArReceipt> ArReceipts { get; set; } = [];
 }

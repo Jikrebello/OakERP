@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-  Smart EF Core migration utility that auto-detects your project files.
+  Smart EF Core migration utility that auto-detects your project files, with overrides.
 
 .PARAMETER action
   The EF action: add, remove, update, drop, rollback, reset, status, help
@@ -9,128 +9,155 @@
   Name of the migration (used with "add")
 
 .PARAMETER context
-  The DbContext to use (optional)
+  DbContext type name. Default: ApplicationDbContext
+
+.PARAMETER project
+  Path to the project that CONTAINS the DbContext (e.g., *.Infrastructure.csproj). Overrides autodetect.
+
+.PARAMETER startup
+  Path to the startup project (e.g., *.API.csproj or *.Web*.csproj). Overrides autodetect.
 #>
 
+[CmdletBinding()]
 param(
-    [ValidateSet("add", "remove", "update", "drop", "rollback", "reset", "status", "help")]
-    [string]$action = "help",
+  [ValidateSet('add','remove','update','drop','rollback','reset','status','help')]
+  [string]$action = 'help',
 
-    [string]$name = "InitSchema",
+  [string]$name = 'InitSchema',
 
-    [string]$context = "ApplicationDbContext"
+  [string]$context = 'ApplicationDbContext',
+
+  [string]$project,
+
+  [string]$startup
 )
 
-# Environment check
+$PSDefaultParameterValues['Out-File:Encoding']='utf8'
+
 $psMajorVersion = $PSVersionTable.PSVersion.Major
 $supportsEmoji = $psMajorVersion -ge 7
+function Emoji([string]$ok, [string]$fallback){ if($supportsEmoji){$ok}else{$fallback} }
 
-function Emoji {
-    param (
-        [string]$symbol,
-        [string]$fallback
-    )
-    if ($supportsEmoji) { return $symbol } else { return $fallback }
+function Write-Section($t){ Write-Host "`n$(Emoji '📦' '[*]') $t`n" }
+
+if ($action -eq 'help') {
+  Write-Host ""
+  Write-Host "$(Emoji '🛠️' '[HELP]') EF Core Migration Utility"
+  Write-Host ""
+  Write-Host "$(Emoji '📦' '[ADD]')     add        - Adds a new migration (uses -name)"
+  Write-Host "$(Emoji '🗑️' '[REMOVE]')  remove     - Removes the last migration"
+  Write-Host "$(Emoji '⬆️' '[UPDATE]')  update     - Applies the latest migration to the database"
+  Write-Host "$(Emoji '🔥' '[DROP]')    drop       - Drops the entire database"
+  Write-Host "$(Emoji '⏪' '[ROLLBACK]') rollback   - Rolls back the last migration"
+  Write-Host "$(Emoji '🔁' '[RESET]')   reset      - Drops and reapplies all migrations"
+  Write-Host "$(Emoji '📋' '[STATUS]')  status     - Lists applied and available migrations"
+  Write-Host ""
+  Write-Host "$(Emoji '🔧' ' ') Usage:"
+  Write-Host "   .\ef.ps1 -action add -name YourMigrationName"
+  Write-Host "   .\ef.ps1 -action update"
+  Write-Host "   .\ef.ps1 -action rollback"
+  Write-Host ""
+  Write-Host "Overrides:"
+  Write-Host "   -project <path to *.csproj with DbContext>"
+  Write-Host "   -startup <path to startup *.csproj>"
+  Write-Host "   -context <DbContextTypeName>"
+  Write-Host ""
+  exit 0
 }
 
-# Show help
-if ($action -eq "help") {
-    $title = Emoji "🛠️" "[HELP]"
-    Write-Host ""
-    Write-Host "$title EF Core Migration Utility Help"
-    Write-Host ""
-    Write-Host "$(Emoji "📦" "[ADD]")     add        - Adds a new migration (uses -name)"
-    Write-Host "$(Emoji "🗑️" "[REMOVE]")  remove     - Removes the last migration"
-    Write-Host "$(Emoji "⬆️" "[UPDATE]")  update     - Applies the latest migration to the database"
-    Write-Host "$(Emoji "🔥" "[DROP]")    drop       - Drops the entire database"
-    Write-Host "$(Emoji "⏪" "[ROLLBACK]") rollback   - Rolls back the last migration"
-    Write-Host "$(Emoji "🔁" "[RESET]")   reset      - Drops and reapplies all migrations"
-    Write-Host "$(Emoji "📋" "[STATUS]")  status     - Lists applied and available migrations"
-    Write-Host ""
-    Write-Host "$(Emoji "🔧" " ") Usage:"
-    Write-Host "   .\ef.ps1 -action add -name YourMigrationName"
-    Write-Host "   .\ef.ps1 -action rollback"
-    Write-Host ""
-    Write-Host "$(Emoji "✨" " ") Run with '-action help' to see this again."
-    Write-Host ""
-    exit 0
-}
-
-# Check if dotnet-ef is available
+# Ensure dotnet-ef exists
 $efVersion = & dotnet ef --version 2>$null
 if (-not $efVersion) {
-    $tag = Emoji "❌" "[ERROR]"
-    Write-Host "$tag dotnet-ef is not installed or not found in PATH."
-    Write-Host "$(Emoji "➡️" "->")  Install it with: dotnet tool install --global dotnet-ef"
-    exit 1
+  Write-Host "$(Emoji '❌' '[ERROR]') dotnet-ef is not installed."
+  Write-Host "Install: dotnet tool install --global dotnet-ef"
+  exit 1
 }
 
-# Auto-detect project paths
-$infrastructureProj = Get-ChildItem -Recurse -Filter *.Infrastructure.csproj | Select-Object -First 1
-$startupProj = Get-ChildItem -Recurse -Filter *.API.csproj | Select-Object -First 1
-
-if (-not $infrastructureProj -or -not $startupProj) {
-    $tag = Emoji "❌" "[ERROR]"
-    Write-Host "$tag Could not auto-detect project files."
-    if (-not $infrastructureProj) { Write-Host "$(Emoji "⚠️" "[WARN]") Missing: *.Infrastructure.csproj" }
-    if (-not $startupProj) { Write-Host "$(Emoji "⚠️" "[WARN]") Missing: *.API.csproj" }
-    exit 1
+# Autodetect projects unless overridden
+function Resolve-Project([string]$pattern){
+  $matches = Get-ChildItem -Recurse -Filter $pattern -File | Sort-Object FullName
+  if($matches.Count -ge 1){ return $matches[0].FullName }
+  return $null
 }
 
-$project = $infrastructureProj.FullName
-$startupProject = $startupProj.FullName
+if (-not $project) {
+  # Try common names for the project that contains the DbContext
+  $project = Resolve-Project '*.Infrastructure.csproj'
+  if (-not $project) { $project = Resolve-Project '*.Persistence.csproj' }
+  if (-not $project) { $project = Resolve-Project '*.Data.csproj' }
+}
+
+if (-not $startup) {
+  # Try common web/API startup names
+  $startup = Resolve-Project '*.API.csproj'
+  if (-not $startup) { $startup = Resolve-Project '*.Web*.csproj' }
+  if (-not $startup) { $startup = Resolve-Project '*.Host*.csproj' }
+  if (-not $startup) { $startup = $project } # fallback: same as project
+}
+
+if (-not $project -or -not $startup) {
+  Write-Host "$(Emoji '❌' '[ERROR]') Could not auto-detect project files."
+  if (-not $project) { Write-Host "$(Emoji '⚠️' '[WARN]') Missing: *.Infrastructure.csproj (or override with -project)" }
+  if (-not $startup) { Write-Host "$(Emoji '⚠️' '[WARN]') Missing: *.API.csproj / *.Web*.csproj (or override with -startup)" }
+  exit 1
+}
+
+Write-Host "$(Emoji '🧭' '[INFO]') Using:"
+Write-Host "  Project:  $project"
+Write-Host "  Startup:  $startup"
+Write-Host "  Context:  $context"
+
+# Helper to run dotnet-ef with common args
+function Run-EF {
+  param(
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]] $EfArgs
+  )
+  & dotnet ef @EfArgs --project $project --startup-project $startup --context $context
+  if ($LASTEXITCODE -ne 0) { throw "dotnet ef failed. args: $EfArgs" }
+}
 
 switch ($action) {
-    "add" {
-        $tag = Emoji "📦" "[ADD]"
-        Write-Host "$tag Adding new migration: $name"
-        dotnet ef migrations add $name --project $project --startup-project $startupProject --context $context
+  'add' {
+    if (-not $name -or $name.Trim().Length -eq 0) { $name = 'InitSchema' }
+    $name = ($name -replace '\s+','_')
+    Write-Host "$(Emoji '📦' '[ADD]') Adding new migration: $name"
+    Run-EF migrations add $name
+  }
+  'remove' {
+    Write-Host "$(Emoji '🗑️' '[REMOVE]') Removing last migration (code only)"
+    Run-EF migrations remove
+  }
+  'update' {
+    Write-Host "$(Emoji '⬆️' '[UPDATE]') Updating database to latest migration"
+    Run-EF database update
+  }
+  'drop' {
+    Write-Host "$(Emoji '🔥' '[DROP]') Dropping database"
+    Run-EF database drop --force
+  }
+  'rollback' {
+    Write-Host "$(Emoji '⏪' '[ROLLBACK]') Rolling back last migration"
+    $list = & dotnet ef migrations list --project $project --startup-project $startup --context $context 2>$null
+    if ($LASTEXITCODE -ne 0) { throw "Failed to list migrations." }
+    $lines = $list | Where-Object { $_ -and ($_ -notmatch 'Build started') -and ($_ -notmatch 'Build succeeded') }
+    if ($lines.Count -lt 2) {
+      Write-Host "$(Emoji '❌' '[ERROR]') No previous migration found."
+    } else {
+      $prev = $lines[$lines.Count-2] -replace '^\*?\s*',''
+      Write-Host "$(Emoji '➡️' '[REVERT]') Reverting to: $prev"
+      Run-EF database update $prev
+      Run-EF migrations remove
     }
-    "remove" {
-        $tag = Emoji "🗑️" "[REMOVE]"
-        Write-Host "$tag Removing last migration"
-        dotnet ef migrations remove --project $project --startup-project $startupProject --context $context
-    }
-    "update" {
-        $tag = Emoji "⬆️" "[UPDATE]"
-        Write-Host "$tag Updating database to latest migration"
-        dotnet ef database update --project $project --startup-project $startupProject --context $context
-    }
-    "drop" {
-        $tag = Emoji "🔥" "[DROP]"
-        Write-Host "$tag Dropping database"
-        dotnet ef database drop --project $project --startup-project $startupProject --context $context --force
-    }
-    "rollback" {
-        $tag = Emoji "⏪" "[ROLLBACK]"
-        Write-Host "$tag Rolling back last migration..."
-
-        $migrations = dotnet ef migrations list --project $project --startup-project $startupProject --context $context
-        $previousMigration = $migrations | Select-Object -SkipLast 1 -Last 1
-
-        if (-not $previousMigration) {
-            $tag = Emoji "❌" "[ERROR]"
-            Write-Host "$tag No previous migration found."
-        } else {
-            $tag = Emoji "➡️" "[REVERT]"
-            Write-Host "$tag Reverting to: $previousMigration"
-            dotnet ef database update $previousMigration --project $project --startup-project $startupProject --context $context
-            dotnet ef migrations remove --project $project --startup-project $startupProject --context $context
-        }
-    }
-    "reset" {
-        $tag = Emoji "🔁" "[RESET]"
-        Write-Host "$tag Dropping and reapplying database migrations"
-        dotnet ef database drop --project $project --startup-project $startupProject --context $context --force
-        dotnet ef database update --project $project --startup-project $startupProject --context $context
-    }
-    "status" {
-        $tag = Emoji "📋" "[STATUS]"
-        Write-Host "$tag Listing applied and available migrations"
-        dotnet ef migrations list --project $project --startup-project $startupProject --context $context
-    }
-    default {
-        $tag = Emoji "❌" "[ERROR]"
-        Write-Host "$tag Unknown action: $action"
-    }
+  }
+  'reset' {
+    Write-Host "$(Emoji '🔁' '[RESET]') Dropping and reapplying all migrations"
+    Run-EF database drop --force
+    Run-EF database update
+  }
+  'status' {
+    Write-Host "$(Emoji '📋' '[STATUS]') Migrations:"
+    Run-EF migrations list
+  }
 }
+

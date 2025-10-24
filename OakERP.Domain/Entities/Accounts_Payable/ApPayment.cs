@@ -26,7 +26,7 @@ public sealed class ApPayment
     public DateOnly? ClearedDate { get; set; }
 
     public decimal Amount { get; set; }
-    public DocStatus Status { get; set; } = DocStatus.Draft;
+    public DocStatus DocStatus { get; set; } = DocStatus.Draft;
     public string? Memo { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

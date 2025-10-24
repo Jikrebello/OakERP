@@ -31,7 +31,7 @@ internal class ApInvoiceConfiguration : IEntityTypeConfiguration<ApInvoice>
         builder.Property(x => x.InvoiceDate).HasColumnType("date");
         builder.Property(x => x.DueDate).HasColumnType("date");
 
-        builder.Property(x => x.Status).IsRequired();
+        builder.Property(x => x.DocStatus).IsRequired();
 
         builder
             .Property(x => x.CreatedAt)
@@ -55,7 +55,7 @@ internal class ApInvoiceConfiguration : IEntityTypeConfiguration<ApInvoice>
         builder.HasIndex(x => new { x.VendorId, x.InvoiceNo }).IsUnique();
         builder.HasIndex(x => new { x.VendorId, x.DueDate });
         builder.HasIndex(x => x.InvoiceDate);
-        builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => x.DocStatus);
 
         // Data integrity checks
         builder.ToTable(t =>

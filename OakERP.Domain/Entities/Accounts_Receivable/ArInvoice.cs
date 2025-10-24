@@ -14,7 +14,7 @@ public sealed class ArInvoice
 
     public DateOnly? PostingDate { get; set; }
 
-    public DocStatus Status { get; set; } = DocStatus.Draft;
+    public DocStatus DocStatus { get; set; } = DocStatus.Draft;
 
     public string CurrencyCode { get; set; } = CurrencyISOCodes.ZAR.ToString();
     public Currency Currency { get; set; } = default!;

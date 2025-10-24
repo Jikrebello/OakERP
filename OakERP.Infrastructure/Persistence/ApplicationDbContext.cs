@@ -96,20 +96,40 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
         base.OnModelCreating(builder);
 
-        // PostgreSQL enums
-        builder.HasPostgresEnum<GlAccountType>();
-        builder.HasPostgresEnum<DocStatus>();
-        builder.HasPostgresEnum<ItemType>();
-        builder.HasPostgresEnum<InventoryTransactionType>();
+        // 1) Register PostgreSQL enums (names = DB enum type names)
+        builder.HasPostgresEnum<DocStatus>("doc_status");
+        builder.HasPostgresEnum<GlAccountType>("gl_account_type");
+        builder.HasPostgresEnum<ItemType>("item_type");
+        builder.HasPostgresEnum<InventoryTransactionType>("inventory_transaction_type");
 
-        // Apply all IEntityTypeConfiguration<> in this assembly
+        // 2) Apply configurations so all properties are in the model
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
-        // Database views
+        // 3) Map every CLR enum property to its PostgreSQL enum column type
+        void MapEnum<TEnum>(string pgType)
+            where TEnum : struct, Enum
+        {
+            foreach (var et in builder.Model.GetEntityTypes())
+            {
+                foreach (var p in et.GetProperties().Where(p => p.ClrType == typeof(TEnum)))
+                {
+                    // Apply HasColumnType("<pg_enum_name>") to each matching property
+                    builder.Entity(et.ClrType).Property(p.Name).HasColumnType(pgType);
+                }
+            }
+        }
+
+        MapEnum<DocStatus>("doc_status");
+        MapEnum<GlAccountType>("gl_account_type");
+        MapEnum<ItemType>("item_type");
+        MapEnum<InventoryTransactionType>("inventory_transaction_type");
+
+        // 4) Views
         builder.Entity<ItemBalanceView>().ToView("public.v_item_balance").HasNoKey();
         builder.Entity<AROpenItemView>().ToView("public.v_ar_open_items").HasNoKey();
         builder.Entity<APOpenItemView>().ToView("public.v_ap_open_items").HasNoKey();
 
+        // 5) Global DateOnly -> date
         foreach (
             var prop in builder
                 .Model.GetEntityTypes()
@@ -120,7 +140,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             prop.SetColumnType("date");
         }
 
-        // Add xmin optimistic concurrency to all table-backed, key (i.e., updatable) entities
+        // 6) xmin concurrency token on table-backed, key entities
         foreach (var et in builder.Model.GetEntityTypes())
         {
             if (et.IsKeyless)

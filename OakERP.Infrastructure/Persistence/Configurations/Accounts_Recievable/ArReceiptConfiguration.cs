@@ -20,20 +20,19 @@ internal class ArReceiptConfiguration : IEntityTypeConfiguration<ArReceipt>
         builder.Property(x => x.ReceiptDate).HasColumnType("date");
         builder.Property(x => x.PostingDate).HasColumnType("date");
         builder.Property(x => x.ClearedDate).HasColumnType("date");
-
         builder.Property(x => x.Amount).HasColumnType("numeric(18,2)");
-        builder.Property(x => x.Status).IsRequired();
-
-        // Multi-currency
+        builder.Property(x => x.DocStatus).IsRequired();
         builder.Property(x => x.CurrencyCode).HasMaxLength(3).IsRequired();
-        builder.HasIndex(x => x.CurrencyCode);
+        builder.Property(x => x.AmountForeign).HasColumnType("numeric(18,2)"); // or (18, <Currency.Decimals>)
+
         builder
-            .HasOne<Currency>()
-            .WithMany()
+            .HasOne(x => x.Currency)
+            .WithMany(c => c.ArReceipts)
             .HasForeignKey(x => x.CurrencyCode)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.Property(x => x.AmountForeign).HasColumnType("numeric(18,2)"); // or (18, <Currency.Decimals>)
+        // Index
+        builder.HasIndex(x => x.CurrencyCode);
 
         // Timestamps
         builder
@@ -64,7 +63,7 @@ internal class ArReceiptConfiguration : IEntityTypeConfiguration<ArReceipt>
         builder.HasIndex(x => x.ReceiptDate);
         builder.HasIndex(x => x.PostingDate);
         builder.HasIndex(x => x.ClearedDate);
-        builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => x.DocStatus);
         builder.HasIndex(x => new { x.CustomerId, x.ReceiptDate });
         builder.HasIndex(x => new { x.CustomerId, x.PostingDate });
         builder.HasIndex(x => new { x.BankAccountId, x.ReceiptDate });
@@ -78,7 +77,7 @@ internal class ArReceiptConfiguration : IEntityTypeConfiguration<ArReceipt>
             // Posted → PostingDate required
             t.HasCheckConstraint(
                 "ck_arreceipt_posted_requires_postingdate",
-                "(\"Status\" <> 'posted'::docstatus) OR (\"PostingDate\" IS NOT NULL)"
+                "(\"DocStatus\" <> 'posted'::doc_status) OR (\"PostingDate\" IS NOT NULL)"
             );
 
             // ClearedDate cannot be before PostingDate (when both present)

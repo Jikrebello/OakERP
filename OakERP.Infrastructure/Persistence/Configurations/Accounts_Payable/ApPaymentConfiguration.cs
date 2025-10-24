@@ -21,7 +21,7 @@ internal class ApPaymentConfiguration : IEntityTypeConfiguration<ApPayment>
         builder.Property(x => x.ClearedDate).HasColumnType("date");
 
         builder.Property(x => x.Amount).HasColumnType("numeric(18,2)");
-        builder.Property(x => x.Status).IsRequired();
+        builder.Property(x => x.DocStatus).IsRequired();
 
         // Timestamps
         builder
@@ -51,7 +51,7 @@ internal class ApPaymentConfiguration : IEntityTypeConfiguration<ApPayment>
         builder.HasIndex(x => x.PaymentDate);
         builder.HasIndex(x => x.PostingDate);
         builder.HasIndex(x => x.ClearedDate);
-        builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => x.DocStatus);
         builder.HasIndex(x => new { x.VendorId, x.PaymentDate });
         builder.HasIndex(x => new { x.VendorId, x.PostingDate });
         builder.HasIndex(x => new { x.BankAccountId, x.PaymentDate });
@@ -66,7 +66,7 @@ internal class ApPaymentConfiguration : IEntityTypeConfiguration<ApPayment>
             // When Posted, PostingDate must be provided
             t.HasCheckConstraint(
                 "ck_appayment_posted_requires_postingdate",
-                "(\"Status\" <> 'posted'::docstatus) OR (\"PostingDate\" IS NOT NULL)"
+                "(\"DocStatus\" <> 'posted'::doc_status) OR (\"PostingDate\" IS NOT NULL)"
             );
 
             // ClearedDate cannot precede PostingDate when both present

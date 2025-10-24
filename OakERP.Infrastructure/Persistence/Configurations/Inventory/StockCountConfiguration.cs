@@ -16,7 +16,7 @@ internal class StockCountConfiguration : IEntityTypeConfiguration<StockCount>
         // Columns
         builder.Property(x => x.CountNo).HasMaxLength(40).IsRequired();
         builder.Property(x => x.ScheduledOn).HasColumnType("date");
-        builder.Property(x => x.Status).IsRequired();
+        builder.Property(x => x.DocStatus).IsRequired();
 
         // Timestamps
         builder
@@ -38,7 +38,7 @@ internal class StockCountConfiguration : IEntityTypeConfiguration<StockCount>
         // Indexes
         builder.HasIndex(x => x.CountNo).IsUnique();
         builder.HasIndex(x => new { x.LocationId, x.ScheduledOn });
-        builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => x.DocStatus);
 
         // Data integrity
         builder.ToTable(t =>

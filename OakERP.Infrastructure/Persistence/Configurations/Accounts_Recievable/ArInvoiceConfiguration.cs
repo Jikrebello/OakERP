@@ -24,7 +24,7 @@ internal class ArInvoiceConfiguration : IEntityTypeConfiguration<ArInvoice>
         builder.Property(x => x.DueDate).HasColumnType("date");
         builder.Property(x => x.PostingDate).HasColumnType("date");
 
-        builder.Property(x => x.Status).IsRequired();
+        builder.Property(x => x.DocStatus).IsRequired();
 
         // Timestamps
         builder
@@ -55,7 +55,7 @@ internal class ArInvoiceConfiguration : IEntityTypeConfiguration<ArInvoice>
         builder.HasIndex(x => new { x.CustomerId, x.DueDate });
         builder.HasIndex(x => x.InvoiceDate);
         builder.HasIndex(x => x.PostingDate);
-        builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => x.DocStatus);
         builder.HasIndex(x => x.CurrencyCode);
 
         // Data integrity
@@ -76,7 +76,7 @@ internal class ArInvoiceConfiguration : IEntityTypeConfiguration<ArInvoice>
             // When Posted, PostingDate must be present
             t.HasCheckConstraint(
                 "ck_arinvoice_posted_requires_postingdate",
-                "(\"Status\" <> 'posted'::docstatus) OR (\"PostingDate\" IS NOT NULL)"
+                "(\"DocStatus\" <> 'posted'::doc_status) OR (\"PostingDate\" IS NOT NULL)"
             );
 
             // Currency code must be 3 letters (DB guard in addition to length)

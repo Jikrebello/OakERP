@@ -11,7 +11,7 @@ public sealed class ApInvoice
     public string InvoiceNo { get; set; } = default!;
     public DateOnly InvoiceDate { get; set; }
     public DateOnly DueDate { get; set; }
-    public DocStatus Status { get; set; } = DocStatus.Draft;
+    public DocStatus DocStatus { get; set; } = DocStatus.Draft;
     public string CurrencyCode { get; set; } = CurrencyISOCodes.ZAR.ToString();
     public Currency Currency { get; set; } = default!;
     public string? Memo { get; set; }

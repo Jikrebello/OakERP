@@ -22,7 +22,7 @@ public sealed class ArReceipt
     public decimal? AmountForeign { get; set; } // amount in receipt currency
     public decimal? ExchangeRate { get; set; } // to functional currency for posting
     public Currency Currency { get; set; } = default!;
-    public DocStatus Status { get; set; } = DocStatus.Draft;
+    public DocStatus DocStatus { get; set; } = DocStatus.Draft;
     public string? Memo { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

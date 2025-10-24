@@ -8,10 +8,10 @@ services:
       POSTGRES_PASSWORD: oakpass
       POSTGRES_DB: oakerp
     ports:
-      - "5432:5432"
+      - "5433:5432" # host 5433 -> container 5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Optional: Initial SQL (only runs on first volume create)
+      # Initial SQL (only runs on first volume create)
       - ./initdb:/docker-entrypoint-initdb.d
 
   oakadmin:

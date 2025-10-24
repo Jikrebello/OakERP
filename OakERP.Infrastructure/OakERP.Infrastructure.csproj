@@ -7,25 +7,30 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="Persistence\SQL\Views\public.v_ap_open_items.psql" />
-	  <None Remove="Persistence\SQL\Views\public.v_ar_open_items.psql" />
-	  <None Remove="Persistence\SQL\Views\public.v_item_balance.psql" />
+		<None Remove="Persistence\SQL\Views\public.v_ap_open_items.psql" />
+		<None Remove="Persistence\SQL\Views\public.v_ar_open_items.psql" />
+		<None Remove="Persistence\SQL\Views\public.v_item_balance.psql" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Include="Persistence\SQL\Views\public.v_ap_open_items.psql" />
-	  <EmbeddedResource Include="Persistence\SQL\Views\public.v_ar_open_items.psql" />
-	  <EmbeddedResource Include="Persistence\SQL\Views\public.v_item_balance.psql" />
+		<EmbeddedResource Include="Persistence\SQL\Views\public.v_ap_open_items.psql" />
+		<EmbeddedResource Include="Persistence\SQL\Views\public.v_ar_open_items.psql" />
+		<EmbeddedResource Include="Persistence\SQL\Views\public.v_item_balance.psql" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.10" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.9" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.10" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
 	</ItemGroup>
 
@@ -36,7 +41,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Migrations\" />
+		<Folder Include="Migrations\" />
 	</ItemGroup>
 
 </Project>
