@@ -10,6 +10,40 @@ internal class StockCountConfiguration : IEntityTypeConfiguration<StockCount>
     {
         builder.ToTable("stock_counts");
 
+        // PK
         builder.HasKey(x => x.Id);
+
+        // Columns
+        builder.Property(x => x.CountNo).HasMaxLength(40).IsRequired();
+        builder.Property(x => x.ScheduledOn).HasColumnType("date");
+        builder.Property(x => x.Status).IsRequired();
+
+        // Timestamps
+        builder
+            .Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now() at time zone 'utc'")
+            .ValueGeneratedOnAdd();
+        builder
+            .Property(x => x.UpdatedAt)
+            .HasDefaultValueSql("now() at time zone 'utc'")
+            .ValueGeneratedOnAddOrUpdate();
+
+        // Relationships
+        builder
+            .HasOne(x => x.Location)
+            .WithMany()
+            .HasForeignKey(x => x.LocationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Indexes
+        builder.HasIndex(x => x.CountNo).IsUnique();
+        builder.HasIndex(x => new { x.LocationId, x.ScheduledOn });
+        builder.HasIndex(x => x.Status);
+
+        // Data integrity
+        builder.ToTable(t =>
+        {
+            t.HasCheckConstraint("ck_sc_countno_not_blank", "btrim(\"CountNo\") <> ''");
+        });
     }
 }

@@ -8,4 +8,7 @@ public sealed class FiscalPeriod
     public DateOnly PeriodStart { get; set; }
     public DateOnly PeriodEnd { get; set; }
     public string Status { get; set; } = "open"; // open|closed
+
+    public ICollection<GlEntry> Entries { get; set; } = [];
+    public ICollection<GlJournal> Journals { get; set; } = [];
 }

@@ -10,8 +10,44 @@ internal class StockCountLineConfiguration : IEntityTypeConfiguration<StockCount
     {
         builder.ToTable("stock_count_lines");
 
+        // PK
         builder.HasKey(x => x.Id);
 
+        // Columns
+        builder.Property(x => x.LineNo).IsRequired();
+        builder.Property(x => x.ExpectedQty).HasColumnType("numeric(18,4)");
+        builder.Property(x => x.CountedQty).HasColumnType("numeric(18,4)");
+        builder.Property(x => x.VarianceQty).HasColumnType("numeric(18,4)");
+
+        // Index
         builder.HasIndex(x => new { x.StockCountId, x.LineNo }).IsUnique();
+        builder.HasIndex(x => new { x.StockCountId, x.ItemId }).IsUnique();
+
+        // Relationships
+        builder
+            .HasOne(x => x.StockCount)
+            .WithMany(x => x.Lines)
+            .HasForeignKey(x => x.StockCountId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasOne(x => x.Item)
+            .WithMany()
+            .HasForeignKey(x => x.ItemId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Data integrity
+        builder.ToTable(t =>
+        {
+            t.HasCheckConstraint("ck_scl_lineno_positive", "\"LineNo\" > 0");
+            t.HasCheckConstraint("ck_scl_expected_nonneg", "\"ExpectedQty\" >= 0");
+            t.HasCheckConstraint("ck_scl_counted_nonneg", "\"CountedQty\" >= 0");
+
+            builder
+                .Property(x => x.VarianceQty)
+                .HasColumnType("numeric(18,4)")
+                .HasComputedColumnSql("\"CountedQty\" - \"ExpectedQty\"", stored: true)
+                .ValueGeneratedOnAddOrUpdate();
+        });
     }
 }
