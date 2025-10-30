@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.General_Ledger;
-using OakERP.Domain.Repositories.General_Ledger;
+using OakERP.Domain.Repository_Interfaces.General_Ledger;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.General_Ledger;
 
 public class GlJournalRepository(ApplicationDbContext db) : IGlJournalRepository
 {
-    public async Task<GlJournal?> GetByIdAsync(Guid id) =>
-        await db.GlJournals.FirstOrDefaultAsync(j => j.Id == id);
+    private DbSet<GlJournal> Set => db.GlJournals;
 
-    public IQueryable<GlJournal> Query() => db.GlJournals.AsNoTracking();
+    public Task<GlJournal?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
-    public async Task CreateAsync(GlJournal glJournal)
-    {
-        db.GlJournals.Add(glJournal);
-        await db.SaveChangesAsync();
-    }
+    public ValueTask<GlJournal?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task UpdateAsync(GlJournal glJournal)
-    {
-        db.GlJournals.Update(glJournal);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<GlJournal> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(GlJournal glJournal)
-    {
-        db.GlJournals.Remove(glJournal);
-        await db.SaveChangesAsync();
-    }
+    public void Add(GlJournal entity) => Set.Add(entity);
+
+    public void Remove(GlJournal entity) => Set.Remove(entity);
 }

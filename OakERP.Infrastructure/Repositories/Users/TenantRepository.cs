@@ -1,35 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Users;
-using OakERP.Domain.Repositories.Users;
+using OakERP.Domain.Repository_Interfaces.Users;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Users;
 
 public class TenantRepository(ApplicationDbContext db) : ITenantRepository
 {
-    public async Task<Tenant?> GetByIdAsync(Guid id) =>
-        await db.Tenants.Include(t => t.License).FirstOrDefaultAsync(t => t.Id == id);
+    private DbSet<Tenant> Set => db.Tenants;
 
-    public async Task<Tenant?> GetByNameAsync(string name) =>
-        await db.Tenants.Include(t => t.License).FirstOrDefaultAsync(t => t.Name == name);
+    public ValueTask<Tenant?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public IQueryable<Tenant> Query() => db.Tenants.Include(t => t.License).AsNoTracking();
+    public Task<Tenant?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task CreateAsync(Tenant tenant)
-    {
-        db.Tenants.Add(tenant);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<Tenant> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task UpdateAsync(Tenant tenant)
-    {
-        db.Tenants.Update(tenant);
-        await db.SaveChangesAsync();
-    }
+    public void Add(Tenant entity) => Set.Add(entity);
 
-    public async Task DeleteAsync(Tenant tenant)
-    {
-        db.Tenants.Remove(tenant);
-        await db.SaveChangesAsync();
-    }
+    public void Remove(Tenant entity) => Set.Remove(entity);
 }

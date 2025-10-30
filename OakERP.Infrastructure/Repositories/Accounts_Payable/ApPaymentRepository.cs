@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Accounts_Payable;
-using OakERP.Domain.Repositories.Accounts_Payable;
+using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Accounts_Payable;
 
 public class ApPaymentRepository(ApplicationDbContext db) : IApPaymentRepository
 {
-    public async Task<ApPayment?> GetByIdAsync(Guid id) =>
-        await db.ApPayments.FirstOrDefaultAsync(p => p.Id == id);
+    private DbSet<ApPayment> Set => db.ApPayments;
 
-    public IQueryable<ApPayment> Query() => db.ApPayments.AsNoTracking();
+    public Task<ApPayment?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
-    public async Task CreateAsync(ApPayment apPayment)
-    {
-        db.ApPayments.Add(apPayment);
-        await db.SaveChangesAsync();
-    }
+    public ValueTask<ApPayment?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task UpdateAsync(ApPayment apPayment)
-    {
-        db.ApPayments.Update(apPayment);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<ApPayment> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(ApPayment apPayment)
-    {
-        db.ApPayments.Remove(apPayment);
-        await db.SaveChangesAsync();
-    }
+    public void Add(ApPayment entity) => Set.Add(entity);
+
+    public void Remove(ApPayment entity) => Set.Remove(entity);
 }

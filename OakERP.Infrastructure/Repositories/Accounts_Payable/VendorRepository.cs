@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Accounts_Payable;
-using OakERP.Domain.Repositories.Accounts_Payable;
+using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Accounts_Payable;
 
 public class VendorRepository(ApplicationDbContext db) : IVendorRepository
 {
-    public async Task<Vendor?> GetByIdAsync(Guid id) =>
-        await db.Vendors.FirstOrDefaultAsync(v => v.Id == id);
+    private DbSet<Vendor> Set => db.Vendors;
 
-    public IQueryable<Vendor> Query() => db.Vendors.AsNoTracking();
+    public Task<Vendor?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
-    public async Task CreateAsync(Vendor vendor)
-    {
-        db.Vendors.Add(vendor);
-        await db.SaveChangesAsync();
-    }
+    public ValueTask<Vendor?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task UpdateAsync(Vendor vendor)
-    {
-        db.Vendors.Update(vendor);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<Vendor> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(Vendor vendor)
-    {
-        db.Vendors.Remove(vendor);
-        await db.SaveChangesAsync();
-    }
+    public void Add(Vendor entity) => Set.Add(entity);
+
+    public void Remove(Vendor entity) => Set.Remove(entity);
 }

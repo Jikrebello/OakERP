@@ -25,8 +25,13 @@ namespace OakERP.Infrastructure.Persistence;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<ApplicationUser>(options)
 {
-    public DbSet<TaxRate> TaxRates => Set<TaxRate>();
+    #region Common
+
     public DbSet<AppSetting> AppSettings => Set<AppSetting>();
+    public DbSet<Currency> Currencies => Set<Currency>();
+    public DbSet<TaxRate> TaxRates => Set<TaxRate>();
+
+    #endregion Common
 
     #region Accounts Payable
 

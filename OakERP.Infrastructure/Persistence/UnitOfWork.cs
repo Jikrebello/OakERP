@@ -7,10 +7,11 @@ public class UnitOfWork(ApplicationDbContext context) : IUnitOfWork, IAsyncDispo
 {
     private IDbContextTransaction? _transaction;
 
-    public async Task BeginTransactionAsync()
-    {
+    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
+        context.SaveChangesAsync(cancellationToken);
+
+    public async Task BeginTransactionAsync() =>
         _transaction ??= await context.Database.BeginTransactionAsync();
-    }
 
     public async Task CommitAsync()
     {

@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.General_Ledger;
-using OakERP.Domain.Repositories.General_Ledger;
+using OakERP.Domain.Repository_Interfaces.General_Ledger;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.General_Ledger;
 
 public class FiscalPeriodRepository(ApplicationDbContext db) : IFiscalPeriodRepository
 {
-    public async Task<FiscalPeriod?> GetByIdAsync(Guid id) =>
-        await db.FiscalPeriods.FirstOrDefaultAsync(fp => fp.Id == id);
+    private DbSet<FiscalPeriod> Set => db.FiscalPeriods;
 
-    public IQueryable<FiscalPeriod> Query() => db.FiscalPeriods.AsNoTracking();
+    public ValueTask<FiscalPeriod?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task CreateAsync(FiscalPeriod fiscalPeriod)
-    {
-        db.FiscalPeriods.Add(fiscalPeriod);
-        await db.SaveChangesAsync();
-    }
+    public Task<FiscalPeriod?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task UpdateAsync(FiscalPeriod fiscalPeriod)
-    {
-        db.FiscalPeriods.Update(fiscalPeriod);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<FiscalPeriod> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(FiscalPeriod fiscalPeriod)
-    {
-        db.FiscalPeriods.Remove(fiscalPeriod);
-        await db.SaveChangesAsync();
-    }
+    public void Add(FiscalPeriod entity) => Set.Add(entity);
+
+    public void Remove(FiscalPeriod entity) => Set.Remove(entity);
 }

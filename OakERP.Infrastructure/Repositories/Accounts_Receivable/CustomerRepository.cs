@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Accounts_Receivable;
-using OakERP.Domain.Repositories.Accounts_Receivable;
+using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Accounts_Receivable;
 
 public class CustomerRepository(ApplicationDbContext db) : ICustomerRepository
 {
-    public async Task<Customer?> GetByIdAsync(Guid id) =>
-        await db.Customers.FirstOrDefaultAsync(c => c.Id == id);
+    private DbSet<Customer> Set => db.Customers;
 
-    public IQueryable<Customer> Query() => db.Customers.AsNoTracking();
+    public Task<Customer?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
-    public async Task CreateAsync(Customer customer)
-    {
-        db.Customers.Add(customer);
-        await db.SaveChangesAsync();
-    }
+    public ValueTask<Customer?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task UpdateAsync(Customer customer)
-    {
-        db.Customers.Update(customer);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<Customer> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(Customer customer)
-    {
-        db.Customers.Remove(customer);
-        await db.SaveChangesAsync();
-    }
+    public void Add(Customer entity) => Set.Add(entity);
+
+    public void Remove(Customer entity) => Set.Remove(entity);
 }

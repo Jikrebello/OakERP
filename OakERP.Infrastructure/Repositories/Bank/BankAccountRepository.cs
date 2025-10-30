@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Bank;
-using OakERP.Domain.Repositories.Bank;
+using OakERP.Domain.Repository_Interfaces.Bank;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Bank;
 
 public class BankAccountRepository(ApplicationDbContext db) : IBankAccountRepository
 {
-    public async Task<BankAccount?> GetByIdAsync(Guid id) =>
-        await db.BankAccounts.FirstOrDefaultAsync(a => a.Id == id);
+    private DbSet<BankAccount> Set => db.BankAccounts;
 
-    public IQueryable<BankAccount> Query() => db.BankAccounts.AsNoTracking();
+    public Task<BankAccount?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
-    public async Task CreateAsync(BankAccount bankAccount)
-    {
-        db.BankAccounts.Add(bankAccount);
-        await db.SaveChangesAsync();
-    }
+    public ValueTask<BankAccount?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task UpdateAsync(BankAccount bankAccount)
-    {
-        db.BankAccounts.Update(bankAccount);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<BankAccount> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(BankAccount bankAccount)
-    {
-        db.BankAccounts.Remove(bankAccount);
-        await db.SaveChangesAsync();
-    }
+    public void Add(BankAccount entity) => Set.Add(entity);
+
+    public void Remove(BankAccount entity) => Set.Remove(entity);
 }

@@ -5,7 +5,7 @@ using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.DTOs.Auth;
 using OakERP.Common.Persistence;
 using OakERP.Domain.Entities.Users;
-using OakERP.Domain.Repositories.Users;
+using OakERP.Domain.Repository_Interfaces.Users;
 
 namespace OakERP.Auth;
 

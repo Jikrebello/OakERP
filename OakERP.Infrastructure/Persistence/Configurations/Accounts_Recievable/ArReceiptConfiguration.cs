@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OakERP.Domain.Entities.Accounts_Receivable;
-using OakERP.Domain.Entities.Common;
 
 namespace OakERP.Infrastructure.Persistence.Configurations.Accounts_Recievable;
 

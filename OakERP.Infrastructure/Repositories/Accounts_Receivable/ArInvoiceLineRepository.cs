@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Accounts_Receivable;
-using OakERP.Domain.Repositories.Accounts_Receivable;
+using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Accounts_Receivable;
 
 public class ArInvoiceLineRepository(ApplicationDbContext db) : IArInvoiceLineRepository
 {
-    public async Task<ArInvoiceLine?> GetByIdAsync(Guid id) =>
-        await db.ArInvoiceLines.FirstOrDefaultAsync(il => il.Id == id);
+    private DbSet<ArInvoiceLine> Set => db.ArInvoiceLines;
 
-    public IQueryable<ArInvoiceLine> Query() => db.ArInvoiceLines.AsNoTracking();
+    public Task<ArInvoiceLine?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
-    public async Task CreateAsync(ArInvoiceLine arInvoiceLine)
-    {
-        db.ArInvoiceLines.Add(arInvoiceLine);
-        await db.SaveChangesAsync();
-    }
+    public ValueTask<ArInvoiceLine?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task UpdateAsync(ArInvoiceLine arInvoiceLine)
-    {
-        db.ArInvoiceLines.Update(arInvoiceLine);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<ArInvoiceLine> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(ArInvoiceLine arInvoiceLine)
-    {
-        db.ArInvoiceLines.Remove(arInvoiceLine);
-        await db.SaveChangesAsync();
-    }
+    public void Add(ArInvoiceLine entity) => Set.Add(entity);
+
+    public void Remove(ArInvoiceLine entity) => Set.Remove(entity);
 }

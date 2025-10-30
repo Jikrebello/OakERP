@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Inventory;
-using OakERP.Domain.Repositories.Inventory;
+using OakERP.Domain.Repository_Interfaces.Inventory;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Inventory;
 
 public class InventoryLedgerRepository(ApplicationDbContext db) : IInventoryLedgerRepository
 {
-    public async Task<InventoryLedger?> GetByIdAsync(Guid id) =>
-        await db.InventoryLedgers.FirstOrDefaultAsync(il => il.Id == id);
+    private DbSet<InventoryLedger> Set => db.InventoryLedgers;
 
-    public IQueryable<InventoryLedger> Query() => db.InventoryLedgers.AsNoTracking();
+    public ValueTask<InventoryLedger?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task CreateAsync(InventoryLedger inventoryLedger)
-    {
-        db.InventoryLedgers.Add(inventoryLedger);
-        await db.SaveChangesAsync();
-    }
+    public Task<InventoryLedger?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task UpdateAsync(InventoryLedger inventoryLedger)
-    {
-        db.InventoryLedgers.Update(inventoryLedger);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<InventoryLedger> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(InventoryLedger inventoryLedger)
-    {
-        db.InventoryLedgers.Remove(inventoryLedger);
-        await db.SaveChangesAsync();
-    }
+    public void Add(InventoryLedger entity) => Set.Add(entity);
+
+    public void Remove(InventoryLedger entity) => Set.Remove(entity);
 }

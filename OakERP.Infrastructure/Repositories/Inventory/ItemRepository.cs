@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Inventory;
-using OakERP.Domain.Repositories.Inventory;
+using OakERP.Domain.Repository_Interfaces.Inventory;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Inventory;
 
 public class ItemRepository(ApplicationDbContext db) : IItemRepository
 {
-    public async Task<Item?> GetByIdAsync(Guid id) =>
-        await db.Items.FirstOrDefaultAsync(i => i.Id == id);
+    private DbSet<Item> Set => db.Items;
 
-    public IQueryable<Item> Query() => db.Items.AsNoTracking();
+    public ValueTask<Item?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task CreateAsync(Item item)
-    {
-        db.Items.Add(item);
-        await db.SaveChangesAsync();
-    }
+    public Task<Item?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task UpdateAsync(Item item)
-    {
-        db.Items.Update(item);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<Item> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(Item item)
-    {
-        db.Items.Remove(item);
-        await db.SaveChangesAsync();
-    }
+    public void Add(Item entity) => Set.Add(entity);
+
+    public void Remove(Item entity) => Set.Remove(entity);
 }

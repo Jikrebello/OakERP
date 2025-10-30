@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Inventory;
-using OakERP.Domain.Repositories.Inventory;
+using OakERP.Domain.Repository_Interfaces.Inventory;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Inventory;
 
 public class ItemCategoryRepository(ApplicationDbContext db) : IItemCategoryRepository
 {
-    public async Task<ItemCategory?> GetByIdAsync(Guid id) =>
-        await db.ItemCategories.FirstOrDefaultAsync(ic => ic.Id == id);
+    private DbSet<ItemCategory> Set => db.ItemCategories;
 
-    public IQueryable<ItemCategory> Query() => db.ItemCategories.AsNoTracking();
+    public ValueTask<ItemCategory?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task CreateAsync(ItemCategory itemCategory)
-    {
-        db.ItemCategories.Add(itemCategory);
-        await db.SaveChangesAsync();
-    }
+    public Task<ItemCategory?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task UpdateAsync(ItemCategory itemCategory)
-    {
-        db.ItemCategories.Update(itemCategory);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<ItemCategory> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(ItemCategory itemCategory)
-    {
-        db.ItemCategories.Remove(itemCategory);
-        await db.SaveChangesAsync();
-    }
+    public void Add(ItemCategory entity) => Set.Add(entity);
+
+    public void Remove(ItemCategory entity) => Set.Remove(entity);
 }

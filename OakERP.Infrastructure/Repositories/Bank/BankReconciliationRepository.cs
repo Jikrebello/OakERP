@@ -1,32 +1,25 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Bank;
-using OakERP.Domain.Repositories.Bank;
+using OakERP.Domain.Repository_Interfaces.Bank;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Bank;
 
 public class BankReconciliationRepository(ApplicationDbContext db) : IBankReconciliationRepository
 {
-    public async Task<BankReconciliation?> GetByIdAsync(Guid id) =>
-        await db.BankReconciliations.FirstOrDefaultAsync(r => r.Id == id);
+    private DbSet<BankReconciliation> Set => db.BankReconciliations;
 
-    public IQueryable<BankReconciliation> Query() => db.BankReconciliations.AsNoTracking();
+    public Task<BankReconciliation?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
-    public async Task CreateAsync(BankReconciliation bankReconciliation)
-    {
-        db.BankReconciliations.Add(bankReconciliation);
-        await db.SaveChangesAsync();
-    }
+    public ValueTask<BankReconciliation?> FindTrackedAsync(
+        Guid id,
+        CancellationToken ct = default
+    ) => Set.FindAsync([id], ct);
 
-    public async Task UpdateAsync(BankReconciliation bankReconciliation)
-    {
-        db.BankReconciliations.Update(bankReconciliation);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<BankReconciliation> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(BankReconciliation bankReconciliation)
-    {
-        db.BankReconciliations.Remove(bankReconciliation);
-        await db.SaveChangesAsync();
-    }
+    public void Add(BankReconciliation entity) => Set.Add(entity);
+
+    public void Remove(BankReconciliation entity) => Set.Remove(entity);
 }

@@ -15,7 +15,7 @@ services:
       - ./initdb:/docker-entrypoint-initdb.d
 
   oakadmin:
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4:latest
     container_name: oakadmin
     restart: always
     environment:

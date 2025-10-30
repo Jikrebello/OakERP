@@ -136,3 +136,12 @@ docker-compose up -d
 ```
 
 This removes volumes (including your DB) and re-runs any init scripts.
+
+---
+
+### Updating the pgAdmin image:
+
+```
+docker compose pull oakadmin
+docker compose up -d oakadmin
+```

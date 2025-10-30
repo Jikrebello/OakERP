@@ -8,6 +8,8 @@
 /// context.</remarks>
 public interface IUnitOfWork
 {
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Begins a new database transaction asynchronously.
     /// </summary>

@@ -1,35 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Users;
-using OakERP.Domain.Repositories.Users;
+using OakERP.Domain.Repository_Interfaces.Users;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Users;
 
 public class LicenseRepository(ApplicationDbContext db) : ILicenseRepository
 {
-    public async Task<License?> GetByIdAsync(Guid id) =>
-        await db.Licenses.Include(l => l.Tenant).FirstOrDefaultAsync(l => l.Id == id);
+    private DbSet<License> Set => db.Licenses;
 
-    public async Task<License?> GetByTenantIdAsync(Guid tenantId) =>
-        await db.Licenses.Include(l => l.Tenant).FirstOrDefaultAsync(l => l.TenantId == tenantId);
+    public ValueTask<License?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public IQueryable<License> Query() => db.Licenses.Include(l => l.Tenant).AsNoTracking();
+    public Task<License?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task CreateAsync(License license)
-    {
-        db.Licenses.Add(license);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<License> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task UpdateAsync(License license)
-    {
-        db.Licenses.Update(license);
-        await db.SaveChangesAsync();
-    }
+    public void Add(License entity) => Set.Add(entity);
 
-    public async Task DeleteAsync(License license)
-    {
-        db.Licenses.Remove(license);
-        await db.SaveChangesAsync();
-    }
+    public void Remove(License entity) => Set.Remove(entity);
 }

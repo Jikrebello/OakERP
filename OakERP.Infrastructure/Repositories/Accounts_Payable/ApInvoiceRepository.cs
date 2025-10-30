@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Accounts_Payable;
-using OakERP.Domain.Repositories.Accounts_Payable;
+using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Accounts_Payable;
 
 public class ApInvoiceRepository(ApplicationDbContext db) : IApInvoiceRepository
 {
-    public async Task<ApInvoice?> GetByIdAsync(Guid id) =>
-        await db.ApInvoices.FirstOrDefaultAsync(i => i.Id == id);
+    private DbSet<ApInvoice> Set => db.ApInvoices;
 
-    public IQueryable<ApInvoice> Query() => db.ApInvoices.AsNoTracking();
+    public Task<ApInvoice?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
-    public async Task CreateAsync(ApInvoice apInvoice)
-    {
-        db.ApInvoices.Add(apInvoice);
-        await db.SaveChangesAsync();
-    }
+    public ValueTask<ApInvoice?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task UpdateAsync(ApInvoice apInvoice)
-    {
-        db.ApInvoices.Update(apInvoice);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<ApInvoice> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(ApInvoice apInvoice)
-    {
-        db.ApInvoices.Remove(apInvoice);
-        await db.SaveChangesAsync();
-    }
+    public void Add(ApInvoice entity) => Set.Add(entity);
+
+    public void Remove(ApInvoice entity) => Set.Remove(entity);
 }

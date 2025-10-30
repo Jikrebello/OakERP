@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Inventory;
-using OakERP.Domain.Repositories.Inventory;
+using OakERP.Domain.Repository_Interfaces.Inventory;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Inventory;
 
 public class LocationRepository(ApplicationDbContext db) : ILocationRepository
 {
-    public async Task<Location?> GetByIdAsync(Guid id) =>
-        await db.Locations.FirstOrDefaultAsync(l => l.Id == id);
+    private DbSet<Location> Set => db.Locations;
 
-    public IQueryable<Location> Query() => db.Locations.AsNoTracking();
+    public ValueTask<Location?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task CreateAsync(Location location)
-    {
-        db.Locations.Add(location);
-        await db.SaveChangesAsync();
-    }
+    public Task<Location?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task UpdateAsync(Location location)
-    {
-        db.Locations.Update(location);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<Location> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(Location location)
-    {
-        db.Locations.Remove(location);
-        await db.SaveChangesAsync();
-    }
+    public void Add(Location entity) => Set.Add(entity);
+
+    public void Remove(Location entity) => Set.Remove(entity);
 }

@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Inventory;
-using OakERP.Domain.Repositories.Inventory;
+using OakERP.Domain.Repository_Interfaces.Inventory;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Inventory;
 
 public class StockCountRepository(ApplicationDbContext db) : IStockCountRepository
 {
-    public async Task<StockCount?> GetByIdAsync(Guid id) =>
-        await db.StockCounts.FirstOrDefaultAsync(sc => sc.Id == id);
+    private DbSet<StockCount> Set => db.StockCounts;
 
-    public IQueryable<StockCount> Query() => db.StockCounts.AsNoTracking();
+    public ValueTask<StockCount?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public async Task CreateAsync(StockCount stockCount)
-    {
-        db.StockCounts.Add(stockCount);
-        await db.SaveChangesAsync();
-    }
+    public Task<StockCount?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task UpdateAsync(StockCount stockCount)
-    {
-        db.StockCounts.Update(stockCount);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<StockCount> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(StockCount stockCount)
-    {
-        db.StockCounts.Remove(stockCount);
-        await db.SaveChangesAsync();
-    }
+    public void Add(StockCount entity) => Set.Add(entity);
+
+    public void Remove(StockCount entity) => Set.Remove(entity);
 }

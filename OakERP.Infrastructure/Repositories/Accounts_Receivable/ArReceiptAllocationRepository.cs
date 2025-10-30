@@ -1,32 +1,27 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Accounts_Receivable;
-using OakERP.Domain.Repositories.Accounts_Receivable;
+using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Accounts_Receivable;
 
 public class ArReceiptAllocationRepository(ApplicationDbContext db) : IArReceiptAllocationRepository
 {
-    public async Task<ArReceiptAllocation?> GetByIdAsync(Guid id) =>
-        await db.ArReceiptAllocations.FirstOrDefaultAsync(ra => ra.Id == id);
+    private DbSet<ArReceiptAllocation> Set => db.ArReceiptAllocations;
 
-    public IQueryable<ArReceiptAllocation> Query() => db.ArReceiptAllocations.AsNoTracking();
+    public Task<ArReceiptAllocation?> FindNoTrackingAsync(
+        Guid id,
+        CancellationToken ct = default
+    ) => Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
-    public async Task CreateAsync(ArReceiptAllocation arReceiptAllocation)
-    {
-        db.ArReceiptAllocations.Add(arReceiptAllocation);
-        await db.SaveChangesAsync();
-    }
+    public ValueTask<ArReceiptAllocation?> FindTrackedAsync(
+        Guid id,
+        CancellationToken ct = default
+    ) => Set.FindAsync([id], ct);
 
-    public async Task UpdateAsync(ArReceiptAllocation arReceiptAllocation)
-    {
-        db.ArReceiptAllocations.Update(arReceiptAllocation);
-        await db.SaveChangesAsync();
-    }
+    public IQueryable<ArReceiptAllocation> QueryNoTracking() => Set.AsNoTracking();
 
-    public async Task DeleteAsync(ArReceiptAllocation arReceiptAllocation)
-    {
-        db.ArReceiptAllocations.Remove(arReceiptAllocation);
-        await db.SaveChangesAsync();
-    }
+    public void Add(ArReceiptAllocation entity) => Set.Add(entity);
+
+    public void Remove(ArReceiptAllocation entity) => Set.Remove(entity);
 }
