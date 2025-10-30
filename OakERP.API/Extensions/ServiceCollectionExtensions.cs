@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Reflection;
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ using OakERP.Auth;
 using OakERP.Domain.Entities.Users;
 using OakERP.Domain.Repository_Interfaces.Users;
 using OakERP.Infrastructure.Persistence;
+using OakERP.Infrastructure.Persistence.Seeding.Base;
 using OakERP.Infrastructure.Repositories.Users;
 
 namespace OakERP.API.Extensions;
@@ -24,6 +26,32 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(config.GetConnectionString("DefaultConnection"))
         );
+
+        return services;
+    }
+
+    public static IServiceCollection AddSeedersFromAssemblies(
+        this IServiceCollection services,
+        params Assembly[] assemblies
+    )
+    {
+        var seederType = typeof(ISeeder);
+
+        var candidates = assemblies
+            .Where(a => a != null)
+            .SelectMany(a => a.DefinedTypes)
+            .Where(t =>
+                seederType.IsAssignableFrom(t)
+                && t is { IsAbstract: false, IsInterface: false }
+                && t.GetConstructor(Type.EmptyTypes) != null
+            ) // simple activator support
+            .Distinct()
+            .ToList();
+
+        foreach (var type in candidates)
+        {
+            services.AddScoped(seederType, type);
+        }
 
         return services;
     }

@@ -9,7 +9,6 @@ namespace OakERP.Infrastructure.Persistence
     {
         public ApplicationDbContext CreateDbContext(string[] args)
         {
-            // Point to the Infrastructure project folder (bin/.../net9.0 up 3 levels)
             var projectDir = Path.GetFullPath(
                 Path.Combine(AppContext.BaseDirectory, "..", "..", "..")
             );

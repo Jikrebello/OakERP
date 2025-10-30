@@ -1,14 +1,21 @@
+﻿using Microsoft.OpenApi.Models;
 using OakERP.API.Extensions;
 using OakERP.Infrastructure.Persistence;
+using OakERP.Infrastructure.Persistence.Seeding;
 using OakERP.Infrastructure.Persistence.Seeding.Accounts;
-using OakERP.Infrastructure.Persistence.Seeding.Base;
 using OakERP.Infrastructure.Persistence.Seeding.Views;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Controllers, swagger, etc.
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(o =>
+{
+    o.SwaggerDoc("v1", new OpenApiInfo { Title = "OakERP API", Version = "v1" });
+});
 
-// Register all services (modular)
+// Modular registrations
 builder
     .Services.AddApplicationDb(builder.Configuration)
     .AddPersistenceServices()
@@ -17,12 +24,16 @@ builder
     .AddAuthServices()
     .AddSwaggerDocs();
 
-// Register all seeders (modular)
-builder.Services.AddScoped<ISeeder, RoleAndAdminSeeder>();
-builder.Services.AddScoped<ISeeder, SqlViewSeeder>();
+// Register seeders discovered via reflection
+builder.Services.AddSeedersFromAssemblies(
+    typeof(RoleAndAdminSeeder).Assembly,
+    typeof(SqlViewSeeder).Assembly
+);
+builder.Services.AddScoped<SeedCoordinator>();
 
 builder.Services.AddScoped<DbInitializer>();
 
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
@@ -30,7 +41,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("https://localhost:7094") // Blazor Server UI
+                .WithOrigins("https://localhost:7094")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -40,16 +51,28 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Use middleware and tools (modular)
+// Middleware
+app.UseCors("OakCors");
 app.UseOakMiddleware();
 
-// Initialize database and seed data
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
-    var initializer = scope.ServiceProvider.GetRequiredService<DbInitializer>();
-    await initializer.SeedDbAsync();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.MapControllers();
+
+// Seed on API startup (optional in prod)
+var runSeedOnStartup = builder.Configuration.GetValue<bool?>("RunSeedOnStartup") ?? true;
+if (runSeedOnStartup)
+{
+    using var scope = app.Services.CreateScope();
+    var seeder = scope.ServiceProvider.GetRequiredService<SeedCoordinator>();
+    await seeder.RunAsync(app.Environment.EnvironmentName);
 }
 
 await app.RunAsync();
 
-public partial class Program { }
+public partial class Program
+{ }
