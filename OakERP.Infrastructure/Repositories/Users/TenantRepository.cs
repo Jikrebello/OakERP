@@ -15,6 +15,11 @@ public class TenantRepository(ApplicationDbContext db) : ITenantRepository
     public Task<Tenant?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
         Set.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
 
+    public Task<Tenant?> FindWithLicenseAsync(Guid id, CancellationToken ct = default)
+    {
+        return Set.Include(t => t.License).AsNoTracking().SingleOrDefaultAsync(t => t.Id == id, ct);
+    }
+
     public IQueryable<Tenant> QueryNoTracking() => Set.AsNoTracking();
 
     public async Task AddAsync(Tenant entity) => await Set.AddAsync(entity);

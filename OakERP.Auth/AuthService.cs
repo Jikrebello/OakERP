@@ -167,10 +167,7 @@ public class AuthService(
             return AuthResultDTO.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
 
         // Load tenant (ideally include License in one query)
-        var tenant = await tenantRepository
-            .QueryNoTracking()
-            .Include(t => t.License)
-            .SingleOrDefaultAsync(t => t.Id == user.TenantId);
+        var tenant = await tenantRepository.FindWithLicenseAsync(user.TenantId);
 
         if (tenant is null)
             return AuthResultDTO.Fail("Tenant not found.", HttpStatusCode.NotFound);

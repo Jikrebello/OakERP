@@ -8,6 +8,8 @@ public interface ITenantRepository
 
     Task<Tenant?> FindNoTrackingAsync(Guid id, CancellationToken ct = default);
 
+    Task<Tenant?> FindWithLicenseAsync(Guid id, CancellationToken ct = default);
+
     IQueryable<Tenant> QueryNoTracking();
 
     Task AddAsync(Tenant entity);

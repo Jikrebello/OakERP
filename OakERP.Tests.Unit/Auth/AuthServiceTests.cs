@@ -278,9 +278,9 @@ public class AuthServiceTests
 
         _factory
             .TenantRepository.Setup(r =>
-                r.FindNoTrackingAsync(fakeUser.TenantId, It.IsAny<CancellationToken>())
+                r.FindWithLicenseAsync(fakeUser.TenantId, It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync((Tenant)null!); // Not found
+            .ReturnsAsync((Tenant)null!);
 
         var service = _factory.CreateService();
 
@@ -335,9 +335,10 @@ public class AuthServiceTests
 
         _factory
             .TenantRepository.Setup(r =>
-                r.FindNoTrackingAsync(tenantId, It.IsAny<CancellationToken>())
+                r.FindWithLicenseAsync(tenantId, It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(tenant);
+
         var service = _factory.CreateService();
 
         // Act
@@ -394,9 +395,10 @@ public class AuthServiceTests
 
         _factory
             .TenantRepository.Setup(r =>
-                r.FindNoTrackingAsync(tenantId, It.IsAny<CancellationToken>())
+                r.FindWithLicenseAsync(tenantId, It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(tenant);
+
         var service = _factory.CreateService();
 
         // Act
@@ -452,9 +454,10 @@ public class AuthServiceTests
 
         _factory
             .TenantRepository.Setup(r =>
-                r.FindNoTrackingAsync(tenantId, It.IsAny<CancellationToken>())
+                r.FindWithLicenseAsync(tenantId, It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(tenant);
+
         var service = _factory.CreateService();
 
         // Act
