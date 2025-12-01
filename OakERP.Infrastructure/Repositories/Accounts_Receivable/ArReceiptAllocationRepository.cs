@@ -21,7 +21,11 @@ public class ArReceiptAllocationRepository(ApplicationDbContext db) : IArReceipt
 
     public IQueryable<ArReceiptAllocation> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(ArReceiptAllocation entity) => Set.Add(entity);
+    public async Task AddAsync(ArReceiptAllocation entity) => await Set.AddAsync(entity);
 
-    public void Remove(ArReceiptAllocation entity) => Set.Remove(entity);
+    public Task RemoveAsync(ArReceiptAllocation entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

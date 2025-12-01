@@ -41,22 +41,22 @@ internal class ArReceiptAllocationConfiguration : IEntityTypeConfiguration<ArRec
         // Data integrity
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("ck_aralloc_amount_positive", "\"AmountApplied\" > 0");
+            t.HasCheckConstraint("ck_aralloc_amount_positive", "\"amount_applied\" > 0");
             t.HasCheckConstraint(
                 "ck_aralloc_discount_nonneg",
-                "\"DiscountGiven\" IS NULL OR \"DiscountGiven\" >= 0"
+                "\"discount_given\" IS NULL OR \"discount_given\" >= 0"
             );
             t.HasCheckConstraint(
                 "ck_aralloc_writeoff_nonneg",
-                "\"WriteOffAmount\" IS NULL OR \"WriteOffAmount\" >= 0"
+                "\"write_off_amount\" IS NULL OR \"write_off_amount\" >= 0"
             );
 
             // Prevent no-op rows (at least one value > 0)
             t.HasCheckConstraint(
                 "ck_aralloc_has_value",
-                "(\"AmountApplied\" > 0) OR "
-                    + "(COALESCE(\"DiscountGiven\", 0) > 0) OR "
-                    + "(COALESCE(\"WriteOffAmount\", 0) > 0)"
+                "(\"amount_applied\" > 0) OR "
+                    + "(COALESCE(\"discount_given\", 0) > 0) OR "
+                    + "(COALESCE(\"write_off_amount\", 0) > 0)"
             );
         });
     }

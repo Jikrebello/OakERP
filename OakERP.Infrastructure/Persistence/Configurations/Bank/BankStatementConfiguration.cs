@@ -39,12 +39,15 @@ internal class BankStatementConfiguration : IEntityTypeConfiguration<BankStateme
         builder
             .HasIndex(x => new { x.Source, x.ExternalId })
             .IsUnique()
-            .HasFilter("\"ExternalId\" IS NOT NULL");
+            .HasFilter("\"external_id\" IS NOT NULL");
 
         // Guards
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("ck_bankstmt_range_valid", "\"StatementTo\" >= \"StatementFrom\"");
+            t.HasCheckConstraint(
+                "ck_bankstmt_range_valid",
+                "\"statement_to\" >= \"statement_from\""
+            );
         });
     }
 }

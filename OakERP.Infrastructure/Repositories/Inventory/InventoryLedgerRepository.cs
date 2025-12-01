@@ -17,7 +17,11 @@ public class InventoryLedgerRepository(ApplicationDbContext db) : IInventoryLedg
 
     public IQueryable<InventoryLedger> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(InventoryLedger entity) => Set.Add(entity);
+    public async Task AddAsync(InventoryLedger entity) => await Set.AddAsync(entity);
 
-    public void Remove(InventoryLedger entity) => Set.Remove(entity);
+    public Task RemoveAsync(InventoryLedger entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

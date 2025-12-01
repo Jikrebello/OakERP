@@ -20,15 +20,15 @@ internal class GlJournalLineConfiguration : IEntityTypeConfiguration<GlJournalLi
         builder.Property(x => x.Credit).HasColumnType("numeric(18,2)");
         builder.Property(x => x.Description).HasMaxLength(512);
         builder
-            .Property<decimal>("SignedAmount")
+            .Property<decimal>("signed_amount")
             .HasColumnType("numeric(18,2)")
-            .HasComputedColumnSql("(\"Debit\" - \"Credit\")", stored: true)
+            .HasComputedColumnSql("(\"debit\" - \"credit\")", stored: true)
             .ValueGeneratedOnAddOrUpdate();
 
         // Index
         builder.HasIndex(x => new { x.JournalId, x.LineNo }).IsUnique();
         builder.HasIndex(x => x.AccountNo);
-        builder.HasIndex("SignedAmount");
+        builder.HasIndex("signed_amount");
 
         // Relationships
         builder
@@ -48,13 +48,13 @@ internal class GlJournalLineConfiguration : IEntityTypeConfiguration<GlJournalLi
         builder.ToTable(t =>
         {
             // positive line number
-            t.HasCheckConstraint("ck_gjl_lineno_positive", "\"LineNo\" > 0");
+            t.HasCheckConstraint("ck_gjl_lineno_positive", "\"line_no\" > 0");
 
             // nonnegative + exactly one side > 0 (no zero rows, no double-sided)
             t.HasCheckConstraint(
                 "ck_gjl_one_sided_amount",
-                "(\"Debit\" >= 0) AND (\"Credit\" >= 0) AND "
-                    + "((\"Debit\" = 0 AND \"Credit\" > 0) OR (\"Credit\" = 0 AND \"Debit\" > 0))"
+                "(\"debit\" >= 0) AND (\"credit\" >= 0) AND "
+                    + "((\"debit\" = 0 AND \"credit\" > 0) OR (\"credit\" = 0 AND \"debit\" > 0))"
             );
         });
     }

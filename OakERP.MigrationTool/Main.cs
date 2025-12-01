@@ -14,10 +14,10 @@ using var host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(cfg =>
     {
         cfg.Sources.Clear();
-        cfg.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+        cfg.SetBasePath(AppContext.BaseDirectory);
+        cfg.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
             .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: false)
-            .AddEnvironmentVariables()
-            .AddUserSecrets<ApplicationDbContext>(optional: true);
+            .AddEnvironmentVariables();
     })
     .ConfigureLogging(lb =>
     {
@@ -33,10 +33,15 @@ using var host = Host.CreateDefaultBuilder(args)
         {
             var cs =
                 ctx.Configuration.GetConnectionString("DefaultConnection")
-                ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-                ?? "Host=localhost;Port=5432;Database=oakerp;Username=oakadmin;Password=oakpass;Include Error Detail=true";
+                ?? throw new InvalidOperationException(
+                    "ConnectionStrings:DefaultConnection is not configured."
+                );
 
-            services.AddDbContext<ApplicationDbContext>(opt => opt.UseNpgsql(cs));
+            services
+                .AddDbContext<ApplicationDbContext>(opt =>
+                    opt.UseNpgsql(cs).UseSnakeCaseNamingConvention()
+                )
+                .AddIdentityServices();
 
             // register seeders (same discovery you use in API)
             services.AddSeedersFromAssemblies(
@@ -51,9 +56,11 @@ using var host = Host.CreateDefaultBuilder(args)
 
 using var scope = host.Services.CreateScope();
 var sp = scope.ServiceProvider;
-var db = sp.GetRequiredService<ApplicationDbContext>();
 
+// 1) migrate
+var db = sp.GetRequiredService<ApplicationDbContext>();
 await db.Database.MigrateAsync();
 
+// 2) seed
 var coordinator = sp.GetRequiredService<SeedCoordinator>();
 await coordinator.RunAsync(environment);

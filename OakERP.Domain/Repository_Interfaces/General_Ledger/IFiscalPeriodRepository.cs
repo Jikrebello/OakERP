@@ -10,7 +10,7 @@ public interface IFiscalPeriodRepository
 
     IQueryable<FiscalPeriod> QueryNoTracking();
 
-    void Add(FiscalPeriod entity);
+    Task AddAsync(FiscalPeriod entity);
 
-    void Remove(FiscalPeriod entity);
+    Task RemoveAsync(FiscalPeriod entity);
 }

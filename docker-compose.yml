@@ -6,13 +6,17 @@ services:
     environment:
       POSTGRES_USER: oakadmin
       POSTGRES_PASSWORD: oakpass
-      POSTGRES_DB: oakerp
+      POSTGRES_DB: oakerp               # default DB
     ports:
-      - "5433:5432" # host 5433 -> container 5432
+      - "5433:5432"                     # host 5433 -> container 5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Initial SQL (only runs on first volume create)
       - ./initdb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oakadmin -d oakerp"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   oakadmin:
     image: dpage/pgadmin4:latest
@@ -21,10 +25,14 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@oakerp.dev
       PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'      # optional for single-user use
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
     ports:
       - "8080:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
 
 volumes:
   postgres_data:

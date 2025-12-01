@@ -17,7 +17,11 @@ public class ItemRepository(ApplicationDbContext db) : IItemRepository
 
     public IQueryable<Item> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(Item entity) => Set.Add(entity);
+    public async Task AddAsync(Item entity) => await Set.AddAsync(entity);
 
-    public void Remove(Item entity) => Set.Remove(entity);
+    public Task RemoveAsync(Item entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

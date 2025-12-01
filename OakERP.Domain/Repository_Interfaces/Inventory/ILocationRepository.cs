@@ -10,7 +10,7 @@ public interface ILocationRepository
 
     IQueryable<Location> QueryNoTracking();
 
-    void Add(Location entity);
+    Task AddAsync(Location entity);
 
-    void Remove(Location entity);
+    Task RemoveAsync(Location entity);
 }

@@ -17,7 +17,11 @@ public class ApPaymentRepository(ApplicationDbContext db) : IApPaymentRepository
 
     public IQueryable<ApPayment> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(ApPayment entity) => Set.Add(entity);
+    public async Task AddAsync(ApPayment entity) => await Set.AddAsync(entity);
 
-    public void Remove(ApPayment entity) => Set.Remove(entity);
+    public Task RemoveAsync(ApPayment entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

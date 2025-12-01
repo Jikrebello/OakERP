@@ -4,22 +4,8 @@ public static class AppBuilderExtensions
 {
     public static WebApplication UseOakMiddleware(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
-
-        //app.UseHttpsRedirection();
-
         app.UseAuthentication();
         app.UseAuthorization();
-
-        app.MapControllers();
-
-        // Add authentication, CORS, etc. later here
-        app.UseCors("OakCors");
-
         return app;
     }
 }

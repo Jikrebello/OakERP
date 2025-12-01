@@ -116,8 +116,13 @@ public class AuthServiceTests
             );
 
         _factory
-            .TenantRepository.Setup(r => r.CreateAsync(It.IsAny<Tenant>()))
+            .TenantRepository.Setup(r => r.AddAsync(It.IsAny<Tenant>()))
             .Returns(Task.CompletedTask);
+
+        // Mock SaveChangesAsync to simulate successful transaction commit
+        _factory
+            .UnitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         var service = _factory.CreateService();
 
@@ -163,8 +168,12 @@ public class AuthServiceTests
             .ReturnsAsync(IdentityResult.Success);
 
         _factory
-            .TenantRepository.Setup(r => r.CreateAsync(It.IsAny<Tenant>()))
+            .TenantRepository.Setup(r => r.AddAsync(It.IsAny<Tenant>()))
             .Returns(Task.CompletedTask);
+
+        _factory
+            .UnitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         var service = _factory.CreateService();
 
@@ -215,7 +224,13 @@ public class AuthServiceTests
         var dto = new LoginDTO { Email = "missing@example.com", Password = "correctpass" };
 
         _factory
-            .SignInManager.Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
+            .SignInManager.Setup(s =>
+                s.CheckPasswordSignInAsync(
+                    It.IsAny<ApplicationUser>(),
+                    It.IsAny<string>(),
+                    It.IsAny<bool>()
+                )
+            )
             .ReturnsAsync(SignInResult.Success);
 
         _factory
@@ -228,7 +243,7 @@ public class AuthServiceTests
 
         // Assert
         result.Success.ShouldBeFalse();
-        result.Message.ShouldBe("User not found.");
+        result.Message.ShouldBe("Invalid login credentials.");
     }
 
     /// <summary>
@@ -248,17 +263,25 @@ public class AuthServiceTests
             Id = Guid.NewGuid().ToString(),
             Email = dto.Email,
             TenantId = Guid.NewGuid(),
+            UserName = dto.Email,
         };
 
         _factory
-            .SignInManager.Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
-            .ReturnsAsync(SignInResult.Success);
-
-        _factory.UserManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
+            .UserManager.Setup(u => u.FindByEmailAsync(dto.Email.Trim()))
+            .ReturnsAsync(fakeUser);
 
         _factory
-            .TenantRepository.Setup(r => r.GetByIdAsync(fakeUser.TenantId))
+            .SignInManager.Setup(s =>
+                s.CheckPasswordSignInAsync(fakeUser, dto.Password, It.IsAny<bool>())
+            )
+            .ReturnsAsync(SignInResult.Success);
+
+        _factory
+            .TenantRepository.Setup(r =>
+                r.FindNoTrackingAsync(fakeUser.TenantId, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync((Tenant)null!); // Not found
+
         var service = _factory.CreateService();
 
         // Act
@@ -267,6 +290,14 @@ public class AuthServiceTests
         // Assert
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("Tenant not found.");
+
+        // Optional: ensure we never issued a token
+        _factory.JwtGenerator.Verify(j => j.Generate(It.IsAny<ApplicationUser>()), Times.Never);
+
+        _factory.SignInManager.Verify(
+            s => s.CheckPasswordSignInAsync(fakeUser, dto.Password, It.IsAny<bool>()),
+            Times.Once
+        );
     }
 
     /// <summary>
@@ -291,12 +322,22 @@ public class AuthServiceTests
         var tenant = new Tenant { Id = tenantId, Name = "NoLicenseTenant" };
 
         _factory
-            .SignInManager.Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
+            .SignInManager.Setup(s =>
+                s.CheckPasswordSignInAsync(
+                    It.IsAny<ApplicationUser>(),
+                    It.IsAny<string>(),
+                    It.IsAny<bool>()
+                )
+            )
             .ReturnsAsync(SignInResult.Success);
 
         _factory.UserManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
 
-        _factory.TenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
+        _factory
+            .TenantRepository.Setup(r =>
+                r.FindNoTrackingAsync(tenantId, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(tenant);
         var service = _factory.CreateService();
 
         // Act
@@ -340,12 +381,22 @@ public class AuthServiceTests
         };
 
         _factory
-            .SignInManager.Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
+            .SignInManager.Setup(s =>
+                s.CheckPasswordSignInAsync(
+                    It.IsAny<ApplicationUser>(),
+                    It.IsAny<string>(),
+                    It.IsAny<bool>()
+                )
+            )
             .ReturnsAsync(SignInResult.Success);
 
         _factory.UserManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
 
-        _factory.TenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
+        _factory
+            .TenantRepository.Setup(r =>
+                r.FindNoTrackingAsync(tenantId, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(tenant);
         var service = _factory.CreateService();
 
         // Act
@@ -386,14 +437,24 @@ public class AuthServiceTests
         };
 
         _factory
-            .SignInManager.Setup(s => s.PasswordSignInAsync(dto.Email, dto.Password, false, false))
+            .SignInManager.Setup(s =>
+                s.CheckPasswordSignInAsync(
+                    It.IsAny<ApplicationUser>(),
+                    It.IsAny<string>(),
+                    It.IsAny<bool>()
+                )
+            )
             .ReturnsAsync(SignInResult.Success);
 
         _factory.UserManager.Setup(u => u.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
 
         _factory.UserManager.Setup(u => u.GetRolesAsync(user)).ReturnsAsync(["User"]);
 
-        _factory.TenantRepository.Setup(r => r.GetByIdAsync(tenantId)).ReturnsAsync(tenant);
+        _factory
+            .TenantRepository.Setup(r =>
+                r.FindNoTrackingAsync(tenantId, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(tenant);
         var service = _factory.CreateService();
 
         // Act

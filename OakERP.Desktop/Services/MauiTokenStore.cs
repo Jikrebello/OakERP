@@ -14,5 +14,9 @@ public class MauiTokenStore : ITokenStore
 
     public async Task<string?> GetTokenAsync() => await SecureStorage.Default.GetAsync("authToken");
 
-    public async Task DeleteTokenAsync() => SecureStorage.Default.Remove("authToken");
+    public Task DeleteTokenAsync()
+    {
+        SecureStorage.Default.Remove("authToken");
+        return Task.CompletedTask;
+    }
 }

@@ -10,7 +10,7 @@ public interface IApInvoiceRepository
 
     IQueryable<ApInvoice> QueryNoTracking();
 
-    void Add(ApInvoice entity);
+    Task AddAsync(ApInvoice entity);
 
-    void Remove(ApInvoice entity);
+    Task RemoveAsync(ApInvoice entity);
 }

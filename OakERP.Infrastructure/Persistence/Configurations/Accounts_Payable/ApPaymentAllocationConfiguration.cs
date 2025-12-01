@@ -41,21 +41,21 @@ internal class ApPaymentAllocationConfiguration : IEntityTypeConfiguration<ApPay
         // Data integrity
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("ck_apalloc_amount_positive", "\"AmountApplied\" > 0");
+            t.HasCheckConstraint("ck_apalloc_amount_positive", "\"amount_applied\" > 0");
             t.HasCheckConstraint(
                 "ck_apalloc_discount_nonneg",
-                "\"DiscountTaken\" IS NULL OR \"DiscountTaken\" >= 0"
+                "\"discount_taken\" IS NULL OR \"discount_taken\" >= 0"
             );
             t.HasCheckConstraint(
                 "ck_apalloc_writeoff_nonneg",
-                "\"WriteOffAmount\" IS NULL OR \"WriteOffAmount\" >= 0"
+                "\"write_off_amount\" IS NULL OR \"write_off_amount\" >= 0"
             );
             // Disallow “everything zero”
             t.HasCheckConstraint(
                 "ck_apalloc_has_value",
-                "(\"AmountApplied\" > 0) OR "
-                    + "(COALESCE(\"DiscountTaken\",0) > 0) OR "
-                    + "(COALESCE(\"WriteOffAmount\",0) > 0)"
+                "(\"amount_applied\" > 0) OR "
+                    + "(COALESCE(\"discount_taken\",0) > 0) OR "
+                    + "(COALESCE(\"write_off_amount\",0) > 0)"
             );
         });
     }

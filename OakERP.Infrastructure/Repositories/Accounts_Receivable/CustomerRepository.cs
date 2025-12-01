@@ -17,7 +17,11 @@ public class CustomerRepository(ApplicationDbContext db) : ICustomerRepository
 
     public IQueryable<Customer> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(Customer entity) => Set.Add(entity);
+    public async Task AddAsync(Customer entity) => await Set.AddAsync(entity);
 
-    public void Remove(Customer entity) => Set.Remove(entity);
+    public Task RemoveAsync(Customer entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

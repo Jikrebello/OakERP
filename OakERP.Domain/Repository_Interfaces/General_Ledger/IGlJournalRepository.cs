@@ -10,7 +10,7 @@ public interface IGlJournalRepository
 
     IQueryable<GlJournal> QueryNoTracking();
 
-    void Add(GlJournal entity);
+    Task AddAsync(GlJournal entity);
 
-    void Remove(GlJournal entity);
+    Task RemoveAsync(GlJournal entity);
 }

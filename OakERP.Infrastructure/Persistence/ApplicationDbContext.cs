@@ -102,10 +102,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         base.OnModelCreating(builder);
 
         // 1) Register PostgreSQL enums (names = DB enum type names)
-        builder.HasPostgresEnum<DocStatus>("doc_status");
-        builder.HasPostgresEnum<GlAccountType>("gl_account_type");
-        builder.HasPostgresEnum<ItemType>("item_type");
-        builder.HasPostgresEnum<InventoryTransactionType>("inventory_transaction_type");
+        builder.HasPostgresEnum<DocStatus>(name: "doc_status");
+        builder.HasPostgresEnum<GlAccountType>(name: "gl_account_type");
+        builder.HasPostgresEnum<ItemType>(name: "item_type");
+        builder.HasPostgresEnum<InventoryTransactionType>(name: "inventory_transaction_type");
 
         // 2) Apply configurations so all properties are in the model
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

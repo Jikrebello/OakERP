@@ -10,7 +10,7 @@ public interface IApPaymentRepository
 
     IQueryable<ApPayment> QueryNoTracking();
 
-    void Add(ApPayment entity);
+    Task AddAsync(ApPayment entity);
 
-    void Remove(ApPayment entity);
+    Task RemoveAsync(ApPayment entity);
 }

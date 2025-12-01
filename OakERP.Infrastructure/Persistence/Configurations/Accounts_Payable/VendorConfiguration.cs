@@ -39,24 +39,24 @@ internal class VendorConfiguration : IEntityTypeConfiguration<Vendor>
         builder.HasIndex(v => v.Name);
         builder.HasIndex(v => v.IsActive);
 
-        builder.HasIndex(v => v.Email).IsUnique().HasFilter("\"Email\" IS NOT NULL");
+        builder.HasIndex(v => v.Email).IsUnique().HasFilter("\"email\" IS NOT NULL");
 
-        builder.HasIndex(v => v.TaxNumber).IsUnique().HasFilter("\"TaxNumber\" IS NOT NULL");
+        builder.HasIndex(v => v.TaxNumber).IsUnique().HasFilter("\"tax_number\" IS NOT NULL");
 
         // Data integrity
         builder.ToTable(t =>
         {
             // no empty/whitespace vendor codes or names
-            t.HasCheckConstraint("ck_vendor_code_not_blank", "btrim(\"VendorCode\") <> ''");
-            t.HasCheckConstraint("ck_vendor_name_not_blank", "btrim(\"Name\") <> ''");
+            t.HasCheckConstraint("ck_vendor_code_not_blank", "btrim(\"vendor_code\") <> ''");
+            t.HasCheckConstraint("ck_vendor_name_not_blank", "btrim(\"name\") <> ''");
 
             // sane terms range (tweak to preference)
-            t.HasCheckConstraint("ck_vendor_termsdays_range", "\"TermsDays\" BETWEEN 0 AND 180");
+            t.HasCheckConstraint("ck_vendor_termsdays_range", "\"terms_days\" BETWEEN 0 AND 180");
 
             // ultra-light email shape check (optional; not a full regex)
             t.HasCheckConstraint(
                 "ck_vendor_email_basic_shape",
-                "\"Email\" IS NULL OR (position('@' in \"Email\") > 1 AND position('.' in \"Email\") > 3)"
+                "\"email\" IS NULL OR (position('@' in \"email\") > 1 AND position('.' in \"email\") > 3)"
             );
         });
     }

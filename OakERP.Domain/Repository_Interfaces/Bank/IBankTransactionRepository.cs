@@ -10,7 +10,7 @@ public interface IBankTransactionRepository
 
     IQueryable<BankTransaction> QueryNoTracking();
 
-    void Add(BankTransaction entity);
+    Task AddAsync(BankTransaction entity);
 
-    void Remove(BankTransaction entity);
+    Task RemoveAsync(BankTransaction entity);
 }

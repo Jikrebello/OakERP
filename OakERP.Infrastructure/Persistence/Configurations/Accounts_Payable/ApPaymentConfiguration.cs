@@ -61,18 +61,18 @@ internal class ApPaymentConfiguration : IEntityTypeConfiguration<ApPayment>
         builder.ToTable(t =>
         {
             // Positive amount
-            t.HasCheckConstraint("ck_appayment_amount_positive", "\"Amount\" > 0");
+            t.HasCheckConstraint("ck_appayment_amount_positive", "\"amount\" > 0");
 
             // When Posted, PostingDate must be provided
             t.HasCheckConstraint(
                 "ck_appayment_posted_requires_postingdate",
-                "(\"DocStatus\" <> 'posted'::doc_status) OR (\"PostingDate\" IS NOT NULL)"
+                "(\"doc_status\" <> 'posted'::doc_status) OR (\"posting_date\" IS NOT NULL)"
             );
 
             // ClearedDate cannot precede PostingDate when both present
             t.HasCheckConstraint(
                 "ck_appayment_cleared_not_before_posting",
-                "(\"ClearedDate\" IS NULL) OR (\"PostingDate\" IS NULL) OR (\"ClearedDate\" >= \"PostingDate\")"
+                "(\"cleared_date\" IS NULL) OR (\"posting_date\" IS NULL) OR (\"cleared_date\" >= \"posting_date\")"
             );
         });
     }

@@ -47,7 +47,7 @@ internal class ArInvoiceLineConfiguration : IEntityTypeConfiguration<ArInvoiceLi
 
         builder
             .HasOne(x => x.TaxRate)
-            .WithMany()
+            .WithMany(t => t.ArInvoiceLines)
             .HasForeignKey(x => x.TaxRateId)
             .OnDelete(DeleteBehavior.SetNull);
 
@@ -55,17 +55,17 @@ internal class ArInvoiceLineConfiguration : IEntityTypeConfiguration<ArInvoiceLi
         builder.ToTable(t =>
         {
             // positive line number
-            t.HasCheckConstraint("ck_arline_lineno_positive", "\"LineNo\" > 0");
+            t.HasCheckConstraint("ck_arline_lineno_positive", "\"line_no\" > 0");
 
             // nonnegative qty/price/total
-            t.HasCheckConstraint("ck_arline_qty_nonnegative", "\"Qty\" >= 0");
-            t.HasCheckConstraint("ck_arline_price_nonnegative", "\"UnitPrice\" >= 0");
-            t.HasCheckConstraint("ck_arline_total_nonnegative", "\"LineTotal\" >= 0");
+            t.HasCheckConstraint("ck_arline_qty_nonnegative", "\"qty\" >= 0");
+            t.HasCheckConstraint("ck_arline_price_nonnegative", "\"unit_price\" >= 0");
+            t.HasCheckConstraint("ck_arline_total_nonnegative", "\"line_total\" >= 0");
 
             // Posting precedence (doc rule): if RevenueAccount present → use it; else use Item’s revenue account
             t.HasCheckConstraint(
                 "ck_arline_has_item_or_revenue",
-                "(\"ItemId\" IS NOT NULL) OR (\"RevenueAccount\" IS NOT NULL)"
+                "(\"item_id\" IS NOT NULL) OR (\"revenue_account\" IS NOT NULL)"
             );
         });
     }

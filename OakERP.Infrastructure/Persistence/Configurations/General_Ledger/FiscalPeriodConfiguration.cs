@@ -31,13 +31,13 @@ internal class FiscalPeriodConfiguration : IEntityTypeConfiguration<FiscalPeriod
         builder.ToTable(t =>
         {
             // PeriodNo 1..12
-            t.HasCheckConstraint("ck_fiscper_periodno_range", "\"PeriodNo\" BETWEEN 1 AND 12");
+            t.HasCheckConstraint("ck_fiscper_periodno_range", "\"period_no\" BETWEEN 1 AND 12");
 
             // Start <= End
-            t.HasCheckConstraint("ck_fiscper_start_le_end", "\"PeriodStart\" <= \"PeriodEnd\"");
+            t.HasCheckConstraint("ck_fiscper_start_le_end", "\"period_start\" <= \"period_end\"");
 
             // Allowed statuses (adjust if you add more later)
-            t.HasCheckConstraint("ck_fiscper_status_allowed", "\"Status\" IN ('open','closed')");
+            t.HasCheckConstraint("ck_fiscper_status_allowed", "\"status\" IN ('open','closed')");
         });
     }
 }

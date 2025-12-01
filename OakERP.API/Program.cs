@@ -7,24 +7,19 @@ using OakERP.Infrastructure.Persistence.Seeding.Views;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Controllers, swagger, etc.
+// Services
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(o =>
-{
-    o.SwaggerDoc("v1", new OpenApiInfo { Title = "OakERP API", Version = "v1" });
-});
 
-// Modular registrations
 builder
     .Services.AddApplicationDb(builder.Configuration)
-    .AddPersistenceServices()
     .AddIdentityServices()
     .AddJwtAuth(builder.Configuration)
     .AddAuthServices()
-    .AddSwaggerDocs();
+    .AddSwaggerDocs()
+    .AddPersistenceServices()
+    .AddRepositories();
 
-// Register seeders discovered via reflection
+// Seeders
 builder.Services.AddSeedersFromAssemblies(
     typeof(RoleAndAdminSeeder).Assembly,
     typeof(SqlViewSeeder).Assembly
@@ -51,20 +46,21 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Middleware
-app.UseCors("OakCors");
-app.UseOakMiddleware();
-
+// ----- HTTP pipeline -----
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseCors("OakCors");
+
+app.UseOakMiddleware();
+
 app.MapControllers();
 
-// Seed on API startup (optional in prod)
-var runSeedOnStartup = builder.Configuration.GetValue<bool?>("RunSeedOnStartup") ?? true;
+// ----- Seeding (controlled by config; default is false in appsettings.json) -----
+var runSeedOnStartup = builder.Configuration.GetValue<bool>("RunSeedOnStartup");
 if (runSeedOnStartup)
 {
     using var scope = app.Services.CreateScope();

@@ -17,7 +17,11 @@ public class ApInvoiceRepository(ApplicationDbContext db) : IApInvoiceRepository
 
     public IQueryable<ApInvoice> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(ApInvoice entity) => Set.Add(entity);
+    public async Task AddAsync(ApInvoice entity) => await Set.AddAsync(entity);
 
-    public void Remove(ApInvoice entity) => Set.Remove(entity);
+    public Task RemoveAsync(ApInvoice entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

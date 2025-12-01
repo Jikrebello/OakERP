@@ -1,14 +1,15 @@
 CREATE OR REPLACE VIEW public.v_ap_open_items AS
-            SELECT
-              i.id         AS invoice_id,
-              i.doc_no,
-              i.vendor_id,
-              i.invoice_date,
-              i.due_date,
-              i.doc_total,
-              COALESCE(SUM(a.amount_applied),0) AS amount_applied,
-              (i.doc_total - COALESCE(SUM(a.amount_applied),0)) AS balance
-            FROM public.ap_invoices i
-            LEFT JOIN public.ap_payment_allocations a ON a.ap_invoice_id = i.id
-            WHERE i.status IN ('Posted','Closed')
-            GROUP BY i.id, i.doc_no, i.vendor_id, i.invoice_date, i.due_date, i.doc_total;
+	SELECT
+	  i.id         AS invoice_id,
+	  i.doc_no,
+	  i.vendor_id,
+	  i.invoice_date,
+	  i.due_date,
+	  i.doc_total,
+	  COALESCE(SUM(a.amount_applied),0) AS amount_applied,
+	  (i.doc_total - COALESCE(SUM(a.amount_applied),0)) AS balance
+	FROM public.ap_invoices i
+	LEFT JOIN public.ap_payment_allocations a ON a.ap_invoice_id = i.id
+	WHERE i.doc_status IN ('posted','closed')
+	GROUP BY
+		i.id, i.doc_no, i.vendor_id, i.invoice_date, i.due_date, i.doc_total;

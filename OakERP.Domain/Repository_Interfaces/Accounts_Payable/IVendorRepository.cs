@@ -10,7 +10,7 @@ public interface IVendorRepository
 
     IQueryable<Vendor> QueryNoTracking();
 
-    void Add(Vendor entity);
+    Task AddAsync(Vendor entity);
 
-    void Remove(Vendor entity);
+    Task RemoveAsync(Vendor entity);
 }

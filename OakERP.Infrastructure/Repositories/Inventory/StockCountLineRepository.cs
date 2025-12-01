@@ -17,7 +17,11 @@ public class StockCountLineRepository(ApplicationDbContext db) : IStockCountLine
 
     public IQueryable<StockCountLine> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(StockCountLine entity) => Set.Add(entity);
+    public async Task AddAsync(StockCountLine entity) => await Set.AddAsync(entity);
 
-    public void Remove(StockCountLine entity) => Set.Remove(entity);
+    public Task RemoveAsync(StockCountLine entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

@@ -19,7 +19,11 @@ public class BankReconciliationRepository(ApplicationDbContext db) : IBankReconc
 
     public IQueryable<BankReconciliation> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(BankReconciliation entity) => Set.Add(entity);
+    public async Task AddAsync(BankReconciliation entity) => await Set.AddAsync(entity);
 
-    public void Remove(BankReconciliation entity) => Set.Remove(entity);
+    public Task RemoveAsync(BankReconciliation entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

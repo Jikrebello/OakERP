@@ -10,7 +10,7 @@ public interface ICustomerRepository
 
     IQueryable<Customer> QueryNoTracking();
 
-    void Add(Customer entity);
+    Task AddAsync(Customer entity);
 
-    void Remove(Customer entity);
+    Task RemoveAsync(Customer entity);
 }

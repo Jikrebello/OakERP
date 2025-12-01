@@ -10,7 +10,7 @@ public interface IGlEntryRepository
 
     IQueryable<GlEntry> QueryNoTracking();
 
-    void Add(GlEntry entity);
+    Task AddAsync(GlEntry entity);
 
-    void Remove(GlEntry entity);
+    Task RemoveAsync(GlEntry entity);
 }

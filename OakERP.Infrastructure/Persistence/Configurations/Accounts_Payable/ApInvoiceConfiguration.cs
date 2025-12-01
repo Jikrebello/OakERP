@@ -62,13 +62,16 @@ internal class ApInvoiceConfiguration : IEntityTypeConfiguration<ApInvoice>
         {
             t.HasCheckConstraint(
                 "ck_apinvoice_totals_nonnegative",
-                "(\"TaxTotal\" >= 0) AND (\"DocTotal\" >= 0)"
+                "(\"tax_total\" >= 0) AND (\"doc_total\" >= 0)"
             );
             t.HasCheckConstraint(
                 "ck_apinvoice_due_after_invoice",
-                "\"DueDate\" >= \"InvoiceDate\""
+                "\"due_date\" >= \"invoice_date\""
             );
-            t.HasCheckConstraint("ck_apinvoice_currency_len3", "char_length(\"CurrencyCode\") = 3");
+            t.HasCheckConstraint(
+                "ck_apinvoice_currency_len3",
+                "char_length(\"currency_code\") = 3"
+            );
         });
     }
 }

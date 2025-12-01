@@ -10,7 +10,7 @@ public interface ICurrencyRepository
 
     IQueryable<Currency> QueryNoTracking();
 
-    void Add(Currency entity);
+    Task AddAsync(Currency entity);
 
-    void Remove(Currency entity);
+    Task RemoveAsync(Currency entity);
 }

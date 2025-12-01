@@ -46,34 +46,34 @@ internal class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.HasIndex(c => c.IsOnHold);
 
         // Optional uniques (filtered so NULLs are allowed)
-        builder.HasIndex(c => c.Email).IsUnique().HasFilter("\"Email\" IS NOT NULL");
+        builder.HasIndex(c => c.Email).IsUnique().HasFilter("\"email\" IS NOT NULL");
 
-        builder.HasIndex(c => c.TaxNumber).IsUnique().HasFilter("\"TaxNumber\" IS NOT NULL");
+        builder.HasIndex(c => c.TaxNumber).IsUnique().HasFilter("\"tax_number\" IS NOT NULL");
 
         // Data integrity
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("ck_customer_code_not_blank", "btrim(\"CustomerCode\") <> ''");
-            t.HasCheckConstraint("ck_customer_name_not_blank", "btrim(\"Name\") <> ''");
+            t.HasCheckConstraint("ck_customer_code_not_blank", "btrim(\"customer_code\") <> ''");
+            t.HasCheckConstraint("ck_customer_name_not_blank", "btrim(\"name\") <> ''");
 
             // sane terms window (adjust to your policy)
-            t.HasCheckConstraint("ck_customer_termsdays_range", "\"TermsDays\" BETWEEN 0 AND 180");
+            t.HasCheckConstraint("ck_customer_termsdays_range", "\"terms_days\" BETWEEN 0 AND 180");
 
             // credit limit must be null or >= 0
             t.HasCheckConstraint(
                 "ck_customer_creditlimit_nonneg",
-                "\"CreditLimit\" IS NULL OR \"CreditLimit\" >= 0"
+                "\"credit_limit\" IS NULL OR \"credit_limit\" >= 0"
             );
 
             // ultra-light email shape check (optional)
             t.HasCheckConstraint(
                 "ck_customer_email_basic_shape",
-                "\"Email\" IS NULL OR (position('@' in \"Email\") > 1 AND position('.' in \"Email\") > 3)"
+                "\"email\" IS NULL OR (position('@' in \"email\") > 1 AND position('.' in \"email\") > 3)"
             );
 
             t.HasCheckConstraint(
                 "ck_customer_hold_until_future",
-                "\"CreditHoldUntil\" IS NULL OR \"CreditHoldUntil\" >= CURRENT_DATE"
+                "\"credit_hold_until\" IS NULL OR \"credit_hold_until\" >= CURRENT_DATE"
             );
         });
     }

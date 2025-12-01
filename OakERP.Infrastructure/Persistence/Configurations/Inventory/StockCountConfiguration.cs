@@ -43,7 +43,7 @@ internal class StockCountConfiguration : IEntityTypeConfiguration<StockCount>
         // Data integrity
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("ck_sc_countno_not_blank", "btrim(\"CountNo\") <> ''");
+            t.HasCheckConstraint("ck_sc_countno_not_blank", "btrim(\"count_no\") <> ''");
         });
     }
 }

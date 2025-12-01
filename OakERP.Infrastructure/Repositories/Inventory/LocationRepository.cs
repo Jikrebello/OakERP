@@ -17,7 +17,11 @@ public class LocationRepository(ApplicationDbContext db) : ILocationRepository
 
     public IQueryable<Location> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(Location entity) => Set.Add(entity);
+    public async Task AddAsync(Location entity) => await Set.AddAsync(entity);
 
-    public void Remove(Location entity) => Set.Remove(entity);
+    public Task RemoveAsync(Location entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

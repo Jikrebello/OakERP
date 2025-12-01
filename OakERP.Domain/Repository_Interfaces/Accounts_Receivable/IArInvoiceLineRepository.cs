@@ -10,7 +10,7 @@ public interface IArInvoiceLineRepository
 
     IQueryable<ArInvoiceLine> QueryNoTracking();
 
-    void Add(ArInvoiceLine entity);
+    Task AddAsync(ArInvoiceLine entity);
 
-    void Remove(ArInvoiceLine entity);
+    Task RemoveAsync(ArInvoiceLine entity);
 }

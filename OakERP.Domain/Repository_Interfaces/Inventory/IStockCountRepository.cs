@@ -10,7 +10,7 @@ public interface IStockCountRepository
 
     IQueryable<StockCount> QueryNoTracking();
 
-    void Add(StockCount entity);
+    Task AddAsync(StockCount entity);
 
-    void Remove(StockCount entity);
+    Task RemoveAsync(StockCount entity);
 }

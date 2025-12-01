@@ -1,15 +1,16 @@
 <#  OakERP - Migrate + Seed
     Usage (local):
       pwsh ./tools/migrate.ps1                          # Development, migrator only (migrate+seed)
-      pwsh ./tools/migrate.ps1 -Env Production          # Production, migrator only
+      pwsh ./tools/migrate.ps1 -Env Testing             # Testing env
+      pwsh ./tools/migrate.ps1 -Env Production          # Production-like (e.g., in Docker)
       pwsh ./tools/migrate.ps1 -UseEf                   # First run dotnet ef database update, then seed
       pwsh ./tools/migrate.ps1 -MigrateOnly -UseEf      # Only EF migration (no seeding)
-      pwsh ./tools/migrate.ps1 -SeedOnly                # Only seed (migrator; skips EF)
+      pwsh ./tools/migrate.ps1 -SeedOnly                # Only seed (migrator; note: migrator still calls MigrateAsync safely)
       pwsh ./tools/migrate.ps1 -Cs "Host=...;..."       # Override connection string via env var
 #>
 
 param(
-  [ValidateSet('Development','Staging','Production')]
+  [ValidateSet('Development','Testing','Production')]
   [string]$Env = 'Development',
 
   # If true, run `dotnet ef database update` before seeding
@@ -19,15 +20,16 @@ param(
   [switch]$MigrateOnly,
 
   # If true, run only seeding (via migrator) and skip EF
+  # (Note: migrator will still call MigrateAsync idempotently)
   [switch]$SeedOnly,
 
   # Optional connection string override; sets ConnectionStrings__DefaultConnection
   [string]$Cs = $null,
 
-  # Paths (adjust for your repo)
-  [string]$InfraProj = 'src/OakERP.Infrastructure/OakERP.Infrastructure.csproj',
-  [string]$ApiProj = 'src/OakERP.Api/OakERP.Api.csproj',
-  [string]$MigratorProj = 'src/OakERP.MigrationTool/OakERP.MigrationTool.csproj',
+  # Paths (adjust for your repo if different)
+  [string]$InfraProj    = 'OakERP.Infrastructure/OakERP.Infrastructure.csproj',
+  [string]$ApiProj      = 'OakERP.API/OakERP.API.csproj',
+  [string]$MigratorProj = 'OakERP.MigrationTool/OakERP.MigrationTool.csproj',
 
   # Build controls
   [switch]$NoBuild
@@ -41,20 +43,25 @@ function Warn($m)  { Write-Host "[WARN ] $m" -ForegroundColor Yellow }
 function ErrorMsg($m){ Write-Host "[ERROR] $m" -ForegroundColor Red }
 
 try {
-  Push-Location (git rev-parse --show-toplevel 2>$null | % { if ($_){$_} else {Get-Location} })
+  # Ensure we run from repo root
+  $repoRoot = (git rev-parse --show-toplevel 2>$null)
+  if (-not $repoRoot) { $repoRoot = (Get-Location) }
+  Push-Location $repoRoot
 
   # Set environment for both EF & Migrator
   $env:ASPNETCORE_ENVIRONMENT = $Env
-  if ($Cs) { $env:ConnectionStrings__DefaultConnection = $Cs }
-
-  # Decide plan
-  if ($MigrateOnly) { $UseEf = $true }
-  if ($SeedOnly -and $MigrateOnly) { throw "Choose either -SeedOnly or -MigrateOnly, not both." }
+  if ($Cs) {
+    $env:ConnectionStrings__DefaultConnection = $Cs
+    Info "Using connection string from -Cs override."
+  } else {
+    Remove-Item Env:\ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue
+  }
 
   Info "Environment: $Env"
-  if ($Cs) { Info "Using connection string from -Cs." }
+  if ($SeedOnly -and $MigrateOnly) { throw "Choose either -SeedOnly or -MigrateOnly, not both." }
 
-  if ($UseEf) {
+  # Optionally run EF migrations (using API as startup so it loads the same appsettings)
+  if ($UseEf -or $MigrateOnly) {
     Info "Running EF database update..."
     $noBuildFlag = $NoBuild.IsPresent ? '--no-build' : ''
     dotnet ef database update `
@@ -68,22 +75,25 @@ try {
       exit 0
     }
   } else {
-    Info "Skipping EF update (migrator will run MigrateAsync())."
+    Info "Skipping EF update (migrator will run MigrateAsync idempotently)."
   }
 
-  if (-not $SeedOnly -and -not $UseEf) {
-    # We’ll still run migrator (it migrates + seeds)
-    Info "Running migrator (migrate + seed)..."
-  } elseif ($SeedOnly) {
-    Info "Running migrator (seed only path requested, but migrator always calls MigrateAsync() idempotently)."
+  # Run the migrator (migrate + seed)
+  if ($SeedOnly) {
+    Info "Running migrator (seed-only requested, note: migrator still calls MigrateAsync safely)."
   } else {
-    Info "Running migrator (seeding after EF update)..."
+    Info "Running migrator (migrate + seed)..."
   }
 
   $noBuildRun = $NoBuild.IsPresent ? '--no-build' : ''
   dotnet run --project $MigratorProj --configuration Release $noBuildRun
-  Info "Migrator finished successfully."
 
+  if ($LASTEXITCODE -ne 0) {
+  throw "Migrator failed with exit code $LASTEXITCODE."
+}
+
+
+  Info "Migrator finished successfully."
   exit 0
 }
 catch {

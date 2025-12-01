@@ -64,23 +64,26 @@ internal class ArInvoiceConfiguration : IEntityTypeConfiguration<ArInvoice>
             // Nonnegative totals
             t.HasCheckConstraint(
                 "ck_arinvoice_totals_nonnegative",
-                "(\"TaxTotal\" >= 0) AND (\"DocTotal\" >= 0)"
+                "(\"tax_total\" >= 0) AND (\"doc_total\" >= 0)"
             );
 
             // Due date after or equal to invoice date
             t.HasCheckConstraint(
                 "ck_arinvoice_due_after_invoice",
-                "\"DueDate\" >= \"InvoiceDate\""
+                "\"due_date\" >= \"invoice_date\""
             );
 
             // When Posted, PostingDate must be present
             t.HasCheckConstraint(
                 "ck_arinvoice_posted_requires_postingdate",
-                "(\"DocStatus\" <> 'posted'::doc_status) OR (\"PostingDate\" IS NOT NULL)"
+                "(\"doc_status\" <> 'posted'::doc_status) OR (\"posting_date\" IS NOT NULL)"
             );
 
             // Currency code must be 3 letters (DB guard in addition to length)
-            t.HasCheckConstraint("ck_arinvoice_currency_len3", "char_length(\"CurrencyCode\") = 3");
+            t.HasCheckConstraint(
+                "ck_arinvoice_currency_len3",
+                "char_length(\"currency_code\") = 3"
+            );
         });
     }
 }

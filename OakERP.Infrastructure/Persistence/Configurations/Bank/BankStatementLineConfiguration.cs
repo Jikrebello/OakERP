@@ -46,15 +46,15 @@ internal class BankStatementLineConfiguration : IEntityTypeConfiguration<BankSta
         builder
             .HasIndex(x => new { x.BankStatementId, x.ExternalLineId })
             .IsUnique()
-            .HasFilter("\"ExternalLineId\" IS NOT NULL");
+            .HasFilter("\"external_line_id\" IS NOT NULL");
 
         // Guards
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("ck_bankstmtline_amount_nonzero", "\"Amount\" <> 0");
+            t.HasCheckConstraint("ck_bankstmtline_amount_nonzero", "\"amount\" <> 0");
             t.HasCheckConstraint(
                 "ck_bankstmtline_matchstatus_allowed",
-                "\"MatchStatus\" IN ('unmatched','proposed','matched','ignored')"
+                "\"match_status\" IN ('unmatched','proposed','matched','ignored')"
             );
         });
     }

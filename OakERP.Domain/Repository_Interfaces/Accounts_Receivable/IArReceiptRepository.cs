@@ -10,7 +10,7 @@ public interface IArReceiptRepository
 
     IQueryable<ArReceipt> QueryNoTracking();
 
-    void Add(ArReceipt entity);
+    Task AddAsync(ArReceipt entity);
 
-    void Remove(ArReceipt entity);
+    Task RemoveAsync(ArReceipt entity);
 }

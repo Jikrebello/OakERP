@@ -36,7 +36,10 @@ internal class BankReconciliationConfiguration : IEntityTypeConfiguration<BankRe
         // Guards
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("ck_bankrec_range_valid", "\"StatementTo\" >= \"StatementFrom\"");
+            t.HasCheckConstraint(
+                "ck_bankrec_range_valid",
+                "\"statement_to\" >= \"statement_from\""
+            );
         });
     }
 }

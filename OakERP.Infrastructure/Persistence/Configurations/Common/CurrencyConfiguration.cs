@@ -38,10 +38,10 @@ internal sealed class CurrencyConfiguration : IEntityTypeConfiguration<Currency>
 
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("ck_currency_code_len3", "char_length(\"Code\") = 3");
-            t.HasCheckConstraint("ck_currency_code_upper", "\"Code\" = upper(\"Code\")");
-            t.HasCheckConstraint("ck_currency_decimals_range", "\"Decimals\" BETWEEN 0 AND 4");
-            t.HasCheckConstraint("ck_currency_numeric_range", "\"NumericCode\" BETWEEN 1 AND 999");
+            t.HasCheckConstraint("ck_currency_code_len3", "char_length(\"code\") = 3");
+            t.HasCheckConstraint("ck_currency_code_upper", "\"code\" = upper(\"code\")");
+            t.HasCheckConstraint("ck_currency_decimals_range", "\"decimals\" BETWEEN 0 AND 4");
+            t.HasCheckConstraint("ck_currency_numeric_range", "\"numeric_code\" BETWEEN 1 AND 999");
         });
     }
 }

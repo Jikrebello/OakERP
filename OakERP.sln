@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OakERP.Application", "OakERP.Application\OakERP.Application.csproj", "{F0FE0048-70CB-4A9E-AEE8-86013D56F9D6}"
 EndProject
@@ -49,8 +49,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Reports", "Reports", "{A7F9
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{9944E40C-1141-4814-9B6B-AC912E9A63F2}"
 	ProjectSection(SolutionItems) = preProject
+		initdb\01-create-databases.sql = initdb\01-create-databases.sql
+		initdb\02-init-extensions.sh = initdb\02-init-extensions.sh
 		docker-compose.yml = docker-compose.yml
 		initdb\init.sql = initdb\init.sql
+		pgAdmin\servers.json = pgAdmin\servers.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"

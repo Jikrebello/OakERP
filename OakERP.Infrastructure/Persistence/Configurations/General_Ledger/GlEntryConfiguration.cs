@@ -55,14 +55,14 @@ internal class GlEntryConfiguration : IEntityTypeConfiguration<GlEntry>
             // exactly one of Debit/Credit > 0 (and not both, and not both zero)
             t.HasCheckConstraint(
                 "ck_glentry_one_sided_amount",
-                "(\"Debit\" >= 0) AND (\"Credit\" >= 0) AND "
-                    + "((\"Debit\" = 0 AND \"Credit\" > 0) OR (\"Credit\" = 0 AND \"Debit\" > 0))"
+                "(\"debit\" >= 0) AND (\"credit\" >= 0) AND "
+                    + "((\"debit\" = 0 AND \"credit\" > 0) OR (\"credit\" = 0 AND \"debit\" > 0))"
             );
 
             // require SourceId when SourceType is set
             t.HasCheckConstraint(
                 "ck_glentry_source_pairing",
-                "(\"SourceType\" IS NULL) OR (\"SourceId\" IS NOT NULL)"
+                "(\"source_type\" IS NULL) OR (\"source_id\" IS NOT NULL)"
             );
         });
     }

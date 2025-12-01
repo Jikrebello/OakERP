@@ -17,7 +17,11 @@ public class BankTransactionRepository(ApplicationDbContext db) : IBankTransacti
 
     public IQueryable<BankTransaction> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(BankTransaction entity) => Set.Add(entity);
+    public async Task AddAsync(BankTransaction entity) => await Set.AddAsync(entity);
 
-    public void Remove(BankTransaction entity) => Set.Remove(entity);
+    public Task RemoveAsync(BankTransaction entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

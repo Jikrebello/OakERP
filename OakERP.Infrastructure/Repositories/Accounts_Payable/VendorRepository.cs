@@ -17,7 +17,11 @@ public class VendorRepository(ApplicationDbContext db) : IVendorRepository
 
     public IQueryable<Vendor> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(Vendor entity) => Set.Add(entity);
+    public async Task AddAsync(Vendor entity) => await Set.AddAsync(entity);
 
-    public void Remove(Vendor entity) => Set.Remove(entity);
+    public Task RemoveAsync(Vendor entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

@@ -10,7 +10,7 @@ public interface IGlAccountRepository
 
     IQueryable<GlAccount> QueryNoTracking();
 
-    void Add(GlAccount entity);
+    Task AddAsync(GlAccount entity);
 
-    void Remove(GlAccount entity);
+    Task RemoveAsync(GlAccount entity);
 }

@@ -21,11 +21,22 @@ public class AuthServiceTestFactory
     public AuthServiceTestFactory()
     {
         var userStore = new Mock<IUserStore<ApplicationUser>>();
-        UserManager = new(userStore.Object, null, null, null, null, null, null, null, null);
+        UserManager = new Mock<UserManager<ApplicationUser>>(
+            userStore.Object,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
 
         var contextAccessor = new Mock<IHttpContextAccessor>();
         var claimsFactory = new Mock<IUserClaimsPrincipalFactory<ApplicationUser>>();
-        SignInManager = new(
+
+        SignInManager = new Mock<SignInManager<ApplicationUser>>(
             UserManager.Object,
             contextAccessor.Object,
             claimsFactory.Object,

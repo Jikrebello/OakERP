@@ -66,14 +66,14 @@ internal class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.ToTable(t =>
         {
             // No blank codes/names
-            t.HasCheckConstraint("ck_item_sku_not_blank", "btrim(\"Sku\") <> ''");
-            t.HasCheckConstraint("ck_item_name_not_blank", "btrim(\"Name\") <> ''");
+            t.HasCheckConstraint("ck_item_sku_not_blank", "btrim(\"sku\") <> ''");
+            t.HasCheckConstraint("ck_item_name_not_blank", "btrim(\"name\") <> ''");
 
             // UoM looks like a short code; keep uppercase (optional)
-            t.HasCheckConstraint("ck_item_uom_upper", "\"Uom\" = upper(\"Uom\")");
+            t.HasCheckConstraint("ck_item_uom_upper", "\"uom\" = upper(\"uom\")");
 
             // Price must be nonnegative
-            t.HasCheckConstraint("ck_item_defaultprice_nonneg", "\"DefaultPrice\" >= 0");
+            t.HasCheckConstraint("ck_item_defaultprice_nonneg", "\"default_price\" >= 0");
         });
     }
 }

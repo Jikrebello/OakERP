@@ -17,7 +17,11 @@ public class FiscalPeriodRepository(ApplicationDbContext db) : IFiscalPeriodRepo
 
     public IQueryable<FiscalPeriod> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(FiscalPeriod entity) => Set.Add(entity);
+    public async Task AddAsync(FiscalPeriod entity) => await Set.AddAsync(entity);
 
-    public void Remove(FiscalPeriod entity) => Set.Remove(entity);
+    public Task RemoveAsync(FiscalPeriod entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

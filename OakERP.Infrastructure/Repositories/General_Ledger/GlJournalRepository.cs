@@ -17,7 +17,11 @@ public class GlJournalRepository(ApplicationDbContext db) : IGlJournalRepository
 
     public IQueryable<GlJournal> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(GlJournal entity) => Set.Add(entity);
+    public async Task AddAsync(GlJournal entity) => await Set.AddAsync(entity);
 
-    public void Remove(GlJournal entity) => Set.Remove(entity);
+    public Task RemoveAsync(GlJournal entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

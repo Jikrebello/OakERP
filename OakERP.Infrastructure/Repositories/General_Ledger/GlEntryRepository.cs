@@ -9,8 +9,6 @@ public class GlEntryRepository(ApplicationDbContext db) : IGlEntryRepository
 {
     private DbSet<GlEntry> Set => db.GlEntries;
 
-    public void Add(GlEntry entity) => throw new NotImplementedException();
-
     public Task<GlEntry?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
         Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
@@ -19,5 +17,11 @@ public class GlEntryRepository(ApplicationDbContext db) : IGlEntryRepository
 
     public IQueryable<GlEntry> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Remove(GlEntry entity) => Set.Remove(entity);
+    public async Task AddAsync(GlEntry entity) => await Set.AddAsync(entity);
+
+    public Task RemoveAsync(GlEntry entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

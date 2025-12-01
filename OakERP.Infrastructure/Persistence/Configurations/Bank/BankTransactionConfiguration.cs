@@ -61,20 +61,20 @@ internal class BankTransactionConfiguration : IEntityTypeConfiguration<BankTrans
         builder
             .HasIndex(x => new { x.SourceType, x.SourceId })
             .IsUnique()
-            .HasFilter("\"SourceType\" IS NOT NULL AND \"SourceId\" IS NOT NULL");
+            .HasFilter("\"source_type\" IS NOT NULL AND \"source_id\" IS NOT NULL");
 
         builder.ToTable(t =>
         {
             // Amount cannot be zero
-            t.HasCheckConstraint("ck_banktxn_amount_nonzero", "\"Amount\" <> 0");
+            t.HasCheckConstraint("ck_banktxn_amount_nonzero", "\"amount\" <> 0");
 
             // DR and CR must be different accounts
-            t.HasCheckConstraint("ck_banktxn_dr_neq_cr", "\"DrAccountNo\" <> \"CrAccountNo\"");
+            t.HasCheckConstraint("ck_banktxn_dr_neq_cr", "\"dr_account_no\" <> \"cr_account_no\"");
 
             // If reconciled, a date must be present
             t.HasCheckConstraint(
                 "ck_banktxn_reconciled_requires_date",
-                "(NOT \"IsReconciled\") OR (\"ReconciledDate\" IS NOT NULL)"
+                "(NOT \"is_reconciled\") OR (\"reconciled_date\" IS NOT NULL)"
             );
         });
     }

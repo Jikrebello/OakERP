@@ -10,7 +10,7 @@ public interface IBankReconciliationRepository
 
     IQueryable<BankReconciliation> QueryNoTracking();
 
-    void Add(BankReconciliation entity);
+    Task AddAsync(BankReconciliation entity);
 
-    void Remove(BankReconciliation entity);
+    Task RemoveAsync(BankReconciliation entity);
 }

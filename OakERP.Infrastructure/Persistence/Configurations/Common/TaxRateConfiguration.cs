@@ -15,7 +15,7 @@ internal class TaxRateConfiguration : IEntityTypeConfiguration<TaxRate>
 
         // Columns
         builder.Property(x => x.Name).HasMaxLength(128).IsRequired();
-        builder.Property(x => x.RatePercent).HasColumnType("numeric(6,3)"); // 0.000 .. 999.999% (more than enough)
+        builder.Property(x => x.RatePercent).HasColumnType("numeric(6,3)");
         builder.Property(x => x.EffectiveFrom).HasColumnType("date");
         builder.Property(x => x.EffectiveTo).HasColumnType("date");
 
@@ -31,9 +31,9 @@ internal class TaxRateConfiguration : IEntityTypeConfiguration<TaxRate>
 
         // Handy computed column: fraction form (0.150000 for 15%)
         builder
-            .Property<decimal>("RateFraction")
+            .Property<decimal>("rate_fraction")
             .HasColumnType("numeric(9,6)")
-            .HasComputedColumnSql("(\"RatePercent\" / 100.0)", stored: true);
+            .HasComputedColumnSql("(\"rate_percent\" / 100.0)", stored: true);
 
         // Indexes
         builder.HasIndex(x => x.IsActive);
@@ -43,15 +43,14 @@ internal class TaxRateConfiguration : IEntityTypeConfiguration<TaxRate>
         // Data integrity checks
         builder.ToTable(t =>
         {
-            // 0%..100% (adjust if you need >100 for special regimes)
             t.HasCheckConstraint(
                 "ck_taxrate_pct_range",
-                "\"RatePercent\" >= 0 AND \"RatePercent\" <= 100"
+                "\"rate_percent\" >= 0 AND \"rate_percent\" <= 100"
             );
-            t.HasCheckConstraint("ck_taxrate_name_not_blank", "btrim(\"Name\") <> ''");
+            t.HasCheckConstraint("ck_taxrate_name_not_blank", "btrim(\"name\") <> ''");
             t.HasCheckConstraint(
                 "ck_taxrate_dates",
-                "\"EffectiveTo\" IS NULL OR \"EffectiveTo\" >= \"EffectiveFrom\""
+                "\"effective_to\" IS NULL OR \"effective_to\" >= \"effective_from\""
             );
         });
     }

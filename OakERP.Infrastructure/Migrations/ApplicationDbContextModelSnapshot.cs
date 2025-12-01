@@ -20,28 +20,32 @@ namespace OakERP.Infrastructure.Migrations
                 .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "doc_status", "doc_status", new[] { "draft", "posted", "voided", "closed" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "gl_account_type", "gl_account_type", new[] { "asset", "liability", "equity", "revenue", "expense" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "inventory_transaction_type", "inventory_transaction_type", new[] { "receipt", "issue", "adjustment", "transfer_in", "transfer_out", "sales_cogs" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "item_type", "item_type", new[] { "stock", "nonstock", "service" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "doc_status", new[] { "draft", "posted", "voided", "closed" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "gl_account_type", new[] { "asset", "liability", "equity", "revenue", "expense" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "inventory_transaction_type", new[] { "receipt", "issue", "adjustment", "transfer_in", "transfer_out", "sales_cogs" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "item_type", new[] { "stock", "nonstock", "service" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("id");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("concurrency_stamp");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("normalized_name");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -49,7 +53,8 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_asp_net_roles");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
@@ -62,19 +67,23 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("claim_type");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("claim_value");
 
                     b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("role_id");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -82,9 +91,11 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_asp_net_role_claims");
 
-                    b.HasIndex("RoleId");
+                    b.HasIndex("RoleId")
+                        .HasDatabaseName("ix_asp_net_role_claims_role_id");
 
                     b.ToTable("AspNetRoleClaims", (string)null);
                 });
@@ -93,19 +104,23 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("claim_type");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("claim_value");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -113,9 +128,11 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_asp_net_user_claims");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_asp_net_user_claims_user_id");
 
                     b.ToTable("AspNetUserClaims", (string)null);
                 });
@@ -123,17 +140,21 @@ namespace OakERP.Infrastructure.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("login_provider");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("provider_key");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("provider_display_name");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -141,9 +162,11 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("LoginProvider", "ProviderKey");
+                    b.HasKey("LoginProvider", "ProviderKey")
+                        .HasName("pk_asp_net_user_logins");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_asp_net_user_logins_user_id");
 
                     b.ToTable("AspNetUserLogins", (string)null);
                 });
@@ -151,10 +174,12 @@ namespace OakERP.Infrastructure.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
 
                     b.Property<string>("RoleId")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("role_id");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -162,9 +187,11 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("UserId", "RoleId");
+                    b.HasKey("UserId", "RoleId")
+                        .HasName("pk_asp_net_user_roles");
 
-                    b.HasIndex("RoleId");
+                    b.HasIndex("RoleId")
+                        .HasDatabaseName("ix_asp_net_user_roles_role_id");
 
                     b.ToTable("AspNetUserRoles", (string)null);
                 });
@@ -172,16 +199,20 @@ namespace OakERP.Infrastructure.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("login_provider");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.Property<string>("Value")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("value");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -189,7 +220,8 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("UserId", "LoginProvider", "Name");
+                    b.HasKey("UserId", "LoginProvider", "Name")
+                        .HasName("pk_asp_net_user_tokens");
 
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
@@ -198,60 +230,75 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("CurrencyCode")
                         .IsRequired()
                         .HasMaxLength(3)
-                        .HasColumnType("character varying(3)");
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency_code");
 
                     b.Property<string>("DocNo")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("doc_no");
 
                     b.Property<int>("DocStatus")
-                        .HasColumnType("doc_status");
+                        .HasColumnType("doc_status")
+                        .HasColumnName("doc_status");
 
                     b.Property<decimal>("DocTotal")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("doc_total");
 
                     b.Property<DateOnly>("DueDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
 
                     b.Property<DateOnly>("InvoiceDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("invoice_date");
 
                     b.Property<string>("InvoiceNo")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("invoice_no");
 
                     b.Property<string>("Memo")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("memo");
 
                     b.Property<decimal>("TaxTotal")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("tax_total");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.Property<Guid>("VendorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("vendor_id");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -259,29 +306,36 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_ap_invoices");
 
-                    b.HasIndex("CurrencyCode");
+                    b.HasIndex("CurrencyCode")
+                        .HasDatabaseName("ix_ap_invoices_currency_code");
 
                     b.HasIndex("DocNo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_ap_invoices_doc_no");
 
-                    b.HasIndex("DocStatus");
+                    b.HasIndex("DocStatus")
+                        .HasDatabaseName("ix_ap_invoices_doc_status");
 
-                    b.HasIndex("InvoiceDate");
+                    b.HasIndex("InvoiceDate")
+                        .HasDatabaseName("ix_ap_invoices_invoice_date");
 
-                    b.HasIndex("VendorId", "DueDate");
+                    b.HasIndex("VendorId", "DueDate")
+                        .HasDatabaseName("ix_ap_invoices_vendor_id_due_date");
 
                     b.HasIndex("VendorId", "InvoiceNo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_ap_invoices_vendor_id_invoice_no");
 
                     b.ToTable("ap_invoices", null, t =>
                         {
-                            t.HasCheckConstraint("ck_apinvoice_currency_len3", "char_length(\"CurrencyCode\") = 3");
+                            t.HasCheckConstraint("ck_apinvoice_currency_len3", "char_length(\"currency_code\") = 3");
 
-                            t.HasCheckConstraint("ck_apinvoice_due_after_invoice", "\"DueDate\" >= \"InvoiceDate\"");
+                            t.HasCheckConstraint("ck_apinvoice_due_after_invoice", "\"due_date\" >= \"invoice_date\"");
 
-                            t.HasCheckConstraint("ck_apinvoice_totals_nonnegative", "(\"TaxTotal\" >= 0) AND (\"DocTotal\" >= 0)");
+                            t.HasCheckConstraint("ck_apinvoice_totals_nonnegative", "(\"tax_total\" >= 0) AND (\"doc_total\" >= 0)");
                         });
                 });
 
@@ -289,36 +343,46 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("AccountNo")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("account_no");
 
                     b.Property<Guid>("ApInvoiceId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("ap_invoice_id");
 
                     b.Property<string>("Description")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("description");
 
                     b.Property<Guid?>("ItemId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
 
                     b.Property<int>("LineNo")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("line_no");
 
                     b.Property<decimal>("LineTotal")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("line_total");
 
                     b.Property<decimal>("Qty")
-                        .HasColumnType("numeric(18,4)");
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("qty");
 
                     b.Property<Guid?>("TaxRateId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("tax_rate_id");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("numeric(18,4)");
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("unit_price");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -326,30 +390,36 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_ap_invoice_lines");
 
-                    b.HasIndex("AccountNo");
+                    b.HasIndex("AccountNo")
+                        .HasDatabaseName("ix_ap_invoice_lines_account_no");
 
-                    b.HasIndex("ItemId");
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_ap_invoice_lines_item_id");
 
-                    b.HasIndex("TaxRateId");
+                    b.HasIndex("TaxRateId")
+                        .HasDatabaseName("ix_ap_invoice_lines_tax_rate_id");
 
                     b.HasIndex("ApInvoiceId", "LineNo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_ap_invoice_lines_ap_invoice_id_line_no");
 
-                    b.HasIndex("ItemId", "AccountNo");
+                    b.HasIndex("ItemId", "AccountNo")
+                        .HasDatabaseName("ix_ap_invoice_lines_item_id_account_no");
 
                     b.ToTable("ap_invoice_lines", null, t =>
                         {
-                            t.HasCheckConstraint("ck_apline_has_account_or_item", "(\"AccountNo\" IS NOT NULL) OR (\"ItemId\" IS NOT NULL)");
+                            t.HasCheckConstraint("ck_apline_has_account_or_item", "(\"account_no\" IS NOT NULL) OR (\"item_id\" IS NOT NULL)");
 
-                            t.HasCheckConstraint("ck_apline_lineno_positive", "\"LineNo\" > 0");
+                            t.HasCheckConstraint("ck_apline_lineno_positive", "\"line_no\" > 0");
 
-                            t.HasCheckConstraint("ck_apline_price_nonnegative", "\"UnitPrice\" >= 0");
+                            t.HasCheckConstraint("ck_apline_price_nonnegative", "\"unit_price\" >= 0");
 
-                            t.HasCheckConstraint("ck_apline_qty_nonnegative", "\"Qty\" >= 0");
+                            t.HasCheckConstraint("ck_apline_qty_nonnegative", "\"qty\" >= 0");
 
-                            t.HasCheckConstraint("ck_apline_total_nonnegative", "\"LineTotal\" >= 0");
+                            t.HasCheckConstraint("ck_apline_total_nonnegative", "\"line_total\" >= 0");
                         });
                 });
 
@@ -357,53 +427,67 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
 
                     b.Property<Guid>("BankAccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
 
                     b.Property<DateOnly?>("ClearedDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("cleared_date");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("DocNo")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("doc_no");
 
                     b.Property<int>("DocStatus")
-                        .HasColumnType("doc_status");
+                        .HasColumnType("doc_status")
+                        .HasColumnName("doc_status");
 
                     b.Property<string>("Memo")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("memo");
 
                     b.Property<DateOnly>("PaymentDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("payment_date");
 
                     b.Property<DateOnly?>("PostingDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("posting_date");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.Property<Guid>("VendorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("vendor_id");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -411,34 +495,44 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_ap_payments");
 
-                    b.HasIndex("ClearedDate");
+                    b.HasIndex("ClearedDate")
+                        .HasDatabaseName("ix_ap_payments_cleared_date");
 
                     b.HasIndex("DocNo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_ap_payments_doc_no");
 
-                    b.HasIndex("DocStatus");
+                    b.HasIndex("DocStatus")
+                        .HasDatabaseName("ix_ap_payments_doc_status");
 
-                    b.HasIndex("PaymentDate");
+                    b.HasIndex("PaymentDate")
+                        .HasDatabaseName("ix_ap_payments_payment_date");
 
-                    b.HasIndex("PostingDate");
+                    b.HasIndex("PostingDate")
+                        .HasDatabaseName("ix_ap_payments_posting_date");
 
-                    b.HasIndex("BankAccountId", "PaymentDate");
+                    b.HasIndex("BankAccountId", "PaymentDate")
+                        .HasDatabaseName("ix_ap_payments_bank_account_id_payment_date");
 
-                    b.HasIndex("BankAccountId", "PostingDate");
+                    b.HasIndex("BankAccountId", "PostingDate")
+                        .HasDatabaseName("ix_ap_payments_bank_account_id_posting_date");
 
-                    b.HasIndex("VendorId", "PaymentDate");
+                    b.HasIndex("VendorId", "PaymentDate")
+                        .HasDatabaseName("ix_ap_payments_vendor_id_payment_date");
 
-                    b.HasIndex("VendorId", "PostingDate");
+                    b.HasIndex("VendorId", "PostingDate")
+                        .HasDatabaseName("ix_ap_payments_vendor_id_posting_date");
 
                     b.ToTable("ap_payments", null, t =>
                         {
-                            t.HasCheckConstraint("ck_appayment_amount_positive", "\"Amount\" > 0");
+                            t.HasCheckConstraint("ck_appayment_amount_positive", "\"amount\" > 0");
 
-                            t.HasCheckConstraint("ck_appayment_cleared_not_before_posting", "(\"ClearedDate\" IS NULL) OR (\"PostingDate\" IS NULL) OR (\"ClearedDate\" >= \"PostingDate\")");
+                            t.HasCheckConstraint("ck_appayment_cleared_not_before_posting", "(\"cleared_date\" IS NULL) OR (\"posting_date\" IS NULL) OR (\"cleared_date\" >= \"posting_date\")");
 
-                            t.HasCheckConstraint("ck_appayment_posted_requires_postingdate", "(\"DocStatus\" <> 'posted'::doc_status) OR (\"PostingDate\" IS NOT NULL)");
+                            t.HasCheckConstraint("ck_appayment_posted_requires_postingdate", "(\"doc_status\" <> 'posted'::doc_status) OR (\"posting_date\" IS NOT NULL)");
                         });
                 });
 
@@ -446,29 +540,37 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateOnly>("AllocationDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("allocation_date");
 
                     b.Property<decimal>("AmountApplied")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount_applied");
 
                     b.Property<Guid>("ApInvoiceId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("ap_invoice_id");
 
                     b.Property<Guid>("ApPaymentId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("ap_payment_id");
 
                     b.Property<decimal?>("DiscountTaken")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("discount_taken");
 
                     b.Property<string>("Memo")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("memo");
 
                     b.Property<decimal?>("WriteOffAmount")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("write_off_amount");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -476,25 +578,30 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_ap_payment_allocations");
 
-                    b.HasIndex("ApInvoiceId");
+                    b.HasIndex("ApInvoiceId")
+                        .HasDatabaseName("ix_ap_payment_allocations_ap_invoice_id");
 
-                    b.HasIndex("ApPaymentId");
+                    b.HasIndex("ApPaymentId")
+                        .HasDatabaseName("ix_ap_payment_allocations_ap_payment_id");
 
-                    b.HasIndex("ApInvoiceId", "AllocationDate");
+                    b.HasIndex("ApInvoiceId", "AllocationDate")
+                        .HasDatabaseName("ix_ap_payment_allocations_ap_invoice_id_allocation_date");
 
-                    b.HasIndex("ApPaymentId", "AllocationDate");
+                    b.HasIndex("ApPaymentId", "AllocationDate")
+                        .HasDatabaseName("ix_ap_payment_allocations_ap_payment_id_allocation_date");
 
                     b.ToTable("ap_payment_allocations", null, t =>
                         {
-                            t.HasCheckConstraint("ck_apalloc_amount_positive", "\"AmountApplied\" > 0");
+                            t.HasCheckConstraint("ck_apalloc_amount_positive", "\"amount_applied\" > 0");
 
-                            t.HasCheckConstraint("ck_apalloc_discount_nonneg", "\"DiscountTaken\" IS NULL OR \"DiscountTaken\" >= 0");
+                            t.HasCheckConstraint("ck_apalloc_discount_nonneg", "\"discount_taken\" IS NULL OR \"discount_taken\" >= 0");
 
-                            t.HasCheckConstraint("ck_apalloc_has_value", "(\"AmountApplied\" > 0) OR (COALESCE(\"DiscountTaken\",0) > 0) OR (COALESCE(\"WriteOffAmount\",0) > 0)");
+                            t.HasCheckConstraint("ck_apalloc_has_value", "(\"amount_applied\" > 0) OR (COALESCE(\"discount_taken\",0) > 0) OR (COALESCE(\"write_off_amount\",0) > 0)");
 
-                            t.HasCheckConstraint("ck_apalloc_writeoff_nonneg", "\"WriteOffAmount\" IS NULL OR \"WriteOffAmount\" >= 0");
+                            t.HasCheckConstraint("ck_apalloc_writeoff_nonneg", "\"write_off_amount\" IS NULL OR \"write_off_amount\" >= 0");
                         });
                 });
 
@@ -502,55 +609,68 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("Address")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("address");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("email");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("phone");
 
                     b.Property<string>("TaxNumber")
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("tax_number");
 
                     b.Property<int>("TermsDays")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("terms_days");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.Property<string>("VendorCode")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("vendor_code");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -558,32 +678,38 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_vendors");
 
                     b.HasIndex("Email")
                         .IsUnique()
-                        .HasFilter("\"Email\" IS NOT NULL");
+                        .HasDatabaseName("ix_vendors_email")
+                        .HasFilter("\"email\" IS NOT NULL");
 
-                    b.HasIndex("IsActive");
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_vendors_is_active");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("Name")
+                        .HasDatabaseName("ix_vendors_name");
 
                     b.HasIndex("TaxNumber")
                         .IsUnique()
-                        .HasFilter("\"TaxNumber\" IS NOT NULL");
+                        .HasDatabaseName("ix_vendors_tax_number")
+                        .HasFilter("\"tax_number\" IS NOT NULL");
 
                     b.HasIndex("VendorCode")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_vendors_vendor_code");
 
                     b.ToTable("vendors", null, t =>
                         {
-                            t.HasCheckConstraint("ck_vendor_code_not_blank", "btrim(\"VendorCode\") <> ''");
+                            t.HasCheckConstraint("ck_vendor_code_not_blank", "btrim(\"vendor_code\") <> ''");
 
-                            t.HasCheckConstraint("ck_vendor_email_basic_shape", "\"Email\" IS NULL OR (position('@' in \"Email\") > 1 AND position('.' in \"Email\") > 3)");
+                            t.HasCheckConstraint("ck_vendor_email_basic_shape", "\"email\" IS NULL OR (position('@' in \"email\") > 1 AND position('.' in \"email\") > 3)");
 
-                            t.HasCheckConstraint("ck_vendor_name_not_blank", "btrim(\"Name\") <> ''");
+                            t.HasCheckConstraint("ck_vendor_name_not_blank", "btrim(\"name\") <> ''");
 
-                            t.HasCheckConstraint("ck_vendor_termsdays_range", "\"TermsDays\" BETWEEN 0 AND 180");
+                            t.HasCheckConstraint("ck_vendor_termsdays_range", "\"terms_days\" BETWEEN 0 AND 180");
                         });
                 });
 
@@ -591,62 +717,78 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("CurrencyCode")
                         .IsRequired()
                         .HasMaxLength(3)
-                        .HasColumnType("character varying(3)");
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency_code");
 
                     b.Property<Guid>("CustomerId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
 
                     b.Property<string>("DocNo")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("doc_no");
 
                     b.Property<int>("DocStatus")
-                        .HasColumnType("doc_status");
+                        .HasColumnType("doc_status")
+                        .HasColumnName("doc_status");
 
                     b.Property<decimal>("DocTotal")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("doc_total");
 
                     b.Property<DateOnly>("DueDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
 
                     b.Property<DateOnly>("InvoiceDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("invoice_date");
 
                     b.Property<string>("Memo")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("memo");
 
                     b.Property<DateOnly?>("PostingDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("posting_date");
 
                     b.Property<string>("ShipTo")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("ship_to");
 
                     b.Property<decimal>("TaxTotal")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("tax_total");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -654,30 +796,37 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_ar_invoices");
 
-                    b.HasIndex("CurrencyCode");
+                    b.HasIndex("CurrencyCode")
+                        .HasDatabaseName("ix_ar_invoices_currency_code");
 
                     b.HasIndex("DocNo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_ar_invoices_doc_no");
 
-                    b.HasIndex("DocStatus");
+                    b.HasIndex("DocStatus")
+                        .HasDatabaseName("ix_ar_invoices_doc_status");
 
-                    b.HasIndex("InvoiceDate");
+                    b.HasIndex("InvoiceDate")
+                        .HasDatabaseName("ix_ar_invoices_invoice_date");
 
-                    b.HasIndex("PostingDate");
+                    b.HasIndex("PostingDate")
+                        .HasDatabaseName("ix_ar_invoices_posting_date");
 
-                    b.HasIndex("CustomerId", "DueDate");
+                    b.HasIndex("CustomerId", "DueDate")
+                        .HasDatabaseName("ix_ar_invoices_customer_id_due_date");
 
                     b.ToTable("ar_invoices", null, t =>
                         {
-                            t.HasCheckConstraint("ck_arinvoice_currency_len3", "char_length(\"CurrencyCode\") = 3");
+                            t.HasCheckConstraint("ck_arinvoice_currency_len3", "char_length(\"currency_code\") = 3");
 
-                            t.HasCheckConstraint("ck_arinvoice_due_after_invoice", "\"DueDate\" >= \"InvoiceDate\"");
+                            t.HasCheckConstraint("ck_arinvoice_due_after_invoice", "\"due_date\" >= \"invoice_date\"");
 
-                            t.HasCheckConstraint("ck_arinvoice_posted_requires_postingdate", "(\"DocStatus\" <> 'posted'::doc_status) OR (\"PostingDate\" IS NOT NULL)");
+                            t.HasCheckConstraint("ck_arinvoice_posted_requires_postingdate", "(\"doc_status\" <> 'posted'::doc_status) OR (\"posting_date\" IS NOT NULL)");
 
-                            t.HasCheckConstraint("ck_arinvoice_totals_nonnegative", "(\"TaxTotal\" >= 0) AND (\"DocTotal\" >= 0)");
+                            t.HasCheckConstraint("ck_arinvoice_totals_nonnegative", "(\"tax_total\" >= 0) AND (\"doc_total\" >= 0)");
                         });
                 });
 
@@ -685,36 +834,46 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<Guid>("ArInvoiceId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("ar_invoice_id");
 
                     b.Property<string>("Description")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("description");
 
                     b.Property<Guid?>("ItemId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
 
                     b.Property<int>("LineNo")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("line_no");
 
                     b.Property<decimal>("LineTotal")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("line_total");
 
                     b.Property<decimal>("Qty")
-                        .HasColumnType("numeric(18,4)");
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("qty");
 
                     b.Property<string>("RevenueAccount")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("revenue_account");
 
                     b.Property<Guid?>("TaxRateId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("tax_rate_id");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("numeric(18,4)");
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("unit_price");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -722,28 +881,33 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_ar_invoice_lines");
 
-                    b.HasIndex("ItemId");
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_ar_invoice_lines_item_id");
 
-                    b.HasIndex("RevenueAccount");
+                    b.HasIndex("RevenueAccount")
+                        .HasDatabaseName("ix_ar_invoice_lines_revenue_account");
 
-                    b.HasIndex("TaxRateId");
+                    b.HasIndex("TaxRateId")
+                        .HasDatabaseName("ix_ar_invoice_lines_tax_rate_id");
 
                     b.HasIndex("ArInvoiceId", "LineNo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_ar_invoice_lines_ar_invoice_id_line_no");
 
                     b.ToTable("ar_invoice_lines", null, t =>
                         {
-                            t.HasCheckConstraint("ck_arline_has_item_or_revenue", "(\"ItemId\" IS NOT NULL) OR (\"RevenueAccount\" IS NOT NULL)");
+                            t.HasCheckConstraint("ck_arline_has_item_or_revenue", "(\"item_id\" IS NOT NULL) OR (\"revenue_account\" IS NOT NULL)");
 
-                            t.HasCheckConstraint("ck_arline_lineno_positive", "\"LineNo\" > 0");
+                            t.HasCheckConstraint("ck_arline_lineno_positive", "\"line_no\" > 0");
 
-                            t.HasCheckConstraint("ck_arline_price_nonnegative", "\"UnitPrice\" >= 0");
+                            t.HasCheckConstraint("ck_arline_price_nonnegative", "\"unit_price\" >= 0");
 
-                            t.HasCheckConstraint("ck_arline_qty_nonnegative", "\"Qty\" >= 0");
+                            t.HasCheckConstraint("ck_arline_qty_nonnegative", "\"qty\" >= 0");
 
-                            t.HasCheckConstraint("ck_arline_total_nonnegative", "\"LineTotal\" >= 0");
+                            t.HasCheckConstraint("ck_arline_total_nonnegative", "\"line_total\" >= 0");
                         });
                 });
 
@@ -751,64 +915,81 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
 
                     b.Property<decimal?>("AmountForeign")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount_foreign");
 
                     b.Property<Guid>("BankAccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
 
                     b.Property<DateOnly?>("ClearedDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("cleared_date");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("CurrencyCode")
                         .IsRequired()
                         .HasMaxLength(3)
-                        .HasColumnType("character varying(3)");
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency_code");
 
                     b.Property<Guid>("CustomerId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
 
                     b.Property<string>("DocNo")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("doc_no");
 
                     b.Property<int>("DocStatus")
-                        .HasColumnType("doc_status");
+                        .HasColumnType("doc_status")
+                        .HasColumnName("doc_status");
 
                     b.Property<decimal?>("ExchangeRate")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("exchange_rate");
 
                     b.Property<string>("Memo")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("memo");
 
                     b.Property<DateOnly?>("PostingDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("posting_date");
 
                     b.Property<DateOnly>("ReceiptDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("receipt_date");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -816,44 +997,55 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_ar_receipts");
 
-                    b.HasIndex("ClearedDate");
+                    b.HasIndex("ClearedDate")
+                        .HasDatabaseName("ix_ar_receipts_cleared_date");
 
-                    b.HasIndex("CurrencyCode");
+                    b.HasIndex("CurrencyCode")
+                        .HasDatabaseName("ix_ar_receipts_currency_code");
 
                     b.HasIndex("DocNo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_ar_receipts_doc_no");
 
-                    b.HasIndex("DocStatus");
+                    b.HasIndex("DocStatus")
+                        .HasDatabaseName("ix_ar_receipts_doc_status");
 
-                    b.HasIndex("PostingDate");
+                    b.HasIndex("PostingDate")
+                        .HasDatabaseName("ix_ar_receipts_posting_date");
 
-                    b.HasIndex("ReceiptDate");
+                    b.HasIndex("ReceiptDate")
+                        .HasDatabaseName("ix_ar_receipts_receipt_date");
 
-                    b.HasIndex("BankAccountId", "PostingDate");
+                    b.HasIndex("BankAccountId", "PostingDate")
+                        .HasDatabaseName("ix_ar_receipts_bank_account_id_posting_date");
 
-                    b.HasIndex("BankAccountId", "ReceiptDate");
+                    b.HasIndex("BankAccountId", "ReceiptDate")
+                        .HasDatabaseName("ix_ar_receipts_bank_account_id_receipt_date");
 
-                    b.HasIndex("CustomerId", "PostingDate");
+                    b.HasIndex("CustomerId", "PostingDate")
+                        .HasDatabaseName("ix_ar_receipts_customer_id_posting_date");
 
-                    b.HasIndex("CustomerId", "ReceiptDate");
+                    b.HasIndex("CustomerId", "ReceiptDate")
+                        .HasDatabaseName("ix_ar_receipts_customer_id_receipt_date");
 
                     b.ToTable("ar_receipts", null, t =>
                         {
-                            t.HasCheckConstraint("ck_arreceipt_amount_positive", "\"Amount\" > 0");
+                            t.HasCheckConstraint("ck_arreceipt_amount_positive", "\"amount\" > 0");
 
-                            t.HasCheckConstraint("ck_arreceipt_cleared_not_before_posting", "(\"ClearedDate\" IS NULL) OR (\"PostingDate\" IS NULL) OR (\"ClearedDate\" >= \"PostingDate\")");
+                            t.HasCheckConstraint("ck_arreceipt_cleared_not_before_posting", "(\"cleared_date\" IS NULL) OR (\"posting_date\" IS NULL) OR (\"cleared_date\" >= \"posting_date\")");
 
-                            t.HasCheckConstraint("ck_arreceipt_currency_len3", "char_length(\"CurrencyCode\") = 3");
+                            t.HasCheckConstraint("ck_arreceipt_currency_len3", "char_length(\"currency_code\") = 3");
 
-                            t.HasCheckConstraint("ck_arreceipt_fx_consistency", "(\"AmountForeign\" IS NULL OR \"ExchangeRate\" IS NULL) OR abs((\"AmountForeign\" * \"ExchangeRate\") - \"Amount\") <= 0.01");
+                            t.HasCheckConstraint("ck_arreceipt_fx_consistency", "(\"amount_foreign\" IS NULL OR \"exchange_rate\" IS NULL) OR abs((\"amount_foreign\" * \"exchange_rate\") - \"amount\") <= 0.01");
 
-                            t.HasCheckConstraint("ck_arreceipt_fx_pair_nullness", "(\"AmountForeign\" IS NULL) = (\"ExchangeRate\" IS NULL)");
+                            t.HasCheckConstraint("ck_arreceipt_fx_pair_nullness", "(\"amount_foreign\" IS NULL) = (\"exchange_rate\" IS NULL)");
 
-                            t.HasCheckConstraint("ck_arreceipt_fx_positive", "(\"AmountForeign\" IS NULL OR \"AmountForeign\" > 0) AND (\"ExchangeRate\" IS NULL OR \"ExchangeRate\" > 0)");
+                            t.HasCheckConstraint("ck_arreceipt_fx_positive", "(\"amount_foreign\" IS NULL OR \"amount_foreign\" > 0) AND (\"exchange_rate\" IS NULL OR \"exchange_rate\" > 0)");
 
-                            t.HasCheckConstraint("ck_arreceipt_posted_requires_postingdate", "(\"DocStatus\" <> 'posted'::doc_status) OR (\"PostingDate\" IS NOT NULL)");
+                            t.HasCheckConstraint("ck_arreceipt_posted_requires_postingdate", "(\"doc_status\" <> 'posted'::doc_status) OR (\"posting_date\" IS NOT NULL)");
                         });
                 });
 
@@ -861,29 +1053,37 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateOnly>("AllocationDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("allocation_date");
 
                     b.Property<decimal>("AmountApplied")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount_applied");
 
                     b.Property<Guid>("ArInvoiceId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("ar_invoice_id");
 
                     b.Property<Guid>("ArReceiptId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("ar_receipt_id");
 
                     b.Property<decimal?>("DiscountGiven")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("discount_given");
 
                     b.Property<string>("Memo")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("memo");
 
                     b.Property<decimal?>("WriteOffAmount")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("write_off_amount");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -891,25 +1091,30 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_ar_receipt_allocations");
 
-                    b.HasIndex("ArInvoiceId");
+                    b.HasIndex("ArInvoiceId")
+                        .HasDatabaseName("ix_ar_receipt_allocations_ar_invoice_id");
 
-                    b.HasIndex("ArReceiptId");
+                    b.HasIndex("ArReceiptId")
+                        .HasDatabaseName("ix_ar_receipt_allocations_ar_receipt_id");
 
-                    b.HasIndex("ArInvoiceId", "AllocationDate");
+                    b.HasIndex("ArInvoiceId", "AllocationDate")
+                        .HasDatabaseName("ix_ar_receipt_allocations_ar_invoice_id_allocation_date");
 
-                    b.HasIndex("ArReceiptId", "AllocationDate");
+                    b.HasIndex("ArReceiptId", "AllocationDate")
+                        .HasDatabaseName("ix_ar_receipt_allocations_ar_receipt_id_allocation_date");
 
                     b.ToTable("ar_receipt_allocations", null, t =>
                         {
-                            t.HasCheckConstraint("ck_aralloc_amount_positive", "\"AmountApplied\" > 0");
+                            t.HasCheckConstraint("ck_aralloc_amount_positive", "\"amount_applied\" > 0");
 
-                            t.HasCheckConstraint("ck_aralloc_discount_nonneg", "\"DiscountGiven\" IS NULL OR \"DiscountGiven\" >= 0");
+                            t.HasCheckConstraint("ck_aralloc_discount_nonneg", "\"discount_given\" IS NULL OR \"discount_given\" >= 0");
 
-                            t.HasCheckConstraint("ck_aralloc_has_value", "(\"AmountApplied\" > 0) OR (COALESCE(\"DiscountGiven\", 0) > 0) OR (COALESCE(\"WriteOffAmount\", 0) > 0)");
+                            t.HasCheckConstraint("ck_aralloc_has_value", "(\"amount_applied\" > 0) OR (COALESCE(\"discount_given\", 0) > 0) OR (COALESCE(\"write_off_amount\", 0) > 0)");
 
-                            t.HasCheckConstraint("ck_aralloc_writeoff_nonneg", "\"WriteOffAmount\" IS NULL OR \"WriteOffAmount\" >= 0");
+                            t.HasCheckConstraint("ck_aralloc_writeoff_nonneg", "\"write_off_amount\" IS NULL OR \"write_off_amount\" >= 0");
                         });
                 });
 
@@ -917,68 +1122,85 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("Address")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("address");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("CreditHoldReason")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("credit_hold_reason");
 
                     b.Property<DateOnly?>("CreditHoldUntil")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("credit_hold_until");
 
                     b.Property<decimal?>("CreditLimit")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("credit_limit");
 
                     b.Property<string>("CustomerCode")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("customer_code");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("email");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<bool>("IsOnHold")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_on_hold");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("phone");
 
                     b.Property<string>("TaxNumber")
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("tax_number");
 
                     b.Property<int>("TermsDays")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("terms_days");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -986,38 +1208,45 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_customers");
 
                     b.HasIndex("CustomerCode")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_customers_customer_code");
 
                     b.HasIndex("Email")
                         .IsUnique()
-                        .HasFilter("\"Email\" IS NOT NULL");
+                        .HasDatabaseName("ix_customers_email")
+                        .HasFilter("\"email\" IS NOT NULL");
 
-                    b.HasIndex("IsActive");
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_customers_is_active");
 
-                    b.HasIndex("IsOnHold");
+                    b.HasIndex("IsOnHold")
+                        .HasDatabaseName("ix_customers_is_on_hold");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("Name")
+                        .HasDatabaseName("ix_customers_name");
 
                     b.HasIndex("TaxNumber")
                         .IsUnique()
-                        .HasFilter("\"TaxNumber\" IS NOT NULL");
+                        .HasDatabaseName("ix_customers_tax_number")
+                        .HasFilter("\"tax_number\" IS NOT NULL");
 
                     b.ToTable("customers", null, t =>
                         {
-                            t.HasCheckConstraint("ck_customer_code_not_blank", "btrim(\"CustomerCode\") <> ''");
+                            t.HasCheckConstraint("ck_customer_code_not_blank", "btrim(\"customer_code\") <> ''");
 
-                            t.HasCheckConstraint("ck_customer_creditlimit_nonneg", "\"CreditLimit\" IS NULL OR \"CreditLimit\" >= 0");
+                            t.HasCheckConstraint("ck_customer_creditlimit_nonneg", "\"credit_limit\" IS NULL OR \"credit_limit\" >= 0");
 
-                            t.HasCheckConstraint("ck_customer_email_basic_shape", "\"Email\" IS NULL OR (position('@' in \"Email\") > 1 AND position('.' in \"Email\") > 3)");
+                            t.HasCheckConstraint("ck_customer_email_basic_shape", "\"email\" IS NULL OR (position('@' in \"email\") > 1 AND position('.' in \"email\") > 3)");
 
-                            t.HasCheckConstraint("ck_customer_hold_until_future", "\"CreditHoldUntil\" IS NULL OR \"CreditHoldUntil\" >= CURRENT_DATE");
+                            t.HasCheckConstraint("ck_customer_hold_until_future", "\"credit_hold_until\" IS NULL OR \"credit_hold_until\" >= CURRENT_DATE");
 
-                            t.HasCheckConstraint("ck_customer_name_not_blank", "btrim(\"Name\") <> ''");
+                            t.HasCheckConstraint("ck_customer_name_not_blank", "btrim(\"name\") <> ''");
 
-                            t.HasCheckConstraint("ck_customer_termsdays_range", "\"TermsDays\" BETWEEN 0 AND 180");
+                            t.HasCheckConstraint("ck_customer_termsdays_range", "\"terms_days\" BETWEEN 0 AND 180");
                         });
                 });
 
@@ -1025,45 +1254,55 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("AccountNumber")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("account_number");
 
                     b.Property<string>("BankName")
                         .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("bank_name");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("CurrencyCode")
                         .IsRequired()
                         .HasMaxLength(3)
-                        .HasColumnType("character varying(3)");
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency_code");
 
                     b.Property<string>("GlAccountNo")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("gl_account_no");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name");
 
                     b.Property<decimal>("OpeningBalance")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("opening_balance");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<uint>("xmin")
@@ -1072,26 +1311,32 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_bank_accounts");
 
                     b.HasIndex("AccountNumber")
                         .IsUnique()
-                        .HasFilter("\"AccountNumber\" IS NOT NULL");
+                        .HasDatabaseName("ix_bank_accounts_account_number")
+                        .HasFilter("\"account_number\" IS NOT NULL");
 
-                    b.HasIndex("CurrencyCode");
+                    b.HasIndex("CurrencyCode")
+                        .HasDatabaseName("ix_bank_accounts_currency_code");
 
-                    b.HasIndex("GlAccountNo");
+                    b.HasIndex("GlAccountNo")
+                        .HasDatabaseName("ix_bank_accounts_gl_account_no");
 
-                    b.HasIndex("IsActive");
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_bank_accounts_is_active");
 
                     b.HasIndex("Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_bank_accounts_name");
 
                     b.ToTable("bank_accounts", null, t =>
                         {
-                            t.HasCheckConstraint("ck_bankacct_currency_len3", "char_length(\"CurrencyCode\") = 3");
+                            t.HasCheckConstraint("ck_bankacct_currency_len3", "char_length(\"currency_code\") = 3");
 
-                            t.HasCheckConstraint("ck_bankacct_name_not_blank", "btrim(\"Name\") <> ''");
+                            t.HasCheckConstraint("ck_bankacct_name_not_blank", "btrim(\"name\") <> ''");
                         });
                 });
 
@@ -1099,32 +1344,41 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<Guid>("BankAccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
 
                     b.Property<decimal>("ClosingBalance")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("closing_balance");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)");
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("notes");
 
                     b.Property<decimal>("OpeningBalance")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("opening_balance");
 
                     b.Property<DateOnly>("StatementFrom")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("statement_from");
 
                     b.Property<DateOnly>("StatementTo")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("statement_to");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1132,13 +1386,15 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_bank_reconciliations");
 
-                    b.HasIndex("BankAccountId", "StatementFrom", "StatementTo");
+                    b.HasIndex("BankAccountId", "StatementFrom", "StatementTo")
+                        .HasDatabaseName("ix_bank_reconciliations_bank_account_id_statement_from_stateme");
 
                     b.ToTable("bank_reconciliations", null, t =>
                         {
-                            t.HasCheckConstraint("ck_bankrec_range_valid", "\"StatementTo\" >= \"StatementFrom\"");
+                            t.HasCheckConstraint("ck_bankrec_range_valid", "\"statement_to\" >= \"statement_from\"");
                         });
                 });
 
@@ -1146,45 +1402,57 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<Guid>("BankAccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
 
                     b.Property<decimal>("ClosingBalance")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("closing_balance");
 
                     b.Property<string>("ExternalId")
                         .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("external_id");
 
                     b.Property<string>("FileName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("file_name");
 
                     b.Property<DateTimeOffset>("ImportedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("imported_at");
 
                     b.Property<string>("ImportedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("imported_by");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)");
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("notes");
 
                     b.Property<decimal>("OpeningBalance")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("opening_balance");
 
                     b.Property<string>("Source")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("source");
 
                     b.Property<DateOnly>("StatementFrom")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("statement_from");
 
                     b.Property<DateOnly>("StatementTo")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("statement_to");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1192,18 +1460,21 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_bank_statements");
 
                     b.HasIndex("Source", "ExternalId")
                         .IsUnique()
-                        .HasFilter("\"ExternalId\" IS NOT NULL");
+                        .HasDatabaseName("ix_bank_statements_source_external_id")
+                        .HasFilter("\"external_id\" IS NOT NULL");
 
                     b.HasIndex("BankAccountId", "StatementFrom", "StatementTo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_bank_statements_bank_account_id_statement_from_statement_to");
 
                     b.ToTable("bank_statements", null, t =>
                         {
-                            t.HasCheckConstraint("ck_bankstmt_range_valid", "\"StatementTo\" >= \"StatementFrom\"");
+                            t.HasCheckConstraint("ck_bankstmt_range_valid", "\"statement_to\" >= \"statement_from\"");
                         });
                 });
 
@@ -1211,47 +1482,59 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
 
                     b.Property<Guid>("BankAccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
 
                     b.Property<Guid>("BankStatementId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_statement_id");
 
                     b.Property<Guid?>("BankTransactionId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_transaction_id");
 
                     b.Property<string>("Counterparty")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("counterparty");
 
                     b.Property<string>("Description")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("description");
 
                     b.Property<string>("ExternalLineId")
                         .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("external_line_id");
 
                     b.Property<string>("MatchStatus")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("match_status");
 
                     b.Property<string>("RawCode")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("raw_code");
 
                     b.Property<string>("Reference")
                         .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("reference");
 
                     b.Property<DateOnly>("TxnDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("txn_date");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1259,23 +1542,28 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_bank_statement_lines");
 
-                    b.HasIndex("BankTransactionId");
+                    b.HasIndex("BankTransactionId")
+                        .HasDatabaseName("ix_bank_statement_lines_bank_transaction_id");
 
-                    b.HasIndex("MatchStatus");
+                    b.HasIndex("MatchStatus")
+                        .HasDatabaseName("ix_bank_statement_lines_match_status");
 
-                    b.HasIndex("BankAccountId", "TxnDate");
+                    b.HasIndex("BankAccountId", "TxnDate")
+                        .HasDatabaseName("ix_bank_statement_lines_bank_account_id_txn_date");
 
                     b.HasIndex("BankStatementId", "ExternalLineId")
                         .IsUnique()
-                        .HasFilter("\"ExternalLineId\" IS NOT NULL");
+                        .HasDatabaseName("ix_bank_statement_lines_bank_statement_id_external_line_id")
+                        .HasFilter("\"external_line_id\" IS NOT NULL");
 
                     b.ToTable("bank_statement_lines", null, t =>
                         {
-                            t.HasCheckConstraint("ck_bankstmtline_amount_nonzero", "\"Amount\" <> 0");
+                            t.HasCheckConstraint("ck_bankstmtline_amount_nonzero", "\"amount\" <> 0");
 
-                            t.HasCheckConstraint("ck_bankstmtline_matchstatus_allowed", "\"MatchStatus\" IN ('unmatched','proposed','matched','ignored')");
+                            t.HasCheckConstraint("ck_bankstmtline_matchstatus_allowed", "\"match_status\" IN ('unmatched','proposed','matched','ignored')");
                         });
                 });
 
@@ -1283,55 +1571,69 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
 
                     b.Property<Guid>("BankAccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
 
                     b.Property<string>("CrAccountNo")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("cr_account_no");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("Description")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("description");
 
                     b.Property<string>("DrAccountNo")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("dr_account_no");
 
                     b.Property<string>("ExternalRef")
                         .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("external_ref");
 
                     b.Property<bool>("IsReconciled")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_reconciled");
 
                     b.Property<DateOnly?>("ReconciledDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("reconciled_date");
 
                     b.Property<Guid?>("SourceId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
 
                     b.Property<string>("SourceType")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("source_type");
 
                     b.Property<DateOnly>("TxnDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("txn_date");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1339,29 +1641,36 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_bank_transactions");
 
-                    b.HasIndex("CrAccountNo");
+                    b.HasIndex("CrAccountNo")
+                        .HasDatabaseName("ix_bank_transactions_cr_account_no");
 
-                    b.HasIndex("DrAccountNo");
+                    b.HasIndex("DrAccountNo")
+                        .HasDatabaseName("ix_bank_transactions_dr_account_no");
 
-                    b.HasIndex("IsReconciled");
+                    b.HasIndex("IsReconciled")
+                        .HasDatabaseName("ix_bank_transactions_is_reconciled");
 
-                    b.HasIndex("ReconciledDate");
+                    b.HasIndex("ReconciledDate")
+                        .HasDatabaseName("ix_bank_transactions_reconciled_date");
 
-                    b.HasIndex("BankAccountId", "TxnDate");
+                    b.HasIndex("BankAccountId", "TxnDate")
+                        .HasDatabaseName("ix_bank_transactions_bank_account_id_txn_date");
 
                     b.HasIndex("SourceType", "SourceId")
                         .IsUnique()
-                        .HasFilter("\"SourceType\" IS NOT NULL AND \"SourceId\" IS NOT NULL");
+                        .HasDatabaseName("ix_bank_transactions_source_type_source_id")
+                        .HasFilter("\"source_type\" IS NOT NULL AND \"source_id\" IS NOT NULL");
 
                     b.ToTable("bank_transactions", null, t =>
                         {
-                            t.HasCheckConstraint("ck_banktxn_amount_nonzero", "\"Amount\" <> 0");
+                            t.HasCheckConstraint("ck_banktxn_amount_nonzero", "\"amount\" <> 0");
 
-                            t.HasCheckConstraint("ck_banktxn_dr_neq_cr", "\"DrAccountNo\" <> \"CrAccountNo\"");
+                            t.HasCheckConstraint("ck_banktxn_dr_neq_cr", "\"dr_account_no\" <> \"cr_account_no\"");
 
-                            t.HasCheckConstraint("ck_banktxn_reconciled_requires_date", "(NOT \"IsReconciled\") OR (\"ReconciledDate\" IS NOT NULL)");
+                            t.HasCheckConstraint("ck_banktxn_reconciled_requires_date", "(NOT \"is_reconciled\") OR (\"reconciled_date\" IS NOT NULL)");
                         });
                 });
 
@@ -1369,16 +1678,19 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<string>("Key")
                         .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("key");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now()");
 
                     b.Property<string>("ValueJson")
                         .IsRequired()
-                        .HasColumnType("jsonb");
+                        .HasColumnType("jsonb")
+                        .HasColumnName("value_json");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1386,7 +1698,8 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Key");
+                    b.HasKey("Key")
+                        .HasName("pk_app_settings");
 
                     b.ToTable("app_settings", (string)null);
                 });
@@ -1395,34 +1708,42 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<string>("Code")
                         .HasMaxLength(3)
-                        .HasColumnType("character varying(3)");
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("code");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<short>("Decimals")
-                        .HasColumnType("smallint");
+                        .HasColumnType("smallint")
+                        .HasColumnName("decimals");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("name");
 
                     b.Property<short>("NumericCode")
-                        .HasColumnType("smallint");
+                        .HasColumnType("smallint")
+                        .HasColumnName("numeric_code");
 
                     b.Property<string>("Symbol")
                         .HasMaxLength(8)
-                        .HasColumnType("character varying(8)");
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("symbol");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<uint>("xmin")
@@ -1431,22 +1752,25 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Code");
+                    b.HasKey("Code")
+                        .HasName("pk_currencies");
 
-                    b.HasIndex("IsActive");
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_currencies_is_active");
 
                     b.HasIndex("NumericCode")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_currencies_numeric_code");
 
                     b.ToTable("currencies", null, t =>
                         {
-                            t.HasCheckConstraint("ck_currency_code_len3", "char_length(\"Code\") = 3");
+                            t.HasCheckConstraint("ck_currency_code_len3", "char_length(\"code\") = 3");
 
-                            t.HasCheckConstraint("ck_currency_code_upper", "\"Code\" = upper(\"Code\")");
+                            t.HasCheckConstraint("ck_currency_code_upper", "\"code\" = upper(\"code\")");
 
-                            t.HasCheckConstraint("ck_currency_decimals_range", "\"Decimals\" BETWEEN 0 AND 4");
+                            t.HasCheckConstraint("ck_currency_decimals_range", "\"decimals\" BETWEEN 0 AND 4");
 
-                            t.HasCheckConstraint("ck_currency_numeric_range", "\"NumericCode\" BETWEEN 1 AND 999");
+                            t.HasCheckConstraint("ck_currency_numeric_range", "\"numeric_code\" BETWEEN 1 AND 999");
                         });
                 });
 
@@ -1454,32 +1778,60 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("EffectiveFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_from");
+
+                    b.Property<DateOnly?>("EffectiveTo")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_to");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<bool>("IsInput")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_input");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("name");
 
                     b.Property<decimal>("RatePercent")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(6,3)")
+                        .HasColumnName("rate_percent");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
+                    b.Property<decimal>("rate_fraction")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("rate_fraction")
+                        .HasComputedColumnSql("(\"rate_percent\" / 100.0)", true);
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1487,33 +1839,57 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_tax_rates");
 
-                    b.ToTable("TaxRates");
+                    b.HasIndex("EffectiveFrom")
+                        .HasDatabaseName("ix_tax_rates_effective_from");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_tax_rates_is_active");
+
+                    b.HasIndex("Name", "EffectiveFrom")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tax_rates_name_effective_from");
+
+                    b.ToTable("tax_rates", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_taxrate_dates", "\"effective_to\" IS NULL OR \"effective_to\" >= \"effective_from\"");
+
+                            t.HasCheckConstraint("ck_taxrate_name_not_blank", "btrim(\"name\") <> ''");
+
+                            t.HasCheckConstraint("ck_taxrate_pct_range", "\"rate_percent\" >= 0 AND \"rate_percent\" <= 100");
+                        });
                 });
 
             modelBuilder.Entity("OakERP.Domain.Entities.General_Ledger.FiscalPeriod", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<int>("FiscalYear")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("fiscal_year");
 
                     b.Property<DateOnly>("PeriodEnd")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("period_end");
 
                     b.Property<int>("PeriodNo")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("period_no");
 
                     b.Property<DateOnly>("PeriodStart")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("period_start");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1521,26 +1897,32 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_fiscal_periods");
 
-                    b.HasIndex("FiscalYear");
+                    b.HasIndex("FiscalYear")
+                        .HasDatabaseName("ix_fiscal_periods_fiscal_year");
 
-                    b.HasIndex("PeriodEnd");
+                    b.HasIndex("PeriodEnd")
+                        .HasDatabaseName("ix_fiscal_periods_period_end");
 
-                    b.HasIndex("PeriodStart");
+                    b.HasIndex("PeriodStart")
+                        .HasDatabaseName("ix_fiscal_periods_period_start");
 
-                    b.HasIndex("Status");
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_fiscal_periods_status");
 
                     b.HasIndex("FiscalYear", "PeriodNo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_fiscal_periods_fiscal_year_period_no");
 
                     b.ToTable("fiscal_periods", null, t =>
                         {
-                            t.HasCheckConstraint("ck_fiscper_periodno_range", "\"PeriodNo\" BETWEEN 1 AND 12");
+                            t.HasCheckConstraint("ck_fiscper_periodno_range", "\"period_no\" BETWEEN 1 AND 12");
 
-                            t.HasCheckConstraint("ck_fiscper_start_le_end", "\"PeriodStart\" <= \"PeriodEnd\"");
+                            t.HasCheckConstraint("ck_fiscper_start_le_end", "\"period_start\" <= \"period_end\"");
 
-                            t.HasCheckConstraint("ck_fiscper_status_allowed", "\"Status\" IN ('open','closed')");
+                            t.HasCheckConstraint("ck_fiscper_status_allowed", "\"status\" IN ('open','closed')");
                         });
                 });
 
@@ -1548,34 +1930,42 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<string>("AccountNo")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("account_no");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<bool>("IsControl")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_control");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
                     b.Property<string>("ParentAccount")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("parent_account");
 
                     b.Property<int>("Type")
-                        .HasColumnType("gl_account_type");
+                        .HasColumnType("gl_account_type")
+                        .HasColumnName("type");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<uint>("xmin")
@@ -1584,27 +1974,32 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("AccountNo");
+                    b.HasKey("AccountNo")
+                        .HasName("ak_gl_accounts_account_no");
 
-                    b.HasIndex("IsActive");
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_gl_accounts_is_active");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("Name")
+                        .HasDatabaseName("ix_gl_accounts_name");
 
-                    b.HasIndex("ParentAccount");
+                    b.HasIndex("ParentAccount")
+                        .HasDatabaseName("ix_gl_accounts_parent_account");
 
-                    b.HasIndex("Type");
+                    b.HasIndex("Type")
+                        .HasDatabaseName("ix_gl_accounts_type");
 
                     b.ToTable("gl_accounts", null, t =>
                         {
-                            t.HasCheckConstraint("ck_glacct_name_not_blank", "btrim(\"Name\") <> ''");
+                            t.HasCheckConstraint("ck_glacct_name_not_blank", "btrim(\"name\") <> ''");
 
-                            t.HasCheckConstraint("ck_glacct_no_chars", "\"AccountNo\" ~ '^[A-Z0-9][A-Z0-9\\.-]{0,19}$'");
+                            t.HasCheckConstraint("ck_glacct_no_chars", "\"account_no\" ~ '^[A-Z0-9][A-Z0-9\\.-]{0,19}$'");
 
-                            t.HasCheckConstraint("ck_glacct_no_not_blank", "btrim(\"AccountNo\") <> ''");
+                            t.HasCheckConstraint("ck_glacct_no_not_blank", "btrim(\"account_no\") <> ''");
 
-                            t.HasCheckConstraint("ck_glacct_no_upper", "\"AccountNo\" = upper(\"AccountNo\")");
+                            t.HasCheckConstraint("ck_glacct_no_upper", "\"account_no\" = upper(\"account_no\")");
 
-                            t.HasCheckConstraint("ck_glacct_parent_not_self", "\"ParentAccount\" IS NULL OR \"ParentAccount\" <> \"AccountNo\"");
+                            t.HasCheckConstraint("ck_glacct_parent_not_self", "\"parent_account\" IS NULL OR \"parent_account\" <> \"account_no\"");
                         });
                 });
 
@@ -1612,48 +2007,60 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("AccountNo")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("account_no");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<decimal>("Credit")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("credit");
 
                     b.Property<decimal>("Debit")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("debit");
 
                     b.Property<string>("Description")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("description");
 
                     b.Property<DateOnly>("EntryDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("entry_date");
 
                     b.Property<Guid>("PeriodId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("period_id");
 
                     b.Property<Guid>("SourceId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
 
                     b.Property<string>("SourceNo")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("source_no");
 
                     b.Property<string>("SourceType")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("source_type");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1661,21 +2068,26 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_gl_entries");
 
-                    b.HasIndex("PeriodId");
+                    b.HasIndex("PeriodId")
+                        .HasDatabaseName("ix_gl_entries_period_id");
 
-                    b.HasIndex("AccountNo", "EntryDate");
+                    b.HasIndex("AccountNo", "EntryDate")
+                        .HasDatabaseName("ix_gl_entries_account_no_entry_date");
 
-                    b.HasIndex("PeriodId", "AccountNo");
+                    b.HasIndex("PeriodId", "AccountNo")
+                        .HasDatabaseName("ix_gl_entries_period_id_account_no");
 
-                    b.HasIndex("SourceType", "SourceId");
+                    b.HasIndex("SourceType", "SourceId")
+                        .HasDatabaseName("ix_gl_entries_source_type_source_id");
 
                     b.ToTable("gl_entries", null, t =>
                         {
-                            t.HasCheckConstraint("ck_glentry_one_sided_amount", "(\"Debit\" >= 0) AND (\"Credit\" >= 0) AND ((\"Debit\" = 0 AND \"Credit\" > 0) OR (\"Credit\" = 0 AND \"Debit\" > 0))");
+                            t.HasCheckConstraint("ck_glentry_one_sided_amount", "(\"debit\" >= 0) AND (\"credit\" >= 0) AND ((\"debit\" = 0 AND \"credit\" > 0) OR (\"credit\" = 0 AND \"debit\" > 0))");
 
-                            t.HasCheckConstraint("ck_glentry_source_pairing", "(\"SourceType\" IS NULL) OR (\"SourceId\" IS NOT NULL)");
+                            t.HasCheckConstraint("ck_glentry_source_pairing", "(\"source_type\" IS NULL) OR (\"source_id\" IS NOT NULL)");
                         });
                 });
 
@@ -1683,44 +2095,55 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<int>("DocStatus")
-                        .HasColumnType("doc_status");
+                        .HasColumnType("doc_status")
+                        .HasColumnName("doc_status");
 
                     b.Property<DateOnly>("JournalDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("journal_date");
 
                     b.Property<string>("JournalNo")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("journal_no");
 
                     b.Property<string>("Memo")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("memo");
 
                     b.Property<Guid?>("PeriodId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("period_id");
 
                     b.Property<DateOnly?>("PostingDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("posting_date");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1728,26 +2151,32 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_gl_journals");
 
-                    b.HasIndex("DocStatus");
+                    b.HasIndex("DocStatus")
+                        .HasDatabaseName("ix_gl_journals_doc_status");
 
-                    b.HasIndex("JournalDate");
+                    b.HasIndex("JournalDate")
+                        .HasDatabaseName("ix_gl_journals_journal_date");
 
                     b.HasIndex("JournalNo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_gl_journals_journal_no");
 
-                    b.HasIndex("PeriodId");
+                    b.HasIndex("PeriodId")
+                        .HasDatabaseName("ix_gl_journals_period_id");
 
-                    b.HasIndex("PostingDate");
+                    b.HasIndex("PostingDate")
+                        .HasDatabaseName("ix_gl_journals_posting_date");
 
                     b.ToTable("gl_journals", null, t =>
                         {
-                            t.HasCheckConstraint("ck_gljournal_no_not_blank", "btrim(\"JournalNo\") <> ''");
+                            t.HasCheckConstraint("ck_gljournal_no_not_blank", "btrim(\"journal_no\") <> ''");
 
-                            t.HasCheckConstraint("ck_gljournal_posted_requires_postingdate", "(\"DocStatus\" <> 'posted'::doc_status) OR (\"PostingDate\" IS NOT NULL)");
+                            t.HasCheckConstraint("ck_gljournal_posted_requires_postingdate", "(\"doc_status\" <> 'posted'::doc_status) OR (\"posting_date\" IS NOT NULL)");
 
-                            t.HasCheckConstraint("ck_gljournal_posting_ge_journal", "\"PostingDate\" IS NULL OR \"PostingDate\" >= \"JournalDate\"");
+                            t.HasCheckConstraint("ck_gljournal_posting_ge_journal", "\"posting_date\" IS NULL OR \"posting_date\" >= \"journal_date\"");
                         });
                 });
 
@@ -1755,33 +2184,41 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("AccountNo")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("account_no");
 
                     b.Property<decimal>("Credit")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("credit");
 
                     b.Property<decimal>("Debit")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("debit");
 
                     b.Property<string>("Description")
                         .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("description");
 
                     b.Property<Guid>("JournalId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("journal_id");
 
                     b.Property<int>("LineNo")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("line_no");
 
-                    b.Property<decimal>("SignedAmount")
+                    b.Property<decimal>("signed_amount")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("numeric(18,2)")
-                        .HasComputedColumnSql("(\"Debit\" - \"Credit\")", true);
+                        .HasColumnName("signed_amount")
+                        .HasComputedColumnSql("(\"debit\" - \"credit\")", true);
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1789,20 +2226,24 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_gl_journal_lines");
 
-                    b.HasIndex("AccountNo");
+                    b.HasIndex("AccountNo")
+                        .HasDatabaseName("ix_gl_journal_lines_account_no");
 
-                    b.HasIndex("SignedAmount");
+                    b.HasIndex("signed_amount")
+                        .HasDatabaseName("ix_gl_journal_lines_signed_amount");
 
                     b.HasIndex("JournalId", "LineNo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_gl_journal_lines_journal_id_line_no");
 
                     b.ToTable("gl_journal_lines", null, t =>
                         {
-                            t.HasCheckConstraint("ck_gjl_lineno_positive", "\"LineNo\" > 0");
+                            t.HasCheckConstraint("ck_gjl_lineno_positive", "\"line_no\" > 0");
 
-                            t.HasCheckConstraint("ck_gjl_one_sided_amount", "(\"Debit\" >= 0) AND (\"Credit\" >= 0) AND ((\"Debit\" = 0 AND \"Credit\" > 0) OR (\"Credit\" = 0 AND \"Debit\" > 0))");
+                            t.HasCheckConstraint("ck_gjl_one_sided_amount", "(\"debit\" >= 0) AND (\"credit\" >= 0) AND ((\"debit\" = 0 AND \"credit\" > 0) OR (\"credit\" = 0 AND \"debit\" > 0))");
                         });
                 });
 
@@ -1810,44 +2251,57 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<Guid>("ItemId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
 
                     b.Property<Guid>("LocationId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
 
                     b.Property<string>("Note")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("note");
 
                     b.Property<decimal>("Qty")
-                        .HasColumnType("numeric(18,4)");
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("qty");
 
                     b.Property<Guid>("SourceId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
 
                     b.Property<string>("SourceType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("source_type");
 
                     b.Property<int>("TransactionType")
-                        .HasColumnType("inventory_transaction_type");
+                        .HasColumnType("inventory_transaction_type")
+                        .HasColumnName("transaction_type");
 
                     b.Property<DateOnly>("TrxDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("trx_date");
 
                     b.Property<decimal>("UnitCost")
-                        .HasColumnType("numeric(18,4)");
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("unit_cost");
 
                     b.Property<decimal>("ValueChange")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("value_change");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1855,11 +2309,14 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_inventory_ledgers");
 
-                    b.HasIndex("ItemId");
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_inventory_ledgers_item_id");
 
-                    b.HasIndex("LocationId");
+                    b.HasIndex("LocationId")
+                        .HasDatabaseName("ix_inventory_ledgers_location_id");
 
                     b.ToTable("inventory_ledgers", (string)null);
                 });
@@ -1868,51 +2325,63 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<Guid?>("CategoryId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("category_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("DefaultExpenseAccountNo")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("default_expense_account_no");
 
                     b.Property<decimal>("DefaultPrice")
-                        .HasColumnType("numeric(18,4)");
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("default_price");
 
                     b.Property<string>("DefaultRevenueAccountNo")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("default_revenue_account_no");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
                     b.Property<string>("Sku")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .HasColumnType("character varying(60)");
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("sku");
 
                     b.Property<int>("Type")
-                        .HasColumnType("item_type");
+                        .HasColumnType("item_type")
+                        .HasColumnName("type");
 
                     b.Property<string>("Uom")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("uom");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<uint>("xmin")
@@ -1921,32 +2390,40 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_items");
 
-                    b.HasIndex("CategoryId");
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("ix_items_category_id");
 
-                    b.HasIndex("DefaultExpenseAccountNo");
+                    b.HasIndex("DefaultExpenseAccountNo")
+                        .HasDatabaseName("ix_items_default_expense_account_no");
 
-                    b.HasIndex("DefaultRevenueAccountNo");
+                    b.HasIndex("DefaultRevenueAccountNo")
+                        .HasDatabaseName("ix_items_default_revenue_account_no");
 
-                    b.HasIndex("IsActive");
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_items_is_active");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("Name")
+                        .HasDatabaseName("ix_items_name");
 
                     b.HasIndex("Sku")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_items_sku");
 
-                    b.HasIndex("Type");
+                    b.HasIndex("Type")
+                        .HasDatabaseName("ix_items_type");
 
                     b.ToTable("items", null, t =>
                         {
-                            t.HasCheckConstraint("ck_item_defaultprice_nonneg", "\"DefaultPrice\" >= 0");
+                            t.HasCheckConstraint("ck_item_defaultprice_nonneg", "\"default_price\" >= 0");
 
-                            t.HasCheckConstraint("ck_item_name_not_blank", "btrim(\"Name\") <> ''");
+                            t.HasCheckConstraint("ck_item_name_not_blank", "btrim(\"name\") <> ''");
 
-                            t.HasCheckConstraint("ck_item_sku_not_blank", "btrim(\"Sku\") <> ''");
+                            t.HasCheckConstraint("ck_item_sku_not_blank", "btrim(\"sku\") <> ''");
 
-                            t.HasCheckConstraint("ck_item_uom_upper", "\"Uom\" = upper(\"Uom\")");
+                            t.HasCheckConstraint("ck_item_uom_upper", "\"uom\" = upper(\"uom\")");
                         });
                 });
 
@@ -1954,42 +2431,51 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("AdjustAccount")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("adjust_account");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("code");
 
                     b.Property<string>("CogsAccount")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("cogs_account");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("InventoryAccount")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("inventory_account");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name");
 
                     b.Property<string>("RevenueAccount")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("revenue_account");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<uint>("xmin")
@@ -1998,21 +2484,28 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_item_categories");
 
-                    b.HasIndex("AdjustAccount");
+                    b.HasIndex("AdjustAccount")
+                        .HasDatabaseName("ix_item_categories_adjust_account");
 
                     b.HasIndex("Code")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_item_categories_code");
 
-                    b.HasIndex("CogsAccount");
+                    b.HasIndex("CogsAccount")
+                        .HasDatabaseName("ix_item_categories_cogs_account");
 
-                    b.HasIndex("InventoryAccount");
+                    b.HasIndex("InventoryAccount")
+                        .HasDatabaseName("ix_item_categories_inventory_account");
 
                     b.HasIndex("Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_item_categories_name");
 
-                    b.HasIndex("RevenueAccount");
+                    b.HasIndex("RevenueAccount")
+                        .HasDatabaseName("ix_item_categories_revenue_account");
 
                     b.ToTable("item_categories", (string)null);
                 });
@@ -2021,29 +2514,35 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("code");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<uint>("xmin")
@@ -2052,22 +2551,26 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_locations");
 
                     b.HasIndex("Code")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_locations_code");
 
-                    b.HasIndex("IsActive");
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_locations_is_active");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("Name")
+                        .HasDatabaseName("ix_locations_name");
 
                     b.ToTable("locations", null, t =>
                         {
-                            t.HasCheckConstraint("ck_location_code_not_blank", "btrim(\"Code\") <> ''");
+                            t.HasCheckConstraint("ck_location_code_not_blank", "btrim(\"code\") <> ''");
 
-                            t.HasCheckConstraint("ck_location_code_upper", "\"Code\" = upper(\"Code\")");
+                            t.HasCheckConstraint("ck_location_code_upper", "\"code\" = upper(\"code\")");
 
-                            t.HasCheckConstraint("ck_location_name_not_blank", "btrim(\"Name\") <> ''");
+                            t.HasCheckConstraint("ck_location_name_not_blank", "btrim(\"name\") <> ''");
                         });
                 });
 
@@ -2075,37 +2578,46 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("CountNo")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("count_no");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<int>("DocStatus")
-                        .HasColumnType("doc_status");
+                        .HasColumnType("doc_status")
+                        .HasColumnName("doc_status");
 
                     b.Property<Guid>("LocationId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
 
                     b.Property<DateOnly>("ScheduledOn")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("scheduled_on");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -2113,18 +2625,22 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_stock_counts");
 
                     b.HasIndex("CountNo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_stock_counts_count_no");
 
-                    b.HasIndex("DocStatus");
+                    b.HasIndex("DocStatus")
+                        .HasDatabaseName("ix_stock_counts_doc_status");
 
-                    b.HasIndex("LocationId", "ScheduledOn");
+                    b.HasIndex("LocationId", "ScheduledOn")
+                        .HasDatabaseName("ix_stock_counts_location_id_scheduled_on");
 
                     b.ToTable("stock_counts", null, t =>
                         {
-                            t.HasCheckConstraint("ck_sc_countno_not_blank", "btrim(\"CountNo\") <> ''");
+                            t.HasCheckConstraint("ck_sc_countno_not_blank", "btrim(\"count_no\") <> ''");
                         });
                 });
 
@@ -2132,27 +2648,34 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<decimal>("CountedQty")
-                        .HasColumnType("numeric(18,4)");
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("counted_qty");
 
                     b.Property<decimal>("ExpectedQty")
-                        .HasColumnType("numeric(18,4)");
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("expected_qty");
 
                     b.Property<Guid>("ItemId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
 
                     b.Property<int>("LineNo")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("line_no");
 
                     b.Property<Guid>("StockCountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("stock_count_id");
 
                     b.Property<decimal>("VarianceQty")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("numeric(18,4)")
-                        .HasComputedColumnSql("\"CountedQty\" - \"ExpectedQty\"", true);
+                        .HasColumnName("variance_qty")
+                        .HasComputedColumnSql("\"counted_qty\" - \"expected_qty\"", true);
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -2160,88 +2683,110 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_stock_count_lines");
 
-                    b.HasIndex("ItemId");
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_stock_count_lines_item_id");
 
                     b.HasIndex("StockCountId", "ItemId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_stock_count_lines_stock_count_id_item_id");
 
                     b.HasIndex("StockCountId", "LineNo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_stock_count_lines_stock_count_id_line_no");
 
                     b.ToTable("stock_count_lines", null, t =>
                         {
-                            t.HasCheckConstraint("ck_scl_counted_nonneg", "\"CountedQty\" >= 0");
+                            t.HasCheckConstraint("ck_scl_counted_nonneg", "\"counted_qty\" >= 0");
 
-                            t.HasCheckConstraint("ck_scl_expected_nonneg", "\"ExpectedQty\" >= 0");
+                            t.HasCheckConstraint("ck_scl_expected_nonneg", "\"expected_qty\" >= 0");
 
-                            t.HasCheckConstraint("ck_scl_lineno_positive", "\"LineNo\" > 0");
+                            t.HasCheckConstraint("ck_scl_lineno_positive", "\"line_no\" > 0");
                         });
                 });
 
             modelBuilder.Entity("OakERP.Domain.Entities.Users.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("id");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("access_failed_count");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("concurrency_stamp");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("email");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("email_confirmed");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("first_name");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("last_name");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("lockout_enabled");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lockout_end");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("normalized_email");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("normalized_user_name");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("password_hash");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("phone_number");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("phone_number_confirmed");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("security_stamp");
 
                     b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("two_factor_enabled");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("user_name");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -2249,7 +2794,8 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_asp_net_users");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -2258,7 +2804,8 @@ namespace OakERP.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_asp_net_users_tenant_id");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -2267,20 +2814,25 @@ namespace OakERP.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("ExpiryDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expiry_date");
 
                     b.Property<string>("Key")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("key");
 
                     b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -2288,10 +2840,12 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_licenses");
 
                     b.HasIndex("TenantId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_licenses_tenant_id");
 
                     b.ToTable("licenses", (string)null);
                 });
@@ -2301,16 +2855,19 @@ namespace OakERP.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
+                        .HasColumnName("id")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("timezone('utc', now())");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -2318,7 +2875,8 @@ namespace OakERP.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_tenants");
 
                     b.ToTable("tenants", (string)null);
                 });
@@ -2326,29 +2884,37 @@ namespace OakERP.Infrastructure.Migrations
             modelBuilder.Entity("OakERP.Infrastructure.Persistence.Seeding.Views.Accounts_Payable.APOpenItemView", b =>
                 {
                     b.Property<decimal>("AmountApplied")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount_applied");
 
                     b.Property<decimal>("Balance")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("balance");
 
                     b.Property<string>("DocNo")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("doc_no");
 
                     b.Property<decimal>("DocTotal")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("doc_total");
 
                     b.Property<DateOnly>("DueDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
 
                     b.Property<DateOnly>("InvoiceDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("invoice_date");
 
                     b.Property<Guid>("InvoiceId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
 
                     b.Property<Guid>("VendorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("vendor_id");
 
                     b.ToTable((string)null);
 
@@ -2358,29 +2924,37 @@ namespace OakERP.Infrastructure.Migrations
             modelBuilder.Entity("OakERP.Infrastructure.Persistence.Seeding.Views.Accounts_Recievable.AROpenItemView", b =>
                 {
                     b.Property<decimal>("AmountApplied")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount_applied");
 
                     b.Property<decimal>("Balance")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("balance");
 
                     b.Property<Guid>("CustomerId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
 
                     b.Property<string>("DocNo")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("doc_no");
 
                     b.Property<decimal>("DocTotal")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("doc_total");
 
                     b.Property<DateOnly>("DueDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
 
                     b.Property<DateOnly>("InvoiceDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("invoice_date");
 
                     b.Property<Guid>("InvoiceId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
 
                     b.ToTable((string)null);
 
@@ -2390,19 +2964,24 @@ namespace OakERP.Infrastructure.Migrations
             modelBuilder.Entity("OakERP.Infrastructure.Persistence.Seeding.Views.Inventory.ItemBalanceView", b =>
                 {
                     b.Property<Guid>("ItemId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
 
                     b.Property<Guid>("LocationId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
 
                     b.Property<decimal>("MovingAvgCost")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("moving_avg_cost");
 
                     b.Property<decimal>("QtyOnHand")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("qty_on_hand");
 
                     b.Property<decimal>("ValueOnHand")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("value_on_hand");
 
                     b.ToTable((string)null);
 
@@ -2415,7 +2994,8 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_role_claims_asp_net_roles_role_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -2424,7 +3004,8 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_user_claims_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -2433,7 +3014,8 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_user_logins_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -2442,13 +3024,15 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_user_roles_asp_net_roles_role_id");
 
                     b.HasOne("OakERP.Domain.Entities.Users.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_user_roles_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -2457,7 +3041,8 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_user_tokens_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("OakERP.Domain.Entities.Accounts_Payable.ApInvoice", b =>
@@ -2466,13 +3051,15 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany("ApInvoices")
                         .HasForeignKey("CurrencyCode")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ap_invoices_currencies_currency_code");
 
                     b.HasOne("OakERP.Domain.Entities.Accounts_Payable.Vendor", "Vendor")
                         .WithMany("ApInvoices")
                         .HasForeignKey("VendorId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ap_invoices_vendors_vendor_id");
 
                     b.Navigation("Currency");
 
@@ -2484,23 +3071,27 @@ namespace OakERP.Infrastructure.Migrations
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlAccount", "Account")
                         .WithMany("ApInvoiceLines")
                         .HasForeignKey("AccountNo")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_ap_invoice_lines_gl_accounts_account_no");
 
                     b.HasOne("OakERP.Domain.Entities.Accounts_Payable.ApInvoice", "Invoice")
                         .WithMany("Lines")
                         .HasForeignKey("ApInvoiceId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ap_invoice_lines_ap_invoices_ap_invoice_id");
 
                     b.HasOne("OakERP.Domain.Entities.Inventory.Item", "Item")
                         .WithMany("ApInvoiceLines")
                         .HasForeignKey("ItemId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_ap_invoice_lines_items_item_id");
 
                     b.HasOne("OakERP.Domain.Entities.Common.TaxRate", "TaxRate")
-                        .WithMany()
+                        .WithMany("ApInvoiceLines")
                         .HasForeignKey("TaxRateId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_ap_invoice_lines_tax_rates_tax_rate_id");
 
                     b.Navigation("Account");
 
@@ -2517,13 +3108,15 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany("ApPayments")
                         .HasForeignKey("BankAccountId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ap_payments_bank_accounts_bank_account_id");
 
                     b.HasOne("OakERP.Domain.Entities.Accounts_Payable.Vendor", "Vendor")
                         .WithMany("ApPayments")
                         .HasForeignKey("VendorId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ap_payments_vendors_vendor_id");
 
                     b.Navigation("BankAccount");
 
@@ -2536,13 +3129,15 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany("Allocations")
                         .HasForeignKey("ApInvoiceId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ap_payment_allocations_ap_invoices_ap_invoice_id");
 
                     b.HasOne("OakERP.Domain.Entities.Accounts_Payable.ApPayment", "Payment")
                         .WithMany("Allocations")
                         .HasForeignKey("ApPaymentId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ap_payment_allocations_ap_payments_ap_payment_id");
 
                     b.Navigation("Invoice");
 
@@ -2555,13 +3150,15 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany("ArInvoices")
                         .HasForeignKey("CurrencyCode")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ar_invoices_currencies_currency_code");
 
                     b.HasOne("OakERP.Domain.Entities.Accounts_Receivable.Customer", "Customer")
                         .WithMany("ArInvoices")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ar_invoices_customers_customer_id");
 
                     b.Navigation("Currency");
 
@@ -2574,22 +3171,26 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany("Lines")
                         .HasForeignKey("ArInvoiceId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ar_invoice_lines_ar_invoices_ar_invoice_id");
 
                     b.HasOne("OakERP.Domain.Entities.Inventory.Item", "Item")
                         .WithMany("ArInvoiceLines")
                         .HasForeignKey("ItemId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_ar_invoice_lines_items_item_id");
 
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlAccount", "Revenue")
                         .WithMany("ArInvoiceLines")
                         .HasForeignKey("RevenueAccount")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_ar_invoice_lines_gl_accounts_revenue_account");
 
                     b.HasOne("OakERP.Domain.Entities.Common.TaxRate", "TaxRate")
-                        .WithMany()
+                        .WithMany("ArInvoiceLines")
                         .HasForeignKey("TaxRateId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_ar_invoice_lines_tax_rates_tax_rate_id");
 
                     b.Navigation("Invoice");
 
@@ -2606,19 +3207,22 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany("ArReceipts")
                         .HasForeignKey("BankAccountId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ar_receipts_bank_accounts_bank_account_id");
 
                     b.HasOne("OakERP.Domain.Entities.Common.Currency", "Currency")
                         .WithMany("ArReceipts")
                         .HasForeignKey("CurrencyCode")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ar_receipts_currencies_currency_code");
 
                     b.HasOne("OakERP.Domain.Entities.Accounts_Receivable.Customer", "Customer")
                         .WithMany("ArReceipts")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ar_receipts_customers_customer_id");
 
                     b.Navigation("BankAccount");
 
@@ -2633,13 +3237,15 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany("Allocations")
                         .HasForeignKey("ArInvoiceId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ar_receipt_allocations_ar_invoices_ar_invoice_id");
 
                     b.HasOne("OakERP.Domain.Entities.Accounts_Receivable.ArReceipt", "Receipt")
                         .WithMany("Allocations")
                         .HasForeignKey("ArReceiptId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ar_receipt_allocations_ar_receipts_ar_receipt_id");
 
                     b.Navigation("Invoice");
 
@@ -2652,13 +3258,15 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany("BankAccounts")
                         .HasForeignKey("CurrencyCode")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_accounts_currencies_currency_code");
 
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlAccount", "GlAccount")
                         .WithMany()
                         .HasForeignKey("GlAccountNo")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_accounts_gl_accounts_gl_account_no");
 
                     b.Navigation("Currency");
 
@@ -2671,7 +3279,8 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("BankAccountId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_reconciliations_bank_accounts_bank_account_id");
 
                     b.Navigation("BankAccount");
                 });
@@ -2682,7 +3291,8 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("BankAccountId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_statements_bank_accounts_bank_account_id");
 
                     b.Navigation("BankAccount");
                 });
@@ -2693,18 +3303,21 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("BankAccountId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_statement_lines_bank_accounts_bank_account_id");
 
                     b.HasOne("OakERP.Domain.Entities.Bank.BankStatement", "Statement")
                         .WithMany("Lines")
                         .HasForeignKey("BankStatementId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_statement_lines_bank_statements_bank_statement_id");
 
                     b.HasOne("OakERP.Domain.Entities.Bank.BankTransaction", "BankTransaction")
                         .WithMany()
                         .HasForeignKey("BankTransactionId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_bank_statement_lines_bank_transactions_bank_transaction_id");
 
                     b.Navigation("BankAccount");
 
@@ -2719,19 +3332,22 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("BankAccountId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_transactions_bank_accounts_bank_account_id");
 
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlAccount", "CrAccount")
                         .WithMany()
                         .HasForeignKey("CrAccountNo")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_transactions_gl_accounts_cr_account_no");
 
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlAccount", "DrAccount")
                         .WithMany()
                         .HasForeignKey("DrAccountNo")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_transactions_gl_accounts_dr_account_no");
 
                     b.Navigation("BankAccount");
 
@@ -2745,7 +3361,8 @@ namespace OakERP.Infrastructure.Migrations
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlAccount", "Parent")
                         .WithMany("Children")
                         .HasForeignKey("ParentAccount")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_gl_accounts_gl_accounts_parent_account");
 
                     b.Navigation("Parent");
                 });
@@ -2756,13 +3373,15 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany("Entries")
                         .HasForeignKey("AccountNo")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_gl_entries_gl_accounts_account_no");
 
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.FiscalPeriod", "Period")
                         .WithMany("Entries")
                         .HasForeignKey("PeriodId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_gl_entries_fiscal_periods_period_id");
 
                     b.Navigation("Account");
 
@@ -2774,7 +3393,8 @@ namespace OakERP.Infrastructure.Migrations
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.FiscalPeriod", "Period")
                         .WithMany("Journals")
                         .HasForeignKey("PeriodId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_gl_journals_fiscal_periods_period_id");
 
                     b.Navigation("Period");
                 });
@@ -2785,13 +3405,15 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany("JournalLines")
                         .HasForeignKey("AccountNo")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_gl_journal_lines_gl_accounts_account_no");
 
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlJournal", "Journal")
                         .WithMany("Lines")
                         .HasForeignKey("JournalId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_gl_journal_lines_gl_journals_journal_id");
 
                     b.Navigation("Account");
 
@@ -2804,13 +3426,15 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_ledgers_items_item_id");
 
                     b.HasOne("OakERP.Domain.Entities.Inventory.Location", "Location")
                         .WithMany()
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_ledgers_locations_location_id");
 
                     b.Navigation("Item");
 
@@ -2822,17 +3446,20 @@ namespace OakERP.Infrastructure.Migrations
                     b.HasOne("OakERP.Domain.Entities.Inventory.ItemCategory", "Category")
                         .WithMany("Items")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_items_item_categories_category_id");
 
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlAccount", "DefaultExpenseAccount")
                         .WithMany()
                         .HasForeignKey("DefaultExpenseAccountNo")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_items_gl_accounts_default_expense_account_no");
 
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlAccount", "DefaultRevenueAccount")
                         .WithMany()
                         .HasForeignKey("DefaultRevenueAccountNo")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_items_gl_accounts_default_revenue_account_no");
 
                     b.Navigation("Category");
 
@@ -2846,22 +3473,26 @@ namespace OakERP.Infrastructure.Migrations
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlAccount", "Adjust")
                         .WithMany()
                         .HasForeignKey("AdjustAccount")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_item_categories_gl_accounts_adjust_account");
 
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlAccount", "Cogs")
                         .WithMany()
                         .HasForeignKey("CogsAccount")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_item_categories_gl_accounts_cogs_account");
 
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlAccount", "InvAccount")
                         .WithMany()
                         .HasForeignKey("InventoryAccount")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_item_categories_gl_accounts_inventory_account");
 
                     b.HasOne("OakERP.Domain.Entities.General_Ledger.GlAccount", "Revenue")
                         .WithMany()
                         .HasForeignKey("RevenueAccount")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_item_categories_gl_accounts_revenue_account");
 
                     b.Navigation("Adjust");
 
@@ -2878,7 +3509,8 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_stock_counts_locations_location_id");
 
                     b.Navigation("Location");
                 });
@@ -2889,13 +3521,15 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_stock_count_lines_items_item_id");
 
                     b.HasOne("OakERP.Domain.Entities.Inventory.StockCount", "StockCount")
                         .WithMany("Lines")
                         .HasForeignKey("StockCountId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_stock_count_lines_stock_counts_stock_count_id");
 
                     b.Navigation("Item");
 
@@ -2908,7 +3542,8 @@ namespace OakERP.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_users_tenants_tenant_id");
 
                     b.Navigation("Tenant");
                 });
@@ -2919,7 +3554,8 @@ namespace OakERP.Infrastructure.Migrations
                         .WithOne("License")
                         .HasForeignKey("OakERP.Domain.Entities.Users.License", "TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_licenses_tenants_tenant_id");
 
                     b.Navigation("Tenant");
                 });
@@ -2983,6 +3619,13 @@ namespace OakERP.Infrastructure.Migrations
                     b.Navigation("ArReceipts");
 
                     b.Navigation("BankAccounts");
+                });
+
+            modelBuilder.Entity("OakERP.Domain.Entities.Common.TaxRate", b =>
+                {
+                    b.Navigation("ApInvoiceLines");
+
+                    b.Navigation("ArInvoiceLines");
                 });
 
             modelBuilder.Entity("OakERP.Domain.Entities.General_Ledger.FiscalPeriod", b =>

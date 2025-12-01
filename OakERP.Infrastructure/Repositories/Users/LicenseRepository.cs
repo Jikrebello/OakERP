@@ -17,7 +17,11 @@ public class LicenseRepository(ApplicationDbContext db) : ILicenseRepository
 
     public IQueryable<License> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(License entity) => Set.Add(entity);
+    public async Task AddAsync(License entity) => await Set.AddAsync(entity);
 
-    public void Remove(License entity) => Set.Remove(entity);
+    public Task RemoveAsync(License entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

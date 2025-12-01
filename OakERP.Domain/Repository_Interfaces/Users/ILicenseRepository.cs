@@ -10,7 +10,7 @@ public interface ILicenseRepository
 
     IQueryable<License> QueryNoTracking();
 
-    void Add(License entity);
+    Task AddAsync(License entity);
 
-    void Remove(License entity);
+    Task RemoveAsync(License entity);
 }

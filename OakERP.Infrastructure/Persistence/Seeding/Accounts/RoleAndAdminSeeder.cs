@@ -55,6 +55,8 @@ public class RoleAndAdminSeeder(
                 UserName = email,
                 TenantId = tenant.Id,
                 EmailConfirmed = true,
+                FirstName = "System",
+                LastName = "Administrator",
             };
 
             var result = await userManager.CreateAsync(admin, pass);

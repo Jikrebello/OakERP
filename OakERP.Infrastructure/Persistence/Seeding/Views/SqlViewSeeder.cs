@@ -10,6 +10,8 @@ namespace OakERP.Infrastructure.Persistence.Seeding.Views;
 public sealed class SqlViewSeeder(ApplicationDbContext db) : BaseSeeder
 {
     public override int Order => 50;
+    protected override bool RunInDevelopment => true;
+    protected override bool RunInTesting => true;
     protected override bool RunInProduction => true;
 
     public override async Task SeedAsync()
@@ -17,7 +19,7 @@ public sealed class SqlViewSeeder(ApplicationDbContext db) : BaseSeeder
         // 1) Ensure registry table exists
         await db.Database.ExecuteSqlRawAsync(
             """
-                CREATE TABLE IF NOT EXISTS public.app_schema_object (
+                CREATE TABLE IF NOT EXISTS public.app_schema (
                   name       text PRIMARY KEY,
                   sha256     text NOT NULL,
                   updated_at timestamptz NOT NULL DEFAULT now()
@@ -36,17 +38,19 @@ public sealed class SqlViewSeeder(ApplicationDbContext db) : BaseSeeder
             var newHash = Sha256(createSql);
 
             // fetch existing hash (if any)
-            var current = await db.Set<AppSchemaObject>()
-                .FromSqlRaw(
+            var current = await db
+                .Database.SqlQuery<AppSchema>(
+                    $"""
+                    SELECT
+                        name,
+                        sha256,
+                        updated_at
+                    FROM public.app_schema
+                    WHERE name = {def.Name}
                     """
-                        SELECT name, sha256, updated_at
-                        FROM public.app_schema_object
-                        WHERE name = {0}
-                    """,
-                    def.Name
                 )
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .SingleOrDefaultAsync();
 
             if (!string.Equals(current?.Sha256, newHash, StringComparison.Ordinal))
             {
@@ -57,7 +61,7 @@ public sealed class SqlViewSeeder(ApplicationDbContext db) : BaseSeeder
                 // Upsert registry record
                 await db.Database.ExecuteSqlRawAsync(
                     """
-                        INSERT INTO public.app_schema_object(name, sha256)
+                        INSERT INTO public.app_schema(name, sha256)
                         VALUES ({0}, {1})
                         ON CONFLICT (name)
                         DO UPDATE SET sha256 = EXCLUDED.sha256, updated_at = now();
@@ -71,8 +75,7 @@ public sealed class SqlViewSeeder(ApplicationDbContext db) : BaseSeeder
         await tx.CommitAsync();
     }
 
-    // Minimal POCO to map SELECT results (not tracked by EF otherwise)
-    private sealed class AppSchemaObject
+    private sealed class AppSchema
     {
         public string Name { get; set; } = default!;
         public string Sha256 { get; set; } = default!;

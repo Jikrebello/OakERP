@@ -71,43 +71,46 @@ internal class ArReceiptConfiguration : IEntityTypeConfiguration<ArReceipt>
         // Data integrity
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("ck_arreceipt_amount_positive", "\"Amount\" > 0");
+            t.HasCheckConstraint("ck_arreceipt_amount_positive", "\"amount\" > 0");
 
             // Posted → PostingDate required
             t.HasCheckConstraint(
                 "ck_arreceipt_posted_requires_postingdate",
-                "(\"DocStatus\" <> 'posted'::doc_status) OR (\"PostingDate\" IS NOT NULL)"
+                "(\"doc_status\" <> 'posted'::doc_status) OR (\"posting_date\" IS NOT NULL)"
             );
 
             // ClearedDate cannot be before PostingDate (when both present)
             t.HasCheckConstraint(
                 "ck_arreceipt_cleared_not_before_posting",
-                "(\"ClearedDate\" IS NULL) OR (\"PostingDate\" IS NULL) OR (\"ClearedDate\" >= \"PostingDate\")"
+                "(\"cleared_date\" IS NULL) OR (\"posting_date\" IS NULL) OR (\"cleared_date\" >= \"posting_date\")"
             );
 
             // --- FX sanity checks ---
             // Either both FX fields are NULL, or both are NOT NULL
             t.HasCheckConstraint(
                 "ck_arreceipt_fx_pair_nullness",
-                "(\"AmountForeign\" IS NULL) = (\"ExchangeRate\" IS NULL)"
+                "(\"amount_foreign\" IS NULL) = (\"exchange_rate\" IS NULL)"
             );
 
             // If set, they must be positive
             t.HasCheckConstraint(
                 "ck_arreceipt_fx_positive",
-                "(\"AmountForeign\" IS NULL OR \"AmountForeign\" > 0) AND "
-                    + "(\"ExchangeRate\" IS NULL OR \"ExchangeRate\" > 0)"
+                "(\"amount_foreign\" IS NULL OR \"amount_foreign\" > 0) AND "
+                    + "(\"exchange_rate\" IS NULL OR \"exchange_rate\" > 0)"
             );
 
             // Currency code length 3 (extra guard)
-            t.HasCheckConstraint("ck_arreceipt_currency_len3", "char_length(\"CurrencyCode\") = 3");
+            t.HasCheckConstraint(
+                "ck_arreceipt_currency_len3",
+                "char_length(\"currency_code\") = 3"
+            );
 
             // functional vs foreign math consistency with 2-dp tolerance
             // If both FX fields present, then |(AmountForeign * ExchangeRate) - Amount| <= 0.01
             t.HasCheckConstraint(
                 "ck_arreceipt_fx_consistency",
-                "(\"AmountForeign\" IS NULL OR \"ExchangeRate\" IS NULL) OR "
-                    + "abs((\"AmountForeign\" * \"ExchangeRate\") - \"Amount\") <= 0.01"
+                "(\"amount_foreign\" IS NULL OR \"exchange_rate\" IS NULL) OR "
+                    + "abs((\"amount_foreign\" * \"exchange_rate\") - \"amount\") <= 0.01"
             );
         });
     }

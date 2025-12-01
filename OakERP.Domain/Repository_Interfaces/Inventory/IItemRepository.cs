@@ -10,7 +10,7 @@ public interface IItemRepository
 
     IQueryable<Item> QueryNoTracking();
 
-    void Add(Item entity);
+    Task AddAsync(Item entity);
 
-    void Remove(Item entity);
+    Task RemoveAsync(Item entity);
 }

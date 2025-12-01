@@ -19,7 +19,11 @@ public class GlAccountRepository(ApplicationDbContext db) : IGlAccountRepository
 
     public IQueryable<GlAccount> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(GlAccount entity) => Set.Add(entity);
+    public async Task AddAsync(GlAccount entity) => await Set.AddAsync(entity);
 
-    public void Remove(GlAccount entity) => Set.Remove(entity);
+    public Task RemoveAsync(GlAccount entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

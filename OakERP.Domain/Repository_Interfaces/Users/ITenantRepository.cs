@@ -10,7 +10,7 @@ public interface ITenantRepository
 
     IQueryable<Tenant> QueryNoTracking();
 
-    void Add(Tenant entity);
+    Task AddAsync(Tenant entity);
 
-    void Remove(Tenant entity);
+    Task RemoveAsync(Tenant entity);
 }

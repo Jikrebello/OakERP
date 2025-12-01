@@ -65,16 +65,16 @@ internal class BankAccountConfiguration : IEntityTypeConfiguration<BankAccount>
         builder
             .HasIndex(x => x.AccountNumber)
             .IsUnique()
-            .HasFilter("\"AccountNumber\" IS NOT NULL");
+            .HasFilter("\"account_number\" IS NOT NULL");
 
         // Data integrity (Postgres CHECK constraints)
         builder.ToTable(t =>
         {
             // No blank names
-            t.HasCheckConstraint("ck_bankacct_name_not_blank", "btrim(\"Name\") <> ''");
+            t.HasCheckConstraint("ck_bankacct_name_not_blank", "btrim(\"name\") <> ''");
 
             // Currency code guard
-            t.HasCheckConstraint("ck_bankacct_currency_len3", "char_length(\"CurrencyCode\") = 3");
+            t.HasCheckConstraint("ck_bankacct_currency_len3", "char_length(\"currency_code\") = 3");
         });
     }
 }

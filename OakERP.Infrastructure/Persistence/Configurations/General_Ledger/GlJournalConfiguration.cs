@@ -48,18 +48,18 @@ internal class GlJournalConfiguration : IEntityTypeConfiguration<GlJournal>
         builder.ToTable(t =>
         {
             // no blank journal numbers
-            t.HasCheckConstraint("ck_gljournal_no_not_blank", "btrim(\"JournalNo\") <> ''");
+            t.HasCheckConstraint("ck_gljournal_no_not_blank", "btrim(\"journal_no\") <> ''");
 
             // if Posted, require a PostingDate (keeps GL timing explicit)
             t.HasCheckConstraint(
                 "ck_gljournal_posted_requires_postingdate",
-                "(\"DocStatus\" <> 'posted'::doc_status) OR (\"PostingDate\" IS NOT NULL)"
+                "(\"doc_status\" <> 'posted'::doc_status) OR (\"posting_date\" IS NOT NULL)"
             );
 
             // PostingDate not before JournalDate
             t.HasCheckConstraint(
                 "ck_gljournal_posting_ge_journal",
-                "\"PostingDate\" IS NULL OR \"PostingDate\" >= \"JournalDate\""
+                "\"posting_date\" IS NULL OR \"posting_date\" >= \"journal_date\""
             );
         });
     }

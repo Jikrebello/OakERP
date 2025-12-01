@@ -23,8 +23,14 @@ public static class ServiceCollectionExtensions
         IConfiguration config
     )
     {
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(config.GetConnectionString("DefaultConnection"))
+        var cs =
+            config.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException(
+                "ConnectionStrings:DefaultConnection is not configured."
+            );
+
+        services.AddDbContext<ApplicationDbContext>(opt =>
+            opt.UseNpgsql(cs).UseSnakeCaseNamingConvention()
         );
 
         return services;
@@ -39,12 +45,9 @@ public static class ServiceCollectionExtensions
 
         var candidates = assemblies
             .Where(a => a != null)
-            .SelectMany(a => a.DefinedTypes)
-            .Where(t =>
-                seederType.IsAssignableFrom(t)
-                && t is { IsAbstract: false, IsInterface: false }
-                && t.GetConstructor(Type.EmptyTypes) != null
-            ) // simple activator support
+            .Distinct()
+            .SelectMany(a => a.GetTypes())
+            .Where(t => seederType.IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface)
             .Distinct()
             .ToList();
 
@@ -52,13 +55,6 @@ public static class ServiceCollectionExtensions
         {
             services.AddScoped(seederType, type);
         }
-
-        return services;
-    }
-
-    public static IServiceCollection AddPersistenceServices(this IServiceCollection services)
-    {
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }
@@ -123,6 +119,7 @@ public static class ServiceCollectionExtensions
 
             // DTO Example Filters
             options.SchemaFilter<RegisterDtoExampleFilter>();
+
             options.SchemaFilter<LoginDtoExampleFilter>();
 
             // Jwt Support
@@ -160,10 +157,22 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddPersistenceServices(this IServiceCollection services)
+    {
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        return services;
+    }
+
     public static IServiceCollection AddAuthServices(this IServiceCollection services)
     {
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IJwtGenerator, JwtGenerator>();
+        return services;
+    }
+
+    public static IServiceCollection AddRepositories(this IServiceCollection services)
+    {
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<ILicenseRepository, LicenseRepository>();
         return services;

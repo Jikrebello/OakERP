@@ -56,8 +56,7 @@ param(
   [switch]$idempotent,
 
   [switch]$ignoreChanges,
-  [switch]$noBuild,
-  [switch]$verbose
+  [switch]$noBuild
 )
 
 $ErrorActionPreference = 'Stop'
@@ -133,7 +132,8 @@ function Mask-Conn([string]$cs){
 # Build base args
 $common = @('--project', $project, '--startup-project', $startup, '--context', $context)
 if ($noBuild) { $common += '--no-build' }
-if ($verbose) { $common += '-v' }
+$usingVerbose = $PSBoundParameters.ContainsKey('Verbose')
+if ($usingVerbose) { $common += '-v' }
 
 # Connection handling (EF Core 9 supports --connection for many commands)
 if ($connection) {

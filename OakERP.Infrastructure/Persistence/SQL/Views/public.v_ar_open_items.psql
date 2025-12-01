@@ -13,6 +13,6 @@ FROM public.ar_invoices i
 
 LEFT JOIN public.ar_receipt_allocations a ON a.ar_invoice_id = i.id
 
-WHERE i.status IN ('Posted','Closed')
+WHERE i.doc_status IN ('posted','closed')
 
 GROUP BY i.id, i.doc_no, i.customer_id, i.invoice_date, i.due_date, i.doc_total;

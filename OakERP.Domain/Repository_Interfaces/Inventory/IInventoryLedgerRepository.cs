@@ -10,7 +10,7 @@ public interface IInventoryLedgerRepository
 
     IQueryable<InventoryLedger> QueryNoTracking();
 
-    void Add(InventoryLedger entity);
+    Task AddAsync(InventoryLedger entity);
 
-    void Remove(InventoryLedger entity);
+    Task RemoveAsync(InventoryLedger entity);
 }

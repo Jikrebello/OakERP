@@ -42,7 +42,7 @@ internal class ApInvoiceLineConfiguration : IEntityTypeConfiguration<ApInvoiceLi
 
         builder
             .HasOne(x => x.TaxRate)
-            .WithMany()
+            .WithMany(t => t.ApInvoiceLines)
             .HasForeignKey(x => x.TaxRateId)
             .OnDelete(DeleteBehavior.SetNull);
 
@@ -54,20 +54,16 @@ internal class ApInvoiceLineConfiguration : IEntityTypeConfiguration<ApInvoiceLi
 
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("ck_apline_lineno_positive", "\"LineNo\" > 0");
+            t.HasCheckConstraint("ck_apline_lineno_positive", "\"line_no\" > 0");
 
             // Non-negative quantities and amounts
-            t.HasCheckConstraint("ck_apline_qty_nonnegative", "\"Qty\" >= 0");
-            t.HasCheckConstraint("ck_apline_price_nonnegative", "\"UnitPrice\" >= 0");
-            t.HasCheckConstraint("ck_apline_total_nonnegative", "\"LineTotal\" >= 0");
+            t.HasCheckConstraint("ck_apline_qty_nonnegative", "\"qty\" >= 0");
+            t.HasCheckConstraint("ck_apline_price_nonnegative", "\"unit_price\" >= 0");
+            t.HasCheckConstraint("ck_apline_total_nonnegative", "\"line_total\" >= 0");
 
-            // “At least one”: require ItemId OR AccountNo (or both)
-            // Posting precedence (documented behavioral rule):
-            //   If AccountNo IS NOT NULL → post to AccountNo (override)
-            //   Else if ItemId IS NOT NULL → post to Item’s default expense account
             t.HasCheckConstraint(
                 "ck_apline_has_account_or_item",
-                "(\"AccountNo\" IS NOT NULL) OR (\"ItemId\" IS NOT NULL)"
+                "(\"account_no\" IS NOT NULL) OR (\"item_id\" IS NOT NULL)"
             );
         });
     }

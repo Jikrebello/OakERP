@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.DTOs.Auth;
@@ -60,6 +61,7 @@ public class AuthService(
         await unitOfWork.BeginTransactionAsync();
         try
         {
+            // Create Tenant
             var tenant = new Tenant
             {
                 Name = dto.TenantName,
@@ -70,8 +72,12 @@ public class AuthService(
                     ExpiryDate = DateTime.UtcNow.AddYears(1),
                 },
             };
-            await tenantRepository.CreateAsync(tenant);
+            await tenantRepository.AddAsync(tenant);
 
+            // Persist Tenant to get Id
+            await unitOfWork.SaveChangesAsync();
+
+            // Create User
             var user = new ApplicationUser
             {
                 UserName = email,
@@ -105,6 +111,8 @@ public class AuthService(
                 );
             }
 
+            // Commit Transaction
+            await unitOfWork.SaveChangesAsync();
             await unitOfWork.CommitAsync();
 
             logger.LogInformation(
@@ -114,6 +122,7 @@ public class AuthService(
             );
 
             var token = jwtGenerator.Generate(user);
+
             return AuthResultDTO.SuccessWith(token, $"{user.FirstName} {user.LastName}");
         }
         catch (Exception ex)
@@ -141,34 +150,43 @@ public class AuthService(
     /// message.</returns>
     public async Task<AuthResultDTO> LoginAsync(LoginDTO dto)
     {
-        var result = await signInManager.PasswordSignInAsync(
-            dto.Email,
-            dto.Password,
-            isPersistent: false,
-            lockoutOnFailure: false
-        );
+        var email = dto.Email.Trim();
+        var user = await userManager.FindByEmailAsync(email);
 
-        if (!result.Succeeded)
+        if (user is null)
             return AuthResultDTO.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
 
-        var user = await userManager.FindByEmailAsync(dto.Email);
-        if (user is null)
-            return AuthResultDTO.Fail("User not found.", HttpStatusCode.NotFound);
+        // Check password WITHOUT signing in
+        var pwdCheck = await signInManager.CheckPasswordSignInAsync(
+            user,
+            dto.Password,
+            lockoutOnFailure: false // enable lockout if you want
+        );
 
-        var tenant = await tenantRepository.GetByIdAsync(user.TenantId);
+        if (!pwdCheck.Succeeded)
+            return AuthResultDTO.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
+
+        // Load tenant (ideally include License in one query)
+        var tenant = await tenantRepository
+            .QueryNoTracking()
+            .Include(t => t.License)
+            .SingleOrDefaultAsync(t => t.Id == user.TenantId);
+
         if (tenant is null)
             return AuthResultDTO.Fail("Tenant not found.", HttpStatusCode.NotFound);
 
         if (tenant.License is null)
-            return AuthResultDTO.Fail("License not found for tenant.", HttpStatusCode.NotFound);
+            return AuthResultDTO.Fail("License not found for tenant.", HttpStatusCode.Forbidden);
 
-        if (tenant.License.ExpiryDate is not null && tenant.License.ExpiryDate < DateTime.UtcNow)
+        if (tenant.License.ExpiryDate is not null && tenant.License.ExpiryDate <= DateTime.UtcNow)
             return AuthResultDTO.Fail("License has expired.", HttpStatusCode.Forbidden);
 
-        var token = jwtGenerator.Generate(user);
+        // If you also need cookie auth for MVC endpoints, you could now:
+        // await signInManager.SignInAsync(user, isPersistent: false);
 
         var primaryRole = (await userManager.GetRolesAsync(user)).FirstOrDefault() ?? "User";
+        var token = jwtGenerator.Generate(user);
 
-        return AuthResultDTO.SuccessWith(token, userName: user.UserName, role: primaryRole);
+        return AuthResultDTO.SuccessWith(token, userName: user.UserName!, role: primaryRole);
     }
 }

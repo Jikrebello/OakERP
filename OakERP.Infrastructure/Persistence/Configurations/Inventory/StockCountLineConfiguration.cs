@@ -39,14 +39,14 @@ internal class StockCountLineConfiguration : IEntityTypeConfiguration<StockCount
         // Data integrity
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("ck_scl_lineno_positive", "\"LineNo\" > 0");
-            t.HasCheckConstraint("ck_scl_expected_nonneg", "\"ExpectedQty\" >= 0");
-            t.HasCheckConstraint("ck_scl_counted_nonneg", "\"CountedQty\" >= 0");
+            t.HasCheckConstraint("ck_scl_lineno_positive", "\"line_no\" > 0");
+            t.HasCheckConstraint("ck_scl_expected_nonneg", "\"expected_qty\" >= 0");
+            t.HasCheckConstraint("ck_scl_counted_nonneg", "\"counted_qty\" >= 0");
 
             builder
                 .Property(x => x.VarianceQty)
                 .HasColumnType("numeric(18,4)")
-                .HasComputedColumnSql("\"CountedQty\" - \"ExpectedQty\"", stored: true)
+                .HasComputedColumnSql("\"counted_qty\" - \"expected_qty\"", stored: true)
                 .ValueGeneratedOnAddOrUpdate();
         });
     }

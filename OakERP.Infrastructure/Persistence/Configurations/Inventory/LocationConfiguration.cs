@@ -34,10 +34,10 @@ internal class LocationConfiguration : IEntityTypeConfiguration<Location>
         // Data integrity
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("ck_location_code_not_blank", "btrim(\"Code\") <> ''");
-            t.HasCheckConstraint("ck_location_name_not_blank", "btrim(\"Name\") <> ''");
+            t.HasCheckConstraint("ck_location_code_not_blank", "btrim(\"code\") <> ''");
+            t.HasCheckConstraint("ck_location_name_not_blank", "btrim(\"name\") <> ''");
             // optional: keep codes uppercase for consistency
-            t.HasCheckConstraint("ck_location_code_upper", "\"Code\" = upper(\"Code\")");
+            t.HasCheckConstraint("ck_location_code_upper", "\"code\" = upper(\"code\")");
         });
     }
 }

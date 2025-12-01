@@ -48,23 +48,23 @@ internal class GlAccountConfiguration : IEntityTypeConfiguration<GlAccount>
         builder.ToTable(t =>
         {
             // no blanks
-            t.HasCheckConstraint("ck_glacct_no_not_blank", "btrim(\"AccountNo\") <> ''");
-            t.HasCheckConstraint("ck_glacct_name_not_blank", "btrim(\"Name\") <> ''");
+            t.HasCheckConstraint("ck_glacct_no_not_blank", "btrim(\"account_no\") <> ''");
+            t.HasCheckConstraint("ck_glacct_name_not_blank", "btrim(\"name\") <> ''");
 
             // parent cannot equal self (prevents trivial cycle)
             t.HasCheckConstraint(
                 "ck_glacct_parent_not_self",
-                "\"ParentAccount\" IS NULL OR \"ParentAccount\" <> \"AccountNo\""
+                "\"parent_account\" IS NULL OR \"parent_account\" <> \"account_no\""
             );
 
             // constrain allowed characters for AccountNo (A–Z, 0–9, dash, dot)
             t.HasCheckConstraint(
                 "ck_glacct_no_chars",
-                "\"AccountNo\" ~ '^[A-Z0-9][A-Z0-9\\.-]{0,19}$'"
+                "\"account_no\" ~ '^[A-Z0-9][A-Z0-9\\.-]{0,19}$'"
             );
 
             // force uppercase codes for consistency
-            t.HasCheckConstraint("ck_glacct_no_upper", "\"AccountNo\" = upper(\"AccountNo\")");
+            t.HasCheckConstraint("ck_glacct_no_upper", "\"account_no\" = upper(\"account_no\")");
         });
     }
 }

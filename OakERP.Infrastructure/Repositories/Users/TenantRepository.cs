@@ -17,7 +17,11 @@ public class TenantRepository(ApplicationDbContext db) : ITenantRepository
 
     public IQueryable<Tenant> QueryNoTracking() => Set.AsNoTracking();
 
-    public void Add(Tenant entity) => Set.Add(entity);
+    public async Task AddAsync(Tenant entity) => await Set.AddAsync(entity);
 
-    public void Remove(Tenant entity) => Set.Remove(entity);
+    public Task RemoveAsync(Tenant entity)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
+    }
 }

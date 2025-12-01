@@ -19,11 +19,7 @@ namespace OakERP.Infrastructure.Persistence
                 .AddJsonFile("appsettings.Development.json", optional: true)
                 .AddEnvironmentVariables();
 
-            try
-            {
-                cfgBuilder.AddUserSecrets<ApplicationDbContext>(optional: true);
-            }
-            catch { }
+            cfgBuilder.AddUserSecrets<ApplicationDbContext>(optional: true);
 
             var config = cfgBuilder.Build();
 
@@ -32,10 +28,10 @@ namespace OakERP.Infrastructure.Persistence
                 ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
                 ?? "Host=localhost;Port=5432;Database=oakerp;Username=oakadmin;Password=oakpass;Include Error Detail=true";
 
-            // TEMP: uncomment once to prove what it's reading
-            //Console.WriteLine($"[EF] ConnectionString = {cs}");
-
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(cs).Options;
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseNpgsql(cs)
+                .UseSnakeCaseNamingConvention()
+                .Options;
 
             return new ApplicationDbContext(options);
         }
