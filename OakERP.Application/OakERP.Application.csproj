@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\OakERP.Common\OakERP.Common.csproj" />
+  </ItemGroup>
+
 </Project>

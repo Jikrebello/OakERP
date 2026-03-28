@@ -8,7 +8,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="9.0.4" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -17,18 +18,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\OakERP.API\appsettings.json"
-			  Link="appsettings.json"
-			  CopyToOutputDirectory="PreserveNewest" />
-		<None Include="..\OakERP.API\appsettings.Development.json"
-			  Link="appsettings.Development.json"
-			  CopyToOutputDirectory="PreserveNewest" />
-		<None Include="..\OakERP.API\appsettings.Testing.json"
-			  Link="appsettings.Testing.json"
-			  CopyToOutputDirectory="PreserveNewest" />
-		<None Include="..\OakERP.API\appsettings.Production.json"
-			  Link="appsettings.Production.json"
-			  CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\OakERP.API\appsettings.json" Link="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\OakERP.API\appsettings.Development.json" Link="appsettings.Development.json" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\OakERP.API\appsettings.Testing.json" Link="appsettings.Testing.json" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\OakERP.API\appsettings.Production.json" Link="appsettings.Production.json" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

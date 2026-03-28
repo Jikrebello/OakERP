@@ -39,7 +39,7 @@ using var host = Host.CreateDefaultBuilder(args)
 
             services
                 .AddDbContext<ApplicationDbContext>(opt =>
-                    opt.UseNpgsql(cs).UseSnakeCaseNamingConvention()
+                    opt.UseNpgsql(cs, o => o.UseNodaTime()).UseSnakeCaseNamingConvention()
                 )
                 .AddIdentityServices();
 

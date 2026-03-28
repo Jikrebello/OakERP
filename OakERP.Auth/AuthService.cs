@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.DTOs.Auth;

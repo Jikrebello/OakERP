@@ -4,12 +4,13 @@ public enum AccountKey
 {
     AccountsReceivable,
     AccountsPayable,
-    Bank,
     Revenue,
-    ExpenseOrInventory,
-    TaxOutput,
-    TaxInput,
+    Expense,
     InventoryAsset,
     Cogs,
     InventoryAdjustments,
+    TaxInput,
+    TaxOutput,
+    Bank,
+    ExpenseOrInventory,
 }

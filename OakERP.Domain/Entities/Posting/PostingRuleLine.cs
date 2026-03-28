@@ -10,7 +10,7 @@ public sealed class PostingRuleLine
     public RuleSide Side { get; set; }
     public AccountKey AccountKey { get; set; }
     public RuleScope Scope { get; set; }
-    public AmountKey AmountKey { get; set; }
+    public AmountSource AmountKey { get; set; }
 
     // Optional simple conditioning (keeps logic data-driven without a DSL)
     public bool OnlyWhenHasTax { get; set; } // e.g., tax lines on AR/AP invoices

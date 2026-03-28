@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OakERP.Domain.Entities.Common;
 using OakERP.Infrastructure.Persistence.Seeding.Base;
 using static OakERP.Infrastructure.Persistence.SQL.Views.SqlViewManifest;
 
@@ -73,12 +74,5 @@ public sealed class SqlViewSeeder(ApplicationDbContext db) : BaseSeeder
         }
 
         await tx.CommitAsync();
-    }
-
-    private sealed class AppSchema
-    {
-        public string Name { get; set; } = default!;
-        public string Sha256 { get; set; } = default!;
-        public DateTime Updated_At { get; set; }
     }
 }

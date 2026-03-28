@@ -2,6 +2,6 @@
 
 public enum RuleSide
 {
-    Dr,
-    Cr,
+    Debit = 1,
+    Credit = 2,
 }

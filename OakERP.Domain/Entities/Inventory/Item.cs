@@ -31,4 +31,5 @@ public sealed class Item
 
     public ICollection<ApInvoiceLine> ApInvoiceLines { get; set; } = [];
     public ICollection<ArInvoiceLine> ArInvoiceLines { get; set; } = [];
+    public ICollection<InventoryLedger> InventoryLedgers { get; set; } = [];
 }

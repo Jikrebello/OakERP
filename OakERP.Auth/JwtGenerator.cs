@@ -13,15 +13,8 @@ namespace OakERP.Auth;
 /// <remarks>This class generates JWTs using the HMAC-SHA256 algorithm and retrieves configuration settings such
 /// as the signing key, issuer, audience, and expiration time from the application's configuration. The generated tokens
 /// include claims for the user's ID, email, and tenant ID.</remarks>
-public class JwtGenerator : IJwtGenerator
+public class JwtGenerator(IConfiguration config) : IJwtGenerator
 {
-    private readonly IConfiguration _config;
-
-    public JwtGenerator(IConfiguration config)
-    {
-        _config = config;
-    }
-
     /// <summary>
     /// Generates a JSON Web Token (JWT) for the specified user.
     /// </summary>
@@ -34,7 +27,7 @@ public class JwtGenerator : IJwtGenerator
     /// <exception cref="InvalidOperationException">Thrown if the signing key specified in the configuration is less than 32 characters long.</exception>
     public string Generate(ApplicationUser user)
     {
-        var jwtSettings = _config.GetSection("JwtSettings");
+        var jwtSettings = config.GetSection("JwtSettings");
 
         var keyString = jwtSettings["Key"]!;
         if (keyString.Length < 32)
