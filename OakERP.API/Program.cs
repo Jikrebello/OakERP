@@ -30,8 +30,6 @@ builder.Services.AddSeedersFromAssemblies(
 );
 builder.Services.AddScoped<SeedCoordinator>();
 
-builder.Services.AddScoped<DbInitializer>();
-
 // CORS
 builder.Services.AddCors(options =>
 {

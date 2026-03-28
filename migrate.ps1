@@ -1,12 +1,17 @@
 <#  OakERP - Migrate + Seed
     Usage (local):
-      pwsh ./tools/migrate.ps1                          # Development, migrator only (migrate+seed)
+      pwsh ./tools/migrate.ps1                          # Development, recommended operational path: migrator runs migrate+seed
       pwsh ./tools/migrate.ps1 -Env Testing             # Testing env
       pwsh ./tools/migrate.ps1 -Env Production          # Production-like (e.g., in Docker)
       pwsh ./tools/migrate.ps1 -UseEf                   # First run dotnet ef database update, then seed
       pwsh ./tools/migrate.ps1 -MigrateOnly -UseEf      # Only EF migration (no seeding)
       pwsh ./tools/migrate.ps1 -SeedOnly                # Only seed (migrator; note: migrator still calls MigrateAsync safely)
       pwsh ./tools/migrate.ps1 -Cs "Host=...;..."       # Override connection string via env var
+
+    Ownership notes:
+      - MigrationTool is the explicit operational schema migration path.
+      - API startup may still seed when RunSeedOnStartup=true; that behavior is preserved and is not the primary migration path.
+      - -UseEf remains available as a tooling option, but it does not replace MigrationTool ownership.
 #>
 
 param(
