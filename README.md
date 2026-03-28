@@ -76,10 +76,10 @@ OakERP is designed for businesses who want a modern ERP system that:
 
 | Component               | Status         |
 | ----------------------- | -------------- |
-| Docker DB Setup         | ✅ Complete     |
+| Docker DB Setup         |      |
 | MAUI Blazor Shell       | ✅ Bootstrapped |
-| Multi Tenancy Login and Register flow front to back | 🚧 In Progress |  
-| Core Modules (GL/AP/AR) | 🛠️ Pending  |
+| Multi Tenancy Login and Register flow front to back | ✅ Complete |  
+| Core Modules (GL/AP/AR) | 🚧 In Progress  |
 | Mobile POS App          | 🛠️ Pending      |
 | EF Migration Tool       | 🛠️ Scaffolded   |
 
