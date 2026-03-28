@@ -1,5 +1,4 @@
 using System.Net;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.DTOs.Auth;
@@ -20,14 +19,12 @@ namespace OakERP.Auth;
 /// Initializes a new instance of the <see cref="AuthService"/> class, providing services for user authentication
 /// and token generation.
 /// </remarks>
-/// <param name="userManager">The <see cref="UserManager{TUser}"/> instance used to manage user accounts and perform user-related operations.</param>
-/// <param name="signInManager">The <see cref="SignInManager{TUser}"/> instance used to handle user sign-in operations.</param>
+/// <param name="identityGateway">The auth-local gateway used to perform the required ASP.NET Identity operations.</param>
 /// <param name="jwtGenerator">The <see cref="IJwtGenerator"/> instance responsible for generating JSON Web Tokens (JWTs) for authenticated
 /// users.</param>
 /// <param name="tenantRepository">The <see cref="ITenantRepository"/> instance used to manage tenant-specific data and operations.</param>
 public class AuthService(
-    UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager,
+    IIdentityGateway identityGateway,
     IJwtGenerator jwtGenerator,
     ITenantRepository tenantRepository,
     IUnitOfWork unitOfWork,
@@ -58,7 +55,7 @@ public class AuthService(
         if (dto.Password != dto.ConfirmPassword)
             return AuthResultDTO.Fail("Passwords do not match.", HttpStatusCode.BadRequest);
 
-        var existingUser = await userManager.FindByEmailAsync(email);
+        var existingUser = await identityGateway.FindByEmailAsync(email);
         if (existingUser is not null)
             return AuthResultDTO.Fail("Email already exists.", HttpStatusCode.Conflict);
 
@@ -95,7 +92,7 @@ public class AuthService(
                 TenantId = tenant.Id,
             };
 
-            var createUserResult = await userManager.CreateAsync(user, dto.Password);
+            var createUserResult = await identityGateway.CreateAsync(user, dto.Password);
             if (!createUserResult.Succeeded)
             {
                 await unitOfWork.RollbackAsync();
@@ -105,7 +102,7 @@ public class AuthService(
                 );
             }
 
-            var addToRoleResult = await userManager.AddToRoleAsync(user, UserRoles.Admin);
+            var addToRoleResult = await identityGateway.AddToRoleAsync(user, UserRoles.Admin);
             if (!addToRoleResult.Succeeded)
             {
                 await unitOfWork.RollbackAsync();
@@ -155,13 +152,13 @@ public class AuthService(
     public async Task<AuthResultDTO> LoginAsync(LoginDTO dto)
     {
         var email = dto.Email.Trim();
-        var user = await userManager.FindByEmailAsync(email);
+        var user = await identityGateway.FindByEmailAsync(email);
 
         if (user is null)
             return AuthResultDTO.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
 
         // Check password WITHOUT signing in
-        var pwdCheck = await signInManager.CheckPasswordSignInAsync(
+        var pwdCheck = await identityGateway.CheckPasswordSignInAsync(
             user,
             dto.Password,
             lockoutOnFailure: false // enable lockout if you want
@@ -185,7 +182,7 @@ public class AuthService(
         // If you also need cookie auth for MVC endpoints, you could now:
         // await signInManager.SignInAsync(user, isPersistent: false);
 
-        var primaryRole = (await userManager.GetRolesAsync(user)).FirstOrDefault() ?? "User";
+        var primaryRole = (await identityGateway.GetRolesAsync(user)).FirstOrDefault() ?? "User";
         var token = jwtGenerator.Generate(MapToJwtTokenInput(user));
 
         return AuthResultDTO.SuccessWith(token, userName: user.UserName!, role: primaryRole);

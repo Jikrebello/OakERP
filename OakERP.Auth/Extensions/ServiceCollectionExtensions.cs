@@ -42,6 +42,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddAuthServices(this IServiceCollection services)
     {
+        services.AddScoped<IIdentityGateway, IdentityGateway>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IJwtGenerator, JwtGenerator>();
         return services;
