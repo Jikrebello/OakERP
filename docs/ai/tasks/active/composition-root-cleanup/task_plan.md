@@ -1,10 +1,16 @@
-# Composition Root Cleanup
+# Composition Root Cleanup And Config Cleanup
 
 ## Scope
 
-Implement only Phase 1 / the first implementation slice:
-- move shared DI/bootstrap ownership out of `OakERP.API`
-- remove `OakERP.MigrationTool -> OakERP.API`
+Implement the approved slices only:
+- Phase 1 composition-root cleanup
+- Phase 2 configuration externalization and options cleanup
+
+Current Phase 2 scope:
+- replace hardcoded CORS origins with configuration-driven values
+- replace hardcoded API base URLs in clients with configuration-driven values
+- move seed defaults into explicit configuration where appropriate
+- reduce hardcoded integration-test DB assumptions where possible without redesigning the test architecture
 - preserve runtime behavior
 
 ## Constraints
@@ -18,10 +24,10 @@ Implement only Phase 1 / the first implementation slice:
 ## Ordered Steps
 
 1. Record current findings and baseline validation state.
-2. Extract persistence/repository/seeder registration into `OakERP.Infrastructure`.
-3. Extract Identity/JWT/auth registration into `OakERP.Auth`.
-4. Update `OakERP.API` to consume the new layer-owned extensions while leaving API-only registration in API.
-5. Update `OakERP.MigrationTool` to consume the new layer-owned extensions and remove the API project reference.
+2. Externalize CORS origin values into API configuration.
+3. Externalize client API base URLs into host configuration or host configuration lookup.
+4. Move seed defaults into explicit configuration and remove code literals where safe.
+5. Reduce repeated integration-test DB connection literals by centralizing config/env lookup.
 6. Run targeted builds, solution build, unit tests, and integration tests.
 7. Record outcomes, remaining risks, and next phase in `progress.md`.
 

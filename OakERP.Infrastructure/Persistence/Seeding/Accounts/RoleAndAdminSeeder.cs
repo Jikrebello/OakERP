@@ -43,8 +43,12 @@ public class RoleAndAdminSeeder(
         }
 
         // Admin user
-        var email = config["Seed:AdminEmail"] ?? "admin@oak.local";
-        var pass = config["Seed:AdminPassword"] ?? "admin123";
+        var email =
+            config["Seed:AdminEmail"]
+            ?? throw new InvalidOperationException("Seed:AdminEmail is not configured.");
+        var pass =
+            config["Seed:AdminPassword"]
+            ?? throw new InvalidOperationException("Seed:AdminPassword is not configured.");
 
         var admin = await userManager.FindByEmailAsync(email);
         if (admin is null)

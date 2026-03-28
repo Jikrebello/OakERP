@@ -13,6 +13,10 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
+        var apiBaseUrl =
+            builder.Configuration["Api:BaseUrl"]
+            ?? Environment.GetEnvironmentVariable("OakERP__Api__BaseUrl")
+            ?? "https://localhost:7057/api/";
 
         builder
             .UseMauiApp<App>()
@@ -35,7 +39,7 @@ public static class MauiProgram
 
             var client = new HttpClient(tokenHandler)
             {
-                BaseAddress = new Uri("https://localhost:7057/api/"),
+                BaseAddress = new Uri(apiBaseUrl),
             };
 
             var logger = sp.GetRequiredService<ILogger<ApiClient>>();

@@ -33,3 +33,11 @@
 - Moving persistence/repository registration into `OakERP.Infrastructure` does not create a new reverse dependency.
 - Moving auth registration into `OakERP.Auth` does not create a new reverse dependency because `OakERP.Auth` already references `OakERP.Infrastructure`.
 - No `Infrastructure -> Auth -> Infrastructure` loop is introduced by this Phase 1 extraction.
+
+## Phase 2 Findings
+
+- API CORS allowed origins were hardcoded in `OakERP.API/Program.cs`.
+- Web client API base URL was hardcoded in `OakERP.Web/Program.cs`.
+- Desktop client API base URL was hardcoded in `OakERP.Desktop/MauiProgram.cs`.
+- Seed fallback values lived in code in `RoleAndAdminSeeder` even though equivalent values already existed in environment-specific appsettings.
+- Integration tests repeated local PostgreSQL connection strings in multiple helper classes instead of reading from configuration with override hooks.

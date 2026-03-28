@@ -7,6 +7,9 @@ using OakERP.Infrastructure.Persistence.Seeding.Accounts;
 using OakERP.Infrastructure.Persistence.Seeding.Views;
 
 var builder = WebApplication.CreateBuilder(args);
+var allowedOrigins =
+    builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? throw new InvalidOperationException("Cors:AllowedOrigins is not configured.");
 
 // Services
 builder.Services.AddControllers();
@@ -37,7 +40,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("https://localhost:7094")
+                .WithOrigins(allowedOrigins)
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();

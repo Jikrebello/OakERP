@@ -9,9 +9,7 @@ public static class TestDatabaseReset
 
     public static async Task ResetAsync()
     {
-        await using var conn = new NpgsqlConnection(
-            "Host=localhost;Port=5433;Database=oakerp_test;Username=oakadmin;Password=oakpass;Include Error Detail=true"
-        );
+        await using var conn = new NpgsqlConnection(TestConfiguration.GetResetConnectionString());
         await conn.OpenAsync();
 
         _respawner ??= await Respawner.CreateAsync(

@@ -15,9 +15,7 @@ public abstract class IntegrationTestBase
 
     public virtual async Task SetUp()
     {
-        _connection = new NpgsqlConnection(
-            "Host=localhost;Port=5433;Username=oakadmin;Password=oakpass;Database=oakerp"
-        );
+        _connection = new NpgsqlConnection(TestConfiguration.GetTransactionalConnectionString());
         await _connection.OpenAsync();
 
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()

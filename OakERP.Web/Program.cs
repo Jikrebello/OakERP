@@ -8,6 +8,9 @@ using OakERP.Web.Components;
 using OakERP.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+var apiBaseUrl =
+    builder.Configuration["Api:BaseUrl"]
+    ?? throw new InvalidOperationException("Api:BaseUrl is not configured.");
 
 // Add Razor Components & Fluent UI
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
@@ -25,7 +28,7 @@ builder.Services.AddScoped<AuthTokenHandler>();
 builder
     .Services.AddHttpClient<IApiClient, ApiClient>(client =>
     {
-        client.BaseAddress = new Uri("https://localhost:7057/api/");
+        client.BaseAddress = new Uri(apiBaseUrl);
     })
     .AddHttpMessageHandler<AuthTokenHandler>();
 
