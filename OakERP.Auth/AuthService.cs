@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using OakERP.Application.Interfaces.Persistence;
@@ -34,6 +34,11 @@ public class AuthService(
     ILogger<AuthService> logger
 ) : IAuthService
 {
+    // Single mapping point from the Identity-backed ApplicationUser entity
+    // into the minimal auth-local JWT input contract.
+    private static JwtTokenInput MapToJwtTokenInput(ApplicationUser user) =>
+        new(user.Id, user.Email!, user.TenantId);
+
     /// <summary>
     /// Registers a new user and creates a tenant with an associated license.
     /// </summary>
@@ -120,7 +125,7 @@ public class AuthService(
                 tenant.Name
             );
 
-            var token = jwtGenerator.Generate(user);
+            var token = jwtGenerator.Generate(MapToJwtTokenInput(user));
 
             return AuthResultDTO.SuccessWith(token, $"{user.FirstName} {user.LastName}");
         }
@@ -181,7 +186,7 @@ public class AuthService(
         // await signInManager.SignInAsync(user, isPersistent: false);
 
         var primaryRole = (await userManager.GetRolesAsync(user)).FirstOrDefault() ?? "User";
-        var token = jwtGenerator.Generate(user);
+        var token = jwtGenerator.Generate(MapToJwtTokenInput(user));
 
         return AuthResultDTO.SuccessWith(token, userName: user.UserName!, role: primaryRole);
     }

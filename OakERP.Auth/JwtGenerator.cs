@@ -1,9 +1,8 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using OakERP.Domain.Entities.Users;
 
 namespace OakERP.Auth;
 
@@ -16,16 +15,16 @@ namespace OakERP.Auth;
 public class JwtGenerator(IConfiguration config) : IJwtGenerator
 {
     /// <summary>
-    /// Generates a JSON Web Token (JWT) for the specified user.
+    /// Generates a JSON Web Token (JWT) for the specified token input.
     /// </summary>
     /// <remarks>The method retrieves JWT configuration settings, including the signing key, issuer, audience,
     /// and expiration time, from the application's configuration. The signing key must be at least  32 characters long
     /// to ensure compatibility with HMAC-SHA256.</remarks>
-    /// <param name="user">The user for whom the JWT is being generated. Must not be null.</param>
+    /// <param name="input">The minimal auth-local token input required to generate the JWT.</param>
     /// <returns>A string representation of the generated JWT, which includes claims such as the user's ID, email,  and tenant
     /// ID, and is signed using HMAC-SHA256.</returns>
     /// <exception cref="InvalidOperationException">Thrown if the signing key specified in the configuration is less than 32 characters long.</exception>
-    public string Generate(ApplicationUser user)
+    public string Generate(JwtTokenInput input)
     {
         var jwtSettings = config.GetSection("JwtSettings");
 
@@ -39,9 +38,9 @@ public class JwtGenerator(IConfiguration config) : IJwtGenerator
 
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, user.Id),
-            new(JwtRegisteredClaimNames.Email, user.Email!),
-            new("tenantId", user.TenantId.ToString()),
+            new(JwtRegisteredClaimNames.Sub, input.UserId),
+            new(JwtRegisteredClaimNames.Email, input.Email),
+            new("tenantId", input.TenantId.ToString()),
         };
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

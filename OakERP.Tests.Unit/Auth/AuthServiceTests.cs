@@ -292,7 +292,7 @@ public class AuthServiceTests
         result.Message.ShouldBe("Tenant not found.");
 
         // Optional: ensure we never issued a token
-        _factory.JwtGenerator.Verify(j => j.Generate(It.IsAny<ApplicationUser>()), Times.Never);
+        _factory.JwtGenerator.Verify(j => j.Generate(It.IsAny<JwtTokenInput>()), Times.Never);
 
         _factory.SignInManager.Verify(
             s => s.CheckPasswordSignInAsync(fakeUser, dto.Password, It.IsAny<bool>()),
@@ -466,5 +466,16 @@ public class AuthServiceTests
         // Assert
         result.Success.ShouldBeTrue();
         result.Token.ShouldNotBeNullOrWhiteSpace();
+        _factory.JwtGenerator.Verify(
+            j =>
+                j.Generate(
+                    It.Is<JwtTokenInput>(input =>
+                        input.UserId == user.Id
+                        && input.Email == user.Email
+                        && input.TenantId == user.TenantId
+                    )
+                ),
+            Times.Once
+        );
     }
 }

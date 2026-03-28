@@ -46,7 +46,7 @@ public class AuthServiceTestFactory
             null
         );
 
-        JwtGenerator.Setup(j => j.Generate(It.IsAny<ApplicationUser>())).Returns("mock-token");
+        JwtGenerator.Setup(j => j.Generate(It.IsAny<JwtTokenInput>())).Returns("mock-token");
 
         UnitOfWork.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
         UnitOfWork.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
