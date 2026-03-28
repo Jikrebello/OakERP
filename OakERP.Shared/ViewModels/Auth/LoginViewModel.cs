@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.FluentUI.AspNetCore.Components;
+using OakERP.Client.Services.Api;
+using OakERP.Client.Services.Auth;
 using OakERP.Shared.Models.Auth;
-using OakERP.Shared.Services.Api;
-using OakERP.Shared.Services.Auth;
 using OakERP.Shared.ViewModels.Base;
 
 namespace OakERP.Shared.ViewModels.Auth;

@@ -1,8 +1,8 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using OakERP.Common.Abstractions;
 
-namespace OakERP.Shared.Services.Auth;
+namespace OakERP.Client.Services.Auth;
 
 public class CurrentUserService(ITokenStore tokenStore) : ICurrentUserService
 {

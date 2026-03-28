@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using OakERP.Shared.Services.Api;
+using OakERP.Client.Services.Api;
 
 namespace OakERP.Shared.ViewModels.Base;
 

@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.FluentUI.AspNetCore.Components;
+using OakERP.Client.Services.Api;
 using OakERP.Common.Abstractions;
 using OakERP.Shared.Extensions;
 using OakERP.Shared.Services;
-using OakERP.Shared.Services.Api;
 using OakERP.Web.Components;
 using OakERP.Web.Services;
 

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
-using OakERP.Shared.Services.Api;
+using OakERP.Client.Services.Api;
 
 namespace OakERP.Shared.ViewModels.Base;
 

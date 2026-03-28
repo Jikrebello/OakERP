@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.FluentUI.AspNetCore.Components;
+using OakERP.Client.Services.Api;
 using OakERP.Common.Abstractions;
 using OakERP.Services;
 using OakERP.Shared.Extensions;
 using OakERP.Shared.Services;
-using OakERP.Shared.Services.Api;
 
 namespace OakERP;
 
@@ -37,10 +37,7 @@ public static class MauiProgram
             var tokenHandler = sp.GetRequiredService<AuthTokenHandler>();
             tokenHandler.InnerHandler = new HttpClientHandler();
 
-            var client = new HttpClient(tokenHandler)
-            {
-                BaseAddress = new Uri(apiBaseUrl),
-            };
+            var client = new HttpClient(tokenHandler) { BaseAddress = new Uri(apiBaseUrl) };
 
             var logger = sp.GetRequiredService<ILogger<ApiClient>>();
             return new ApiClient(client, logger);

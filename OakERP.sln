@@ -67,6 +67,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		project-tree.ps1 = project-tree.ps1
 		README.md = README.md
 		run-project-tree.cmd = run-project-tree.cmd
+		setup-oakerp-codex.ps1 = setup-oakerp-codex.ps1
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OakERP.Shared", "OakERP.Shared\OakERP.Shared.csproj", "{89732691-0A83-4C49-BFC8-7159188D6911}"
@@ -74,6 +75,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OakERP.Web", "OakERP.Web\OakERP.Web.csproj", "{0262C223-B5D3-C808-22DD-A99717A140D3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OakERP.Desktop", "OakERP.Desktop\OakERP.Desktop.csproj", "{F3DC8E0E-403F-AD7A-4B9D-24E3C644C52E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OakERP.Client", "OakERP.Client\OakERP.Client.csproj", "{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -265,6 +268,18 @@ Global
 		{F3DC8E0E-403F-AD7A-4B9D-24E3C644C52E}.Release|x64.Build.0 = Release|Any CPU
 		{F3DC8E0E-403F-AD7A-4B9D-24E3C644C52E}.Release|x86.ActiveCfg = Release|Any CPU
 		{F3DC8E0E-403F-AD7A-4B9D-24E3C644C52E}.Release|x86.Build.0 = Release|Any CPU
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}.Debug|x64.Build.0 = Debug|Any CPU
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}.Debug|x86.Build.0 = Debug|Any CPU
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}.Release|x64.ActiveCfg = Release|Any CPU
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}.Release|x64.Build.0 = Release|Any CPU
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}.Release|x86.ActiveCfg = Release|Any CPU
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -285,6 +300,7 @@ Global
 		{89732691-0A83-4C49-BFC8-7159188D6911} = {1FDDAC9E-D108-46D0-8303-2E1569D80CD6}
 		{0262C223-B5D3-C808-22DD-A99717A140D3} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{F3DC8E0E-403F-AD7A-4B9D-24E3C644C52E} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{A04B9E43-6C34-F7B7-CF10-37F28E83DD1A} = {1FDDAC9E-D108-46D0-8303-2E1569D80CD6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {44FABA3B-8150-4C0B-9A4D-ACECFA4B1CAB}

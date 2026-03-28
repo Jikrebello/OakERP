@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Identity;
 using System.Reflection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,10 +48,13 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContext<ApplicationDbContext>(opt =>
         {
-            var builder = opt.UseNpgsql(cs, npgsql =>
-            {
-                configureNpgsql?.Invoke(npgsql);
-            });
+            var builder = opt.UseNpgsql(
+                cs,
+                npgsql =>
+                {
+                    configureNpgsql?.Invoke(npgsql);
+                }
+            );
             builder.UseSnakeCaseNamingConvention();
         });
 

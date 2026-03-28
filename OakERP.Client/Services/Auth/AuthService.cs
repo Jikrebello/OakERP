@@ -1,8 +1,8 @@
-﻿using OakERP.Common.DTOs.Auth;
-using OakERP.Shared.ApiRoutes;
-using OakERP.Shared.Services.Api;
+using OakERP.Client.ApiRoutes;
+using OakERP.Client.Services.Api;
+using OakERP.Common.DTOs.Auth;
 
-namespace OakERP.Shared.Services.Auth;
+namespace OakERP.Client.Services.Auth;
 
 public class AuthService(IApiClient api) : IAuthService
 {

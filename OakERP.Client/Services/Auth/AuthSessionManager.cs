@@ -1,7 +1,7 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using OakERP.Common.Abstractions;
 
-namespace OakERP.Shared.Services.Auth;
+namespace OakERP.Client.Services.Auth;
 
 public class AuthSessionManager(ITokenStore tokenStore, ICurrentUserService currentUser)
     : IAuthSessionManager

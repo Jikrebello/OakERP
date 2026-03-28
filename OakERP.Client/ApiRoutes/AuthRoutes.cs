@@ -1,4 +1,4 @@
-﻿namespace OakERP.Shared.ApiRoutes;
+namespace OakERP.Client.ApiRoutes;
 
 public static class AuthRoutes
 {

@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OakERP.Common\OakERP.Common.csproj" />
+    <ProjectReference Include="..\OakERP.Client\OakERP.Client.csproj" />
   </ItemGroup>
 
 </Project>
