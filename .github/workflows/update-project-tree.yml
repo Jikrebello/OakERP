@@ -1,0 +1,43 @@
+name: update-project-tree
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - project-structure.txt
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-project-tree:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate project tree
+        shell: pwsh
+        run: |
+          ./project-tree.ps1
+
+      - name: Commit updated project structure
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add project-structure.txt
+
+          if (git diff --cached --quiet) {
+            Write-Host "No project tree changes to commit."
+            exit 0
+          }
+
+          git commit -m "docs: update project structure"
+          git push

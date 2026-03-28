@@ -1,115 +1,10 @@
-﻿using System.Reflection;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OakERP.API.Swagger.Filters.Auth;
-using OakERP.Application.Interfaces.Persistence;
-using OakERP.Auth;
-using OakERP.Domain.Entities.Users;
-using OakERP.Domain.Repository_Interfaces.Users;
-using OakERP.Infrastructure.Persistence;
-using OakERP.Infrastructure.Persistence.Seeding.Base;
-using OakERP.Infrastructure.Repositories.Users;
 
 namespace OakERP.API.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddApplicationDb(
-        this IServiceCollection services,
-        IConfiguration config
-    )
-    {
-        var cs =
-            config.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException(
-                "ConnectionStrings:DefaultConnection is not configured."
-            );
-
-        services.AddDbContext<ApplicationDbContext>(opt =>
-            opt.UseNpgsql(cs).UseSnakeCaseNamingConvention()
-        );
-
-        return services;
-    }
-
-    public static IServiceCollection AddSeedersFromAssemblies(
-        this IServiceCollection services,
-        params Assembly[] assemblies
-    )
-    {
-        var seederType = typeof(ISeeder);
-
-        var candidates = assemblies
-            .Where(a => a != null)
-            .Distinct()
-            .SelectMany(a => a.GetTypes())
-            .Where(t => seederType.IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface)
-            .Distinct()
-            .ToList();
-
-        foreach (var type in candidates)
-        {
-            services.AddScoped(seederType, type);
-        }
-
-        return services;
-    }
-
-    public static IServiceCollection AddIdentityServices(this IServiceCollection services)
-    {
-        services
-            .AddIdentity<ApplicationUser, IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultTokenProviders();
-
-        services.Configure<IdentityOptions>(options =>
-        {
-            options.Password.RequireDigit = false;
-            options.Password.RequiredLength = 6;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireLowercase = false;
-        });
-
-        return services;
-    }
-
-    public static IServiceCollection AddJwtAuth(
-        this IServiceCollection services,
-        IConfiguration config
-    )
-    {
-        var jwtSettings = config.GetSection("JwtSettings");
-
-        services
-            .AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSettings["Issuer"],
-                    ValidAudience = jwtSettings["Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtSettings["Key"]!)
-                    ),
-                };
-            });
-
-        return services;
-    }
-
     public static IServiceCollection AddSwaggerDocs(this IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();
@@ -154,27 +49,6 @@ public static class ServiceCollectionExtensions
             );
         });
 
-        return services;
-    }
-
-    public static IServiceCollection AddPersistenceServices(this IServiceCollection services)
-    {
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-        return services;
-    }
-
-    public static IServiceCollection AddAuthServices(this IServiceCollection services)
-    {
-        services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IJwtGenerator, JwtGenerator>();
-        return services;
-    }
-
-    public static IServiceCollection AddRepositories(this IServiceCollection services)
-    {
-        services.AddScoped<ITenantRepository, TenantRepository>();
-        services.AddScoped<ILicenseRepository, LicenseRepository>();
         return services;
     }
 }

@@ -1,10 +1,11 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OakERP.API.Extensions;
+using OakERP.Auth.Extensions;
+using OakERP.Infrastructure.Extensions;
 using OakERP.Infrastructure.Persistence;
 using OakERP.Infrastructure.Persistence.Seeding;
 
@@ -31,16 +32,8 @@ using var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(
         (ctx, services) =>
         {
-            var cs =
-                ctx.Configuration.GetConnectionString("DefaultConnection")
-                ?? throw new InvalidOperationException(
-                    "ConnectionStrings:DefaultConnection is not configured."
-                );
-
             services
-                .AddDbContext<ApplicationDbContext>(opt =>
-                    opt.UseNpgsql(cs, o => o.UseNodaTime()).UseSnakeCaseNamingConvention()
-                )
+                .AddApplicationDb(ctx.Configuration, o => o.UseNodaTime())
                 .AddIdentityServices();
 
             // register seeders (same discovery you use in API)
