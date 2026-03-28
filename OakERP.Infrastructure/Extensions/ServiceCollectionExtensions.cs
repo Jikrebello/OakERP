@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Identity;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using OakERP.Application.Interfaces.Persistence;
+using OakERP.Domain.Entities.Users;
 using OakERP.Domain.Repository_Interfaces.Users;
 using OakERP.Infrastructure.Persistence;
 using OakERP.Infrastructure.Persistence.Seeding.Base;
@@ -13,6 +15,25 @@ namespace OakERP.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    public static IServiceCollection AddIdentityServices(this IServiceCollection services)
+    {
+        services
+            .AddIdentity<ApplicationUser, IdentityRole>()
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
+
+        services.Configure<IdentityOptions>(options =>
+        {
+            options.Password.RequireDigit = false;
+            options.Password.RequiredLength = 6;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireLowercase = false;
+        });
+
+        return services;
+    }
+
     public static IServiceCollection AddApplicationDb(
         this IServiceCollection services,
         IConfiguration config,

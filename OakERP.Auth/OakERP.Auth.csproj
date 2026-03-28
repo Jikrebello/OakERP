@@ -15,9 +15,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\OakERP.Application\OakERP.Application.csproj" />
 		<ProjectReference Include="..\OakERP.Domain\OakERP.Domain.csproj" />
 		<ProjectReference Include="..\OakERP.Common\OakERP.Common.csproj" />
-		<ProjectReference Include="..\OakERP.Infrastructure\OakERP.Infrastructure.csproj" />
 	</ItemGroup>
 
 </Project>
