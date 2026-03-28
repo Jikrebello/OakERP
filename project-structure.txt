@@ -1,165 +1,46 @@
-﻿OakERP
+OakERP
 +-- .codex
 |   \-- skills
 |       \-- oakerp-architecture
 |           \-- SKILL.md
-+-- .vs
-|   +-- OakERP
-|   |   +-- config
-|   |   |   \-- applicationhost.config
-|   |   +-- copilot-chat
-|   |   |   \-- 53bd7801
-|   |   |       \-- sessions
-|   |   |           \-- 1b80a8a8-bfaf-4f97-b95c-f6cf9bfd56b8
-|   |   +-- CopilotIndices
-|   |   |   \-- 18.0.934.24903
-|   |   |       +-- CodeChunks.db
-|   |   |       \-- SemanticSymbols.db
-|   |   +-- DesignTimeBuild
-|   |   |   \-- .dtbcache.v2
-|   |   +-- FileContentIndex
-|   |   |   +-- 0c06c5c0-eaa7-4c59-91b6-083d22950822.vsidx
-|   |   |   +-- 12622657-2419-48cd-9823-0655304264da.vsidx
-|   |   |   +-- 5a5ebd17-0e68-470f-9200-7c1f41993099.vsidx
-|   |   |   +-- 9a915586-ce9a-44fe-a175-e9fba49dc49e.vsidx
-|   |   |   \-- d14edc17-a9f4-4ab2-b35c-3ef9dc3fa71a.vsidx
-|   |   +-- v17
-|   |   |   +-- TestStore
-|   |   |   |   +-- 0
-|   |   |   |   |   +-- 049.testlog
-|   |   |   |   |   \-- testlog.manifest
-|   |   |   |   \-- OutputMessages
-|   |   |   |       +-- 026aa39b-3f74-c84f-4e67-57da6ba39751
-|   |   |   |       +-- 06397687-7215-46ed-e9c0-b8ef28f2fd0f
-|   |   |   |       +-- 068d6281-bbae-aa9b-b1da-acb13cf8fb88
-|   |   |   |       +-- 0c98b989-f68b-cc21-aac8-f141b89bf941
-|   |   |   |       +-- 0f9445bf-6cf1-98d0-84bb-605d3257f401
-|   |   |   |       +-- 1754ecfd-138c-a920-27ac-00e1f1792787
-|   |   |   |       +-- 17c753af-078c-7a2c-9406-20f47b388852
-|   |   |   |       +-- 1ab7a74b-bbdd-7215-b5c7-d884cd8754c3
-|   |   |   |       +-- 200439c5-13a2-85b3-3ec7-5eacf697de47
-|   |   |   |       |   \-- StandardOutput.txt
-|   |   |   |       +-- 292279cb-f86a-74cd-f646-91cab972dc52
-|   |   |   |       +-- 2e20618b-b50f-5a79-5179-f3de49b96954
-|   |   |   |       +-- 37a3466a-5fc7-39a3-94a3-46c329211e03
-|   |   |   |       +-- 41562165-900a-b0d3-a141-f6088f82a286
-|   |   |   |       +-- 42fa8882-d0d2-9bb4-b5b6-0d79f7088d90
-|   |   |   |       |   \-- StandardOutput.txt
-|   |   |   |       +-- 44cca638-15c8-a872-5807-fad7805e0989
-|   |   |   |       |   \-- StandardOutput.txt
-|   |   |   |       +-- 4b9ffe91-5a85-23b4-b1e4-99408672b0b7
-|   |   |   |       +-- 4f9f1298-64b3-d44e-c360-ac56369263c1
-|   |   |   |       +-- 52ad4da7-3312-20bc-a9e9-15cec8908f03
-|   |   |   |       +-- 52f3343b-204d-1fc1-4a65-e5994ab2afb2
-|   |   |   |       +-- 6460be86-7d12-9347-84f5-2f4e824841cd
-|   |   |   |       +-- 68c10b0e-7512-adf1-ddf8-e982af52fb34
-|   |   |   |       +-- 6c834fdf-b617-5e78-d158-2f3078aad094
-|   |   |   |       +-- 6d4d4761-3494-2b49-4c85-126e17ca33bd
-|   |   |   |       |   \-- StandardOutput.txt
-|   |   |   |       +-- 6e6badec-ede6-02fc-892e-56f77a070d38
-|   |   |   |       +-- 766edf20-580e-fec6-53e7-61e3b6b94c2e
-|   |   |   |       +-- 8453cebb-5b8a-0b99-4c59-9116e0334c9e
-|   |   |   |       +-- 89e32374-5716-c15d-a704-02c77ac91c16
-|   |   |   |       +-- 8bc93787-c32a-6453-5401-fd4cda9d00c0
-|   |   |   |       +-- 8fff08e3-78e6-cad8-07be-12aad1ab3aea
-|   |   |   |       +-- 907109c9-5551-846e-cb48-3a5e0a81ee64
-|   |   |   |       |   \-- StandardOutput.txt
-|   |   |   |       +-- 96733cfd-4470-d598-03b7-21873f82561e
-|   |   |   |       +-- 9d544651-2586-bfd7-06da-32b39ed616c9
-|   |   |   |       +-- a48c3ec9-cc2b-4991-744f-6caeff2b5a95
-|   |   |   |       +-- a5ffe3a4-e170-d2cf-5e8a-9ce057a04f69
-|   |   |   |       +-- aea976e0-945f-443f-b4ba-1f964e07dec1
-|   |   |   |       +-- af559302-0326-948c-f3b7-5836524291c0
-|   |   |   |       +-- ba9ffc36-79fc-0ea4-5a72-6f39ece857b7
-|   |   |   |       +-- be54380a-8ba3-9e6d-6225-02727e27976e
-|   |   |   |       +-- c08e7b99-f79b-4322-5ff4-a02fd2727d47
-|   |   |   |       +-- caf94636-2f3c-7849-7de2-8c43f21741df
-|   |   |   |       +-- cd52f58d-3424-a296-12c6-9a07504f6449
-|   |   |   |       +-- d552a4ac-aff9-d889-09ac-66f1f3a786ca
-|   |   |   |       +-- dd6b8326-e98b-4528-8166-c1dae71bb12f
-|   |   |   |       |   \-- StandardOutput.txt
-|   |   |   |       +-- e30da769-34ca-81ba-19e4-8e448caebcd2
-|   |   |   |       +-- e97a57ce-2806-0527-02a4-bcc7b2adb13c
-|   |   |   |       +-- eb3213da-6069-0837-7a07-b39040710a80
-|   |   |   |       +-- ee33740a-a4be-662e-366a-1ecdf19d1a12
-|   |   |   |       +-- f4b281be-e79d-52f2-3be7-756719d662a1
-|   |   |   |       +-- f76f24d7-5be1-7590-68f6-a190c07ce904
-|   |   |   |       +-- f834ef10-9b74-8f33-0665-23fe40cc854d
-|   |   |   |       \-- fde9f466-24ee-ce0b-0cd2-ef9a8b71e51a
-|   |   |   +-- .futdcache.v2
-|   |   |   +-- .suo
-|   |   |   +-- .wsuo
-|   |   |   +-- DocumentLayout.backup.json
-|   |   |   +-- DocumentLayout.json
-|   |   |   \-- HierarchyCache.v1.txt
-|   |   \-- v18
-|   |       +-- TestStore
-|   |       |   +-- 0
-|   |       |   |   +-- 004.testlog
-|   |       |   |   \-- testlog.manifest
-|   |       |   \-- OutputMessages
-|   |       |       +-- 010ac437-31de-2bdf-03a3-486f9400203d
-|   |       |       +-- 1170e211-929b-49db-6373-f0484b4313f4
-|   |       |       +-- 1df90c73-70c3-ca98-57b1-a037df8f8c24
-|   |       |       +-- 30b574e3-49eb-3672-2e98-ea3c5ceaa90b
-|   |       |       |   \-- StandardOutput.txt
-|   |       |       +-- 35ef9154-4fce-3ef8-fcf4-8143844c4b94
-|   |       |       +-- 3b7e7c1c-ce0f-e39c-ea13-1495958992a7
-|   |       |       +-- 4f9f1298-64b3-d44e-c360-ac56369263c1
-|   |       |       +-- 52ad4da7-3312-20bc-a9e9-15cec8908f03
-|   |       |       +-- 537c48ec-4a51-811f-d6d9-808cc0c4dd6f
-|   |       |       +-- 567b2d4f-56eb-435b-2d2c-2609c3e6783e
-|   |       |       +-- 580caf8c-5f31-5c26-b257-9c4e5b2bcce2
-|   |       |       +-- 629a1478-a4ce-bf38-d1fc-b9f37c09497a
-|   |       |       +-- 6baceda0-6bc6-34eb-06da-ed14bd61d6da
-|   |       |       +-- 6d1492b3-e383-1c6f-5bcf-79e3708a9e34
-|   |       |       +-- 786f3d83-9375-6aae-aebf-7e0f044b8a42
-|   |       |       +-- 8d611c2d-47c9-c191-03e4-f934da4c160e
-|   |       |       |   \-- StandardOutput.txt
-|   |       |       +-- 8d8d5e9e-b1e7-fe1d-d92a-76046d47732c
-|   |       |       |   \-- StandardOutput.txt
-|   |       |       +-- a48c3ec9-cc2b-4991-744f-6caeff2b5a95
-|   |       |       |   \-- StandardOutput.txt
-|   |       |       +-- a6c86ecc-74ff-02fe-6f65-ca824c0cca44
-|   |       |       +-- abaa7134-a0e3-6154-fd0e-99bc73bda513
-|   |       |       |   \-- StandardOutput.txt
-|   |       |       +-- b8419d4a-38b2-39a3-4df4-eb359a9b815f
-|   |       |       +-- ba9ffc36-79fc-0ea4-5a72-6f39ece857b7
-|   |       |       |   \-- StandardOutput.txt
-|   |       |       +-- ca99f906-1a81-5d28-f635-d3ec78f8a2a8
-|   |       |       +-- ca9a4b93-8684-6085-c08b-097957d3e750
-|   |       |       +-- caf94636-2f3c-7849-7de2-8c43f21741df
-|   |       |       +-- cd52f58d-3424-a296-12c6-9a07504f6449
-|   |       |       +-- d37d7568-1e43-7209-23d5-18818e5dcee2
-|   |       |       +-- d552a4ac-aff9-d889-09ac-66f1f3a786ca
-|   |       |       +-- d5873563-5c2a-c59f-9747-ca2f17398dfa
-|   |       |       +-- d7c9f271-1139-0210-fe61-cf5c37216ad4
-|   |       |       +-- ebfc29e9-c9eb-0582-210f-d48ae545a732
-|   |       |       +-- ee33740a-a4be-662e-366a-1ecdf19d1a12
-|   |       |       +-- f67caf4f-13a3-c3a3-49d1-a02c7bf5ddf0
-|   |       |       |   \-- StandardOutput.txt
-|   |       |       \-- f76f24d7-5be1-7590-68f6-a190c07ce904
-|   |       |           \-- StandardOutput.txt
-|   |       +-- .futdcache.v2
-|   |       +-- .suo
-|   |       +-- csharpier.json
-|   |       +-- DocumentLayout.backup.json
-|   |       \-- DocumentLayout.json
-|   +-- ProjectEvaluation
-|   |   +-- oakerp.metadata.v10.bin
-|   |   +-- oakerp.projects.v10.bin
-|   |   \-- oakerp.strings.v10.bin
-|   +-- sd
-|   +-- slnx.sqlite
-|   +-- slnx.sqlite-journal
-|   \-- VSWorkspaceState.json
 +-- docs
 |   +-- adr
+|   |   \-- ADR-0001-architecture-principles.md
 |   +-- ai
 |   |   \-- tasks
 |   |       +-- active
-|   |       +-- archive
+|   |       |   +-- auth-boundary-cleanup
+|   |       |   |   +-- findings.md
+|   |       |   |   +-- progress.md
+|   |       |   |   \-- task_plan.md
+|   |       |   +-- auth-jwt-input-cleanup
+|   |       |   |   +-- findings.md
+|   |       |   |   +-- progress.md
+|   |       |   |   \-- task_plan.md
+|   |       |   +-- composition-root-cleanup
+|   |       |   |   +-- findings.md
+|   |       |   |   +-- progress.md
+|   |       |   |   \-- task_plan.md
+|   |       |   +-- migration-seeding-clarification
+|   |       |   |   +-- findings.md
+|   |       |   |   +-- progress.md
+|   |       |   |   \-- task_plan.md
+|   |       |   +-- shared-client-plumbing-separation
+|   |       |   |   +-- findings.md
+|   |       |   |   +-- progress.md
+|   |       |   |   \-- task_plan.md
+|   |       |   +-- shared-ui-auth-state-separation
+|   |       |   |   +-- findings.md
+|   |       |   |   +-- progress.md
+|   |       |   |   \-- task_plan.md
+|   |       |   \-- test-harness-cleanup
+|   |       |       +-- findings.md
+|   |       |       +-- progress.md
+|   |       |       \-- task_plan.md
 |   |       \-- templates
+|   |           +-- findings.md
+|   |           +-- progress.md
+|   |           \-- task_plan.md
 |   \-- architecture
 |       \-- dependency-rules.md
 +-- initdb
@@ -186,7 +67,6 @@
 |   +-- appsettings.Production.json
 |   +-- appsettings.Testing.json
 |   +-- OakERP.API.csproj
-|   +-- OakERP.API.csproj.user
 |   +-- OakERP.WebAPI.http
 |   \-- Program.cs
 +-- OakERP.Application
@@ -201,13 +81,32 @@
 |   |   \-- UnpostResult.cs
 |   \-- OakERP.Application.csproj
 +-- OakERP.Auth
+|   +-- Extensions
+|   |   \-- ServiceCollectionExtensions.cs
 |   +-- AuthService.cs
 |   +-- IAuthService.cs
 |   +-- IJwtGenerator.cs
 |   +-- JwtGenerator.cs
+|   +-- JwtTokenInput.cs
 |   \-- OakERP.Auth.csproj
 +-- OakERP.Client
-|   \-- OakERP.Client.csproj.user
+|   +-- ApiRoutes
+|   |   \-- AuthRoutes.cs
+|   +-- Extensions
+|   |   \-- ServiceCollectionExtensions.cs
+|   +-- Services
+|   |   +-- Api
+|   |   |   +-- ApiClient.cs
+|   |   |   +-- ApiResult.cs
+|   |   |   +-- AuthTokenHandler.cs
+|   |   |   \-- IApiClient.cs
+|   |   \-- Auth
+|   |       +-- AuthService.cs
+|   |       +-- AuthSessionManager.cs
+|   |       +-- CurrentUserService.cs
+|   |       +-- IAuthService.cs
+|   |       \-- IAuthSessionManager.cs
+|   \-- OakERP.Client.csproj
 +-- OakERP.Common
 |   +-- Abstractions
 |   |   +-- ICurrentUserService.cs
@@ -277,14 +176,13 @@
 |   +-- MainPage.xaml
 |   +-- MainPage.xaml.cs
 |   +-- MauiProgram.cs
-|   +-- OakERP.Desktop.csproj
-|   \-- OakERP.Desktop.csproj.user
+|   \-- OakERP.Desktop.csproj
 +-- OakERP.Docs
 |   +-- db-setup.md
 |   +-- ef-core.md
 |   +-- Oak_ERP_Solution_Structure.txt
-|   +-- OakERP.Docs.csproj
 |   +-- oakERP-testing-guide.md
+|   +-- OakERP.Docs.csproj
 |   \-- README-dev.md
 +-- OakERP.Domain
 |   +-- Entities
@@ -386,6 +284,8 @@
 |   |       \-- ITenantRepository.cs
 |   \-- OakERP.Domain.csproj
 +-- OakERP.Infrastructure
+|   +-- Extensions
+|   |   \-- ServiceCollectionExtensions.cs
 |   +-- Migrations
 |   |   +-- 20251201170038_Init.cs
 |   |   +-- 20251201170038_Init.Designer.cs
@@ -452,7 +352,6 @@
 |   |   |       +-- public.v_item_balance.psql
 |   |   |       \-- SqlViewManifest.cs
 |   |   +-- ApplicationDbContext.cs
-|   |   +-- DbInitializer.cs
 |   |   +-- DesignTimeDbContextFactory.cs
 |   |   \-- UnitOfWork.cs
 |   +-- Repositories
@@ -558,8 +457,6 @@
 |   +-- ExampleJsInterop.cs
 |   \-- OakERP.Reports.csproj
 +-- OakERP.Shared
-|   +-- ApiRoutes
-|   |   \-- AuthRoutes.cs
 |   +-- Components
 |   |   +-- ErrorToast.razor
 |   |   \-- OakToastProvider.razor
@@ -569,10 +466,6 @@
 |   +-- Layout
 |   |   +-- MainLayout.razor
 |   |   \-- NavMenu.razor
-|   +-- Models
-|   |   \-- Auth
-|   |       +-- LoginFormModel.cs
-|   |       \-- RegisterFormModel.cs
 |   +-- Pages
 |   |   +-- Auth
 |   |   |   +-- Login.razor
@@ -583,22 +476,8 @@
 |   |   +-- Home.razor
 |   |   \-- Weather.razor
 |   +-- Services
-|   |   +-- Api
-|   |   |   +-- ApiClient.cs
-|   |   |   +-- ApiResult.cs
-|   |   |   +-- AuthTokenHandler.cs
-|   |   |   \-- IApiClient.cs
-|   |   +-- Auth
-|   |   |   +-- AuthService.cs
-|   |   |   +-- AuthSessionManager.cs
-|   |   |   +-- CurrentUserService.cs
-|   |   |   +-- IAuthService.cs
-|   |   |   \-- IAuthSessionManager.cs
 |   |   \-- IFormFactor.cs
 |   +-- ViewModels
-|   |   +-- Auth
-|   |   |   +-- LoginViewModel.cs
-|   |   |   \-- RegisterViewModel.cs
 |   |   \-- Base
 |   |       +-- BaseFormViewModel.cs
 |   |       \-- BaseViewModel.cs
@@ -615,8 +494,8 @@
 |   |   +-- Helpers
 |   |   |   +-- ApiTestException.cs
 |   |   |   \-- HttpClientExtensions.cs
-|   |   +-- IntegrationTestBase.cs
 |   |   +-- OakErpWebFactory.cs
+|   |   +-- TestConfiguration.cs
 |   |   +-- TestDatabaseReset.cs
 |   |   \-- WebApiIntegrationTestBase.cs
 |   +-- ApiRoutes.cs
@@ -627,6 +506,17 @@
 |   |   \-- AuthServiceTests.cs
 |   \-- OakERP.Tests.Unit.csproj
 +-- OakERP.UI
+|   +-- Extensions
+|   |   \-- ServiceCollectionExtensions.cs
+|   +-- Models
+|   |   \-- Auth
+|   |       +-- LoginFormModel.cs
+|   |       \-- RegisterFormModel.cs
+|   +-- ViewModels
+|   |   \-- Auth
+|   |       +-- LoginViewModel.cs
+|   |       \-- RegisterViewModel.cs
+|   \-- OakERP.UI.csproj
 +-- OakERP.Web
 |   +-- Components
 |   |   +-- Pages
@@ -642,20 +532,9 @@
 |   +-- appsettings.Development.json
 |   +-- appsettings.json
 |   +-- OakERP.Web.csproj
-|   +-- OakERP.Web.csproj.user
 |   \-- Program.cs
-+-- OakERP.WebAPI
-|   \-- OakERP.WebAPI.csproj.user
 +-- pgAdmin
 |   \-- servers.json
-+-- TestResults
-|   +-- 8e24b611-e1c9-4256-943a-3c14e1721015
-|   |   \-- James_DESKTOP-S9LIJFL_2025-12-01.20_19_48.coverage
-|   +-- b9538877-df09-4602-bb28-d1324559c822
-|   |   \-- James_DESKTOP-S9LIJFL_2025-12-01.20_17_46.coverage
-|   +-- ce5be827-966c-4f8c-80d0-d84245bec271
-|   \-- df005275-a15a-4aae-bb67-612296175643
-|       \-- James_DESKTOP-S9LIJFL_2025-12-01.20_20_41.coverage
 +-- .editorconfig
 +-- .gitattributes
 +-- .gitignore
@@ -664,9 +543,7 @@
 +-- ef.ps1
 +-- migrate.ps1
 +-- OakERP.sln
-+-- OakERP.slnLaunch.user
 +-- project-structure.txt
 +-- project-tree.ps1
 +-- README.md
-+-- run-project-tree.cmd
-\-- setup-oakerp-codex.ps1
+\-- run-project-tree.cmd
