@@ -18,6 +18,9 @@
 ## Remaining
 - 
 
+## Deferred Smells / Risks
+- 
+
 ## Outcome
 - 
 

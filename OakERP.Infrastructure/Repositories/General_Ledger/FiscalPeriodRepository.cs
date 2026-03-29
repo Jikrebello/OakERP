@@ -22,7 +22,7 @@ public class FiscalPeriodRepository(ApplicationDbContext db) : IFiscalPeriodRepo
         Set.AsNoTracking()
             .SingleOrDefaultAsync(
                 x =>
-                    x.Status == "open"
+                    x.Status == FiscalPeriodStatuses.Open
                     && x.PeriodStart <= postingDate
                     && x.PeriodEnd >= postingDate,
                 ct

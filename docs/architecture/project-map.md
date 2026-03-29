@@ -17,16 +17,20 @@ This file explains what the main projects are supposed to own.
 Business core.
 Owns domain entities and core business concepts.
 Should avoid infrastructure, API, EF Core, and host/UI concerns where possible.
+`OakERP.Domain.Posting` owns runtime posting contracts and models only. It should not silently absorb persisted posting entity types.
 
 ### OakERP.Application
 Application/use-case layer.
 Owns application-facing contracts and orchestration logic.
 Should not depend on API or infrastructure implementations.
+Thin orchestration is preferred here when a use case is meant to coordinate existing domain/runtime components rather than own detailed business calculations.
 
 ### OakERP.Infrastructure
 Persistence and external integration layer.
 Owns EF Core, DbContext, repositories, seeding infrastructure, and related registration.
 Implements backend technical concerns used by API and MigrationTool.
+Posting preparation services that resolve data, accounts, or costs may live here, but posting engines should stay pure and repository methods should remain narrow.
+Small adapter or preparation components are acceptable here when they keep upper-layer orchestration thin and keep pure runtime engines free of lookups and side effects.
 
 ### OakERP.Auth
 Authentication/application-auth layer.

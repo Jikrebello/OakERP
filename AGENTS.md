@@ -16,6 +16,17 @@ When working in this repository, optimize for these outcomes in this order:
 4. Keep changes small, reviewable, and reversible.
 5. Improve clarity of code, naming, and documentation only when it supports architecture or maintainability.
 
+## Engineering Standards
+
+Apply SOLID, DRY, clean architecture, and clean code rules pragmatically:
+
+- fix real coupling, duplication, and unclear ownership problems first
+- do not add abstractions, indirection, or interfaces unless they remove a concrete dependency or repeated logic problem
+- keep orchestrators/services thin when the design intends them to coordinate rather than decide business rules
+- keep pure engines/calculators pure when the design intends them to be deterministic and side-effect free
+- review domain-significant magic numbers and strings; centralize them only when they carry shared business meaning
+- prefer small targeted cleanups over speculative “future-proofing”
+
 ## Non-Goals
 
 Do not introduce broad rewrites, cosmetic churn, or speculative abstractions without a clear architectural payoff.
@@ -63,6 +74,14 @@ For refactor tasks:
 - do not combine architecture cleanup, UI redesign, CI work, and deployment changes in a single task
 - keep public surface changes minimal
 
+For migrations and posting-related refactors:
+
+- every migration `Down()` must only reverse that migration’s `Up()`
+- do not mix runtime posting models with persisted posting entity types in the same abstraction unless explicitly documented as temporary debt
+- centralize business-significant posting literals such as source types, runtime rule scopes, status codes, and settings keys
+- do not claim fallback or precedence coverage in tests unless the setup genuinely exercises the fallback path
+- if a smell or architectural compromise is intentionally deferred, record it in the task docs rather than silently leaving it behind
+
 ### Tests and Validation
 
 After code changes, run the smallest relevant validation first, then broader validation if needed.
@@ -91,6 +110,8 @@ Do not treat “build passes” as sufficient when behavior changed.
 
 If tests are intentionally deferred, say exactly why in `progress.md`.
 
+If behavior changes and tests are not added or updated, treat that as a task-level risk that must be called out explicitly.
+
 ## Planning Rules
 
 For any task that touches multiple projects, changes architecture, or affects more than roughly 3 files, create and maintain task files under:
@@ -106,8 +127,14 @@ Use:
 Minimum expectations:
 
 - `task_plan.md`: scope, constraints, ordered steps, validation plan
-- `findings.md`: current-state observations, dependency violations, risks, unknowns
-- `progress.md`: what changed, what passed, what failed, what remains
+- `findings.md`: current-state observations, dependency violations, risks, unknowns, and deferred smells
+- `progress.md`: what changed, what passed, what failed, what remains, and any intentionally deferred risks
+
+For tasks that touch posting, migrations, or transactional persistence:
+
+- record any new domain-significant constants or enums introduced
+- record whether migration rollback behavior was reviewed or validated
+- record how transactional failure / rollback behavior was validated
 
 Archive completed task folders under:
 

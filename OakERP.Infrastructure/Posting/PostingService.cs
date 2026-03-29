@@ -40,7 +40,9 @@ public sealed class PostingService(
 
         if (command.Force)
         {
-            throw new InvalidOperationException("Force posting is not supported for Slice 1B.");
+            throw new InvalidOperationException(
+                "Force posting is not supported for AR invoice posting."
+            );
         }
 
         await unitOfWork.BeginTransactionAsync();
@@ -72,7 +74,7 @@ public sealed class PostingService(
             )
             {
                 throw new InvalidOperationException(
-                    "Slice 1A only supports AR invoices in the base currency."
+                    "AR invoice posting currently supports only invoices in the base currency."
                 );
             }
 
@@ -186,7 +188,7 @@ public sealed class PostingService(
     public Task<UnpostResult> UnpostAsync(
         UnpostCommand command,
         CancellationToken cancellationToken = default
-    ) => throw new NotSupportedException("Unposting is not supported for Slice 1B.");
+    ) => throw new NotSupportedException("Unposting is not supported for AR invoice posting.");
 
     private async Task ValidateAccountsAsync(
         IReadOnlyList<GlEntryModel> entries,
@@ -222,6 +224,40 @@ public sealed class PostingService(
 
         foreach (GlEntryModel entry in postingResult.GlEntries)
         {
+            if (string.IsNullOrWhiteSpace(entry.SourceType))
+            {
+                throw new InvalidOperationException(
+                    "Posting produced a GL row without a source type."
+                );
+            }
+
+            if (
+                !string.Equals(
+                    entry.SourceType,
+                    PostingSourceTypes.ArInvoice,
+                    StringComparison.Ordinal
+                )
+            )
+            {
+                throw new InvalidOperationException(
+                    "Posting produced a GL row with an unexpected source type."
+                );
+            }
+
+            if (entry.SourceId == Guid.Empty)
+            {
+                throw new InvalidOperationException(
+                    "Posting produced a GL row without a source id."
+                );
+            }
+
+            if (string.IsNullOrWhiteSpace(entry.SourceNo))
+            {
+                throw new InvalidOperationException(
+                    "Posting produced a GL row without a source number."
+                );
+            }
+
             if (entry.Debit < 0m || entry.Credit < 0m)
             {
                 throw new InvalidOperationException("Posting produced negative GL amounts.");
@@ -248,6 +284,47 @@ public sealed class PostingService(
 
         foreach (var movement in postingResult.InventoryMovements)
         {
+            if (string.IsNullOrWhiteSpace(movement.SourceType))
+            {
+                throw new InvalidOperationException(
+                    "AR invoice posting produced an inventory movement without a source type."
+                );
+            }
+
+            if (
+                !string.Equals(
+                    movement.SourceType,
+                    PostingSourceTypes.ArInvoice,
+                    StringComparison.Ordinal
+                )
+            )
+            {
+                throw new InvalidOperationException(
+                    "AR invoice posting produced an inventory movement with an unexpected source type."
+                );
+            }
+
+            if (movement.SourceId == Guid.Empty)
+            {
+                throw new InvalidOperationException(
+                    "AR invoice posting produced an inventory movement without a source id."
+                );
+            }
+
+            if (string.IsNullOrWhiteSpace(movement.Note))
+            {
+                throw new InvalidOperationException(
+                    "AR invoice posting produced an inventory movement without a trace note."
+                );
+            }
+
+            if (movement.TransactionType != InventoryTransactionType.SalesCogs)
+            {
+                throw new InvalidOperationException(
+                    "AR invoice posting produced an inventory movement with an unexpected transaction type."
+                );
+            }
+
             if (movement.Qty >= 0m)
             {
                 throw new InvalidOperationException(
@@ -259,6 +336,18 @@ public sealed class PostingService(
             {
                 throw new InvalidOperationException(
                     "AR invoice posting produced a negative inventory unit cost."
+                );
+            }
+
+            decimal expectedValueChange = Math.Round(
+                movement.Qty * movement.UnitCost,
+                2,
+                MidpointRounding.AwayFromZero
+            );
+            if (movement.ValueChange != expectedValueChange)
+            {
+                throw new InvalidOperationException(
+                    "AR invoice posting produced an inventory value change that does not match quantity and unit cost."
                 );
             }
 

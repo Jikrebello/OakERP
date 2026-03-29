@@ -8,6 +8,7 @@ using OakERP.Domain.Entities.Accounts_Receivable;
 using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.General_Ledger;
 using OakERP.Domain.Entities.Inventory;
+using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.General_Ledger;
 using OakERP.Tests.Integration.TestSetup;
 using Shouldly;
@@ -389,7 +390,7 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
             db.AppSettings.Add(
                 new AppSetting
                 {
-                    Key = "gl.posting",
+                    Key = GlPostingSettingsKeys.Posting,
                     ValueJson = JsonSerializer.Serialize(
                         new GlPostingSettings(
                             "ZAR",
@@ -416,7 +417,7 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
                         PeriodNo = 3,
                         PeriodStart = new DateOnly(2026, 3, 1),
                         PeriodEnd = new DateOnly(2026, 3, 31),
-                        Status = "open",
+                        Status = FiscalPeriodStatuses.Open,
                     }
                 );
             }

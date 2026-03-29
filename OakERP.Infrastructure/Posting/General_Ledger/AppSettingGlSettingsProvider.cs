@@ -8,8 +8,6 @@ namespace OakERP.Infrastructure.Posting.General_Ledger;
 
 public sealed class AppSettingGlSettingsProvider(ApplicationDbContext db) : IGlSettingsProvider
 {
-    private const string GlPostingSettingsKey = "gl.posting";
-
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -20,14 +18,14 @@ public sealed class AppSettingGlSettingsProvider(ApplicationDbContext db) : IGlS
     )
     {
         AppSetting? setting = await db.AppSettings.SingleOrDefaultAsync(
-            x => x.Key == GlPostingSettingsKey,
+            x => x.Key == GlPostingSettingsKeys.Posting,
             cancellationToken
         );
 
         if (setting is null)
         {
             throw new InvalidOperationException(
-                $"App setting '{GlPostingSettingsKey}' is required for posting."
+                $"App setting '{GlPostingSettingsKeys.Posting}' is required for posting."
             );
         }
 
@@ -39,7 +37,7 @@ public sealed class AppSettingGlSettingsProvider(ApplicationDbContext db) : IGlS
         if (result is null)
         {
             throw new InvalidOperationException(
-                $"App setting '{GlPostingSettingsKey}' could not be deserialized into GL posting settings."
+                $"App setting '{GlPostingSettingsKeys.Posting}' could not be deserialized into GL posting settings."
             );
         }
 

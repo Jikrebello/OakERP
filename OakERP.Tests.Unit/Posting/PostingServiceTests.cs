@@ -33,7 +33,7 @@ public sealed class PostingServiceTests
                     "1100",
                     115m,
                     0m,
-                    "ARINV",
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     invoice.DocNo,
                     "AR"
@@ -44,7 +44,7 @@ public sealed class PostingServiceTests
                     "4000",
                     0m,
                     100m,
-                    "ARINV",
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     invoice.DocNo,
                     "Revenue"
@@ -55,7 +55,7 @@ public sealed class PostingServiceTests
                     "2100",
                     0m,
                     15m,
-                    "ARINV",
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     invoice.DocNo,
                     "Tax"
@@ -66,7 +66,7 @@ public sealed class PostingServiceTests
                     "5100",
                     12.35m,
                     0m,
-                    "ARINV",
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     invoice.DocNo,
                     "COGS"
@@ -77,7 +77,7 @@ public sealed class PostingServiceTests
                     "1300",
                     0m,
                     12.35m,
-                    "ARINV",
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     invoice.DocNo,
                     "Inventory"
@@ -92,7 +92,7 @@ public sealed class PostingServiceTests
                     -1m,
                     12.3456m,
                     -12.35m,
-                    "ARINV",
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     "AR inventory"
                 ),
@@ -299,7 +299,7 @@ public sealed class PostingServiceTests
                     "1100",
                     115m,
                     0m,
-                    "ARINV",
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     invoice.DocNo,
                     "AR"
@@ -310,7 +310,7 @@ public sealed class PostingServiceTests
                     "4000",
                     0m,
                     100m,
-                    "ARINV",
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     invoice.DocNo,
                     "Revenue"
@@ -321,7 +321,7 @@ public sealed class PostingServiceTests
                     "2100",
                     0m,
                     15m,
-                    "ARINV",
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     invoice.DocNo,
                     "Tax"
@@ -394,6 +394,232 @@ public sealed class PostingServiceTests
 
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
         _factory.UnitOfWork.Verify(x => x.CommitAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task PostAsync_Should_Rollback_When_Inventory_Value_Does_Not_Match_Qty_And_UnitCost()
+    {
+        var invoice = PostingServiceTestFactory.CreateStockInvoice();
+        var settings = PostingServiceTestFactory.CreateSettings();
+        var period = PostingServiceTestFactory.CreateOpenPeriod();
+        var rule = PostingServiceTestFactory.CreateRule();
+        var context = PostingServiceTestFactory.CreatePostingContext(invoice, rule);
+        var stockLine = invoice.Lines.Single();
+        var postingResult = new PostingEngineResult(
+            [
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "1100",
+                    115m,
+                    0m,
+                    PostingSourceTypes.ArInvoice,
+                    invoice.Id,
+                    invoice.DocNo,
+                    "AR"
+                ),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "4000",
+                    0m,
+                    100m,
+                    PostingSourceTypes.ArInvoice,
+                    invoice.Id,
+                    invoice.DocNo,
+                    "Revenue"
+                ),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "2100",
+                    0m,
+                    15m,
+                    PostingSourceTypes.ArInvoice,
+                    invoice.Id,
+                    invoice.DocNo,
+                    "Tax"
+                ),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "5100",
+                    12.35m,
+                    0m,
+                    PostingSourceTypes.ArInvoice,
+                    invoice.Id,
+                    invoice.DocNo,
+                    "COGS"
+                ),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "1300",
+                    0m,
+                    12.35m,
+                    PostingSourceTypes.ArInvoice,
+                    invoice.Id,
+                    invoice.DocNo,
+                    "Inventory"
+                ),
+            ],
+            [
+                new InventoryMovementModel(
+                    invoice.InvoiceDate,
+                    stockLine.ItemId!.Value,
+                    stockLine.LocationId!.Value,
+                    InventoryTransactionType.SalesCogs,
+                    -1m,
+                    12.3456m,
+                    -12.34m,
+                    PostingSourceTypes.ArInvoice,
+                    invoice.Id,
+                    "AR inventory"
+                ),
+            ]
+        );
+
+        _factory
+            .ArInvoiceRepository.Setup(x =>
+                x.GetTrackedForPostingAsync(invoice.Id, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(invoice);
+        _factory
+            .GlSettingsProvider.Setup(x => x.GetSettingsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(settings);
+        _factory
+            .FiscalPeriodRepository.Setup(x =>
+                x.GetOpenForDateAsync(invoice.InvoiceDate, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(period);
+        _factory
+            .PostingRuleProvider.Setup(x =>
+                x.GetActiveRuleAsync(DocKind.ArInvoice, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(rule);
+        _factory
+            .PostingContextBuilder.Setup(x =>
+                x.BuildAsync(
+                    invoice,
+                    invoice.InvoiceDate,
+                    period,
+                    settings,
+                    rule,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(context);
+        _factory.PostingEngine.Setup(x => x.PostArInvoice(context)).Returns(postingResult);
+
+        var service = _factory.CreateService();
+
+        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+            service.PostAsync(new PostCommand(DocKind.ArInvoice, invoice.Id, "unit-tester"))
+        );
+
+        ex.Message.ShouldContain("does not match quantity and unit cost");
+        _factory.GlEntryRepository.Verify(
+            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            Times.Never
+        );
+        _factory.InventoryLedgerRepository.Verify(
+            x => x.AddAsync(It.IsAny<Domain.Entities.Inventory.InventoryLedger>()),
+            Times.Never
+        );
+        _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task PostAsync_Should_Rollback_When_Posting_Output_Misses_Traceability()
+    {
+        var invoice = PostingServiceTestFactory.CreateInvoice();
+        var settings = PostingServiceTestFactory.CreateSettings();
+        var period = PostingServiceTestFactory.CreateOpenPeriod();
+        var rule = PostingServiceTestFactory.CreateRule();
+        var context = PostingServiceTestFactory.CreatePostingContext(invoice, rule);
+        var postingResult = new PostingEngineResult(
+            [
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "1100",
+                    115m,
+                    0m,
+                    PostingSourceTypes.ArInvoice,
+                    Guid.Empty,
+                    invoice.DocNo,
+                    "AR"
+                ),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "4000",
+                    0m,
+                    100m,
+                    PostingSourceTypes.ArInvoice,
+                    invoice.Id,
+                    invoice.DocNo,
+                    "Revenue"
+                ),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "2100",
+                    0m,
+                    15m,
+                    PostingSourceTypes.ArInvoice,
+                    invoice.Id,
+                    invoice.DocNo,
+                    "Tax"
+                ),
+            ],
+            []
+        );
+
+        _factory
+            .ArInvoiceRepository.Setup(x =>
+                x.GetTrackedForPostingAsync(invoice.Id, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(invoice);
+        _factory
+            .GlSettingsProvider.Setup(x => x.GetSettingsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(settings);
+        _factory
+            .FiscalPeriodRepository.Setup(x =>
+                x.GetOpenForDateAsync(invoice.InvoiceDate, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(period);
+        _factory
+            .PostingRuleProvider.Setup(x =>
+                x.GetActiveRuleAsync(DocKind.ArInvoice, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(rule);
+        _factory
+            .PostingContextBuilder.Setup(x =>
+                x.BuildAsync(
+                    invoice,
+                    invoice.InvoiceDate,
+                    period,
+                    settings,
+                    rule,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(context);
+        _factory.PostingEngine.Setup(x => x.PostArInvoice(context)).Returns(postingResult);
+
+        var service = _factory.CreateService();
+
+        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+            service.PostAsync(new PostCommand(DocKind.ArInvoice, invoice.Id, "unit-tester"))
+        );
+
+        ex.Message.ShouldContain("without a source id");
+        _factory.GlEntryRepository.Verify(
+            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            Times.Never
+        );
+        _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
     }
 
     [Fact]

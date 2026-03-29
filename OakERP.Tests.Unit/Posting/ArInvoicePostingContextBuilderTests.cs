@@ -1,4 +1,5 @@
 using Moq;
+using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Inventory;
 using OakERP.Domain.Posting.Inventory;
 using OakERP.Infrastructure.Posting.Accounts_Receivable;
@@ -59,6 +60,71 @@ public sealed class ArInvoicePostingContextBuilderTests
         );
 
         ex.Message.ShouldContain("prior cost basis");
+    }
+
+    [Fact]
+    public async Task BuildAsync_Should_Resolve_Revenue_Accounts_In_Configured_Order()
+    {
+        var invoice = PostingServiceTestFactory.CreateInvoice();
+        invoice.DocTotal = 40m;
+        invoice.TaxTotal = 0m;
+        invoice.Lines =
+        [
+            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            {
+                Id = Guid.NewGuid(),
+                LineNo = 1,
+                LineTotal = 10m,
+                RevenueAccount = "4100",
+                Item = new Item
+                {
+                    Type = ItemType.Service,
+                    DefaultRevenueAccountNo = "4199",
+                    Category = new ItemCategory { RevenueAccount = "4198" },
+                },
+            },
+            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            {
+                Id = Guid.NewGuid(),
+                LineNo = 2,
+                LineTotal = 10m,
+                Item = new Item
+                {
+                    Type = ItemType.Service,
+                    DefaultRevenueAccountNo = "4200",
+                    Category = new ItemCategory { RevenueAccount = "4298" },
+                },
+            },
+            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            {
+                Id = Guid.NewGuid(),
+                LineNo = 3,
+                LineTotal = 10m,
+                Item = new Item
+                {
+                    Type = ItemType.Service,
+                    Category = new ItemCategory { RevenueAccount = "4300" },
+                },
+            },
+            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            {
+                Id = Guid.NewGuid(),
+                LineNo = 4,
+                LineTotal = 10m,
+            },
+        ];
+
+        var builder = new ArInvoicePostingContextBuilder(_inventoryCostService.Object);
+
+        var context = await builder.BuildAsync(
+            invoice,
+            invoice.InvoiceDate,
+            PostingServiceTestFactory.CreateOpenPeriod(),
+            PostingServiceTestFactory.CreateSettings(),
+            PostingServiceTestFactory.CreateRule()
+        );
+
+        context.Lines.Select(x => x.RevenueAccountNo).ShouldBe(["4100", "4200", "4300", "4000"]);
     }
 
     [Fact]

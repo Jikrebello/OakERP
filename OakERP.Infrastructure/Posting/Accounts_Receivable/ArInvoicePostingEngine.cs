@@ -8,8 +8,6 @@ namespace OakERP.Infrastructure.Posting.Accounts_Receivable;
 
 public sealed class ArInvoicePostingEngine : IPostingEngine
 {
-    private const string SourceType = "ARINV";
-
     public PostingEngineResult PostArInvoice(ArInvoicePostingContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -22,7 +20,7 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
 
         var arRule = FindRuleLine(
             rule,
-            scope: "Header",
+            scope: PostingRuleScopes.Header,
             side: RuleSide.Debit,
             accountKey: AccountKey.AccountsReceivable,
             amountSource: AmountSource.HeaderDocTotal
@@ -35,20 +33,39 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
                 ResolveHeaderAccountNo(arRule.AccountKey, context),
                 invoice.DocTotal,
                 0m,
-                SourceType,
+                PostingSourceTypes.ArInvoice,
                 invoice.Id,
                 invoice.DocNo,
                 $"AR invoice {invoice.DocNo}"
             )
         );
 
-        var revenueRule = FindRuleLine(
+        _ = FindRuleLine(
             rule,
-            scope: "Line",
+            scope: PostingRuleScopes.Line,
             side: RuleSide.Credit,
             accountKey: AccountKey.Revenue,
             amountSource: AmountSource.LineNet
         );
+
+        if (context.Lines.Any(x => x.IsStock))
+        {
+            _ = FindRuleLine(
+                rule,
+                scope: PostingRuleScopes.LineStock,
+                side: RuleSide.Debit,
+                accountKey: AccountKey.Cogs,
+                amountSource: AmountSource.LineCogsValue
+            );
+
+            _ = FindRuleLine(
+                rule,
+                scope: PostingRuleScopes.LineStock,
+                side: RuleSide.Credit,
+                accountKey: AccountKey.InventoryAsset,
+                amountSource: AmountSource.LineCogsValue
+            );
+        }
 
         foreach (var postingLine in context.Lines.OrderBy(x => x.Line.LineNo))
         {
@@ -59,7 +76,7 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
                     postingLine.RevenueAccountNo,
                     0m,
                     postingLine.Line.LineTotal,
-                    SourceType,
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     invoice.DocNo,
                     $"AR invoice {invoice.DocNo} line {postingLine.Line.LineNo}"
@@ -97,22 +114,6 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
                     $"Stock AR invoice line {postingLine.Line.LineNo} is missing a COGS value."
                 );
 
-            FindRuleLine(
-                rule,
-                scope: "Line.Stock",
-                side: RuleSide.Debit,
-                accountKey: AccountKey.Cogs,
-                amountSource: AmountSource.LineCogsValue
-            );
-
-            FindRuleLine(
-                rule,
-                scope: "Line.Stock",
-                side: RuleSide.Credit,
-                accountKey: AccountKey.InventoryAsset,
-                amountSource: AmountSource.LineCogsValue
-            );
-
             glEntries.Add(
                 new GlEntryModel(
                     context.PostingDate,
@@ -120,7 +121,7 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
                     cogsAccountNo,
                     lineCogsValue,
                     0m,
-                    SourceType,
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     invoice.DocNo,
                     $"AR invoice {invoice.DocNo} line {postingLine.Line.LineNo} COGS"
@@ -134,7 +135,7 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
                     inventoryAssetAccountNo,
                     0m,
                     lineCogsValue,
-                    SourceType,
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     invoice.DocNo,
                     $"AR invoice {invoice.DocNo} line {postingLine.Line.LineNo} inventory"
@@ -153,7 +154,7 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
                     -postingLine.Line.Qty,
                     unitCost,
                     -lineCogsValue,
-                    SourceType,
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     $"AR invoice {invoice.DocNo} line {postingLine.Line.LineNo}"
                 )
@@ -164,7 +165,7 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
         {
             var taxRule = FindRuleLine(
                 rule,
-                scope: "Tax",
+                scope: PostingRuleScopes.Tax,
                 side: RuleSide.Credit,
                 accountKey: AccountKey.TaxOutput,
                 amountSource: AmountSource.HeaderTaxTotal
@@ -177,7 +178,7 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
                     ResolveHeaderAccountNo(taxRule.AccountKey, context),
                     0m,
                     invoice.TaxTotal,
-                    SourceType,
+                    PostingSourceTypes.ArInvoice,
                     invoice.Id,
                     invoice.DocNo,
                     $"AR invoice {invoice.DocNo} tax"
@@ -214,7 +215,7 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
             AccountKey.AccountsReceivable => context.Settings.ArControlAccountNo,
             AccountKey.TaxOutput => context.Settings.DefaultTaxOutputAccountNo,
             _ => throw new InvalidOperationException(
-                $"Header account key '{accountKey}' is not supported for AR invoice Slice 1A."
+                $"Header account key '{accountKey}' is not supported for AR invoice posting."
             ),
         };
 }

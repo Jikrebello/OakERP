@@ -72,48 +72,48 @@ public sealed class PostingServiceTestFactory
             PeriodNo = 3,
             PeriodStart = new DateOnly(2026, 3, 1),
             PeriodEnd = new DateOnly(2026, 3, 31),
-            Status = "open",
+            Status = FiscalPeriodStatuses.Open,
         };
 
     public static PostingRule CreateRule() =>
         new()
         {
-            Name = "AR Invoice Slice 1A",
+            Name = "AR Invoice Runtime Rule",
             Lines =
             [
                 new PostingRuleLine
                 {
                     AccountKey = AccountKey.AccountsReceivable,
                     AmountSource = AmountSource.HeaderDocTotal,
-                    Scope = "Header",
+                    Scope = PostingRuleScopes.Header,
                     Side = RuleSide.Debit,
                 },
                 new PostingRuleLine
                 {
                     AccountKey = AccountKey.Revenue,
                     AmountSource = AmountSource.LineNet,
-                    Scope = "Line",
+                    Scope = PostingRuleScopes.Line,
                     Side = RuleSide.Credit,
                 },
                 new PostingRuleLine
                 {
                     AccountKey = AccountKey.TaxOutput,
                     AmountSource = AmountSource.HeaderTaxTotal,
-                    Scope = "Tax",
+                    Scope = PostingRuleScopes.Tax,
                     Side = RuleSide.Credit,
                 },
                 new PostingRuleLine
                 {
                     AccountKey = AccountKey.Cogs,
                     AmountSource = AmountSource.LineCogsValue,
-                    Scope = "Line.Stock",
+                    Scope = PostingRuleScopes.LineStock,
                     Side = RuleSide.Debit,
                 },
                 new PostingRuleLine
                 {
                     AccountKey = AccountKey.InventoryAsset,
                     AmountSource = AmountSource.LineCogsValue,
-                    Scope = "Line.Stock",
+                    Scope = PostingRuleScopes.LineStock,
                     Side = RuleSide.Credit,
                 },
             ],

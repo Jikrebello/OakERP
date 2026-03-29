@@ -48,7 +48,7 @@ public sealed class ArInvoicePostingEngineTests
     }
 
     [Fact]
-    public async Task PostArInvoice_Should_Resolve_Revenue_Accounts_In_Configured_Order()
+    public async Task PostArInvoice_Should_Use_Prepared_Revenue_Accounts_From_Context()
     {
         var provider = new ArInvoicePostingRuleProvider();
         var invoice = PostingServiceTestFactory.CreateInvoice();

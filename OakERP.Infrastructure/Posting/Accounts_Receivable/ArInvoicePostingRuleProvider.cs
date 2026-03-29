@@ -20,7 +20,7 @@ public sealed class ArInvoicePostingRuleProvider : IPostingRuleProvider
         var rule = new PostingRule
         {
             DocKind = DocKind.ArInvoice,
-            Name = "AR Invoice Slice 1B",
+            Name = "AR Invoice Runtime Rule",
             IsActive = true,
             Lines =
             [
@@ -29,35 +29,35 @@ public sealed class ArInvoicePostingRuleProvider : IPostingRuleProvider
                     Side = RuleSide.Debit,
                     AccountKey = AccountKey.AccountsReceivable,
                     AmountSource = AmountSource.HeaderDocTotal,
-                    Scope = "Header",
+                    Scope = PostingRuleScopes.Header,
                 },
                 new PostingRuleLine
                 {
                     Side = RuleSide.Credit,
                     AccountKey = AccountKey.Revenue,
                     AmountSource = AmountSource.LineNet,
-                    Scope = "Line",
+                    Scope = PostingRuleScopes.Line,
                 },
                 new PostingRuleLine
                 {
                     Side = RuleSide.Credit,
                     AccountKey = AccountKey.TaxOutput,
                     AmountSource = AmountSource.HeaderTaxTotal,
-                    Scope = "Tax",
+                    Scope = PostingRuleScopes.Tax,
                 },
                 new PostingRuleLine
                 {
                     Side = RuleSide.Debit,
                     AccountKey = AccountKey.Cogs,
                     AmountSource = AmountSource.LineCogsValue,
-                    Scope = "Line.Stock",
+                    Scope = PostingRuleScopes.LineStock,
                 },
                 new PostingRuleLine
                 {
                     Side = RuleSide.Credit,
                     AccountKey = AccountKey.InventoryAsset,
                     AmountSource = AmountSource.LineCogsValue,
-                    Scope = "Line.Stock",
+                    Scope = PostingRuleScopes.LineStock,
                 },
             ],
         };

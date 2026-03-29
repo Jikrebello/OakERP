@@ -24,6 +24,7 @@ Before making changes, inspect at least:
 3. Fix dependency direction before doing cosmetic cleanup.
 4. Do not combine unrelated refactors in a single change.
 5. Validate builds/tests after edits.
+6. Apply SOLID/DRY pragmatically: solve real coupling and duplication, not hypothetical future problems.
 
 ## Default Workflow
 
@@ -35,6 +36,10 @@ Before editing:
 - identify current dependency path
 - identify the desired dependency path
 - list the minimum set of files/projects required to improve the situation
+- check recent migrations for `Up()` / `Down()` symmetry if the task touches schema work
+- check whether similarly named runtime and persisted models are being mixed together
+- check whether business-significant literals are scattered as raw strings
+- check whether thin services or pure engines are starting to absorb responsibilities they were meant to avoid
 
 If the task is larger than a tiny local edit, create:
 
@@ -73,6 +78,7 @@ Avoid:
 - inventing new abstractions without immediate use
 - moving files just to satisfy aesthetics
 - mixing deployment changes into architecture refactors unless explicitly requested
+- extracting “helper” layers unless they remove a concrete ownership, duplication, or dependency problem
 
 ### 4. Validate
 
@@ -99,6 +105,7 @@ If a change introduces or changes behavior, add or update tests in the same slic
 Preferred defaults:
 - unit tests for pure logic, mapping, orchestration seams, and service behavior
 - integration tests for API/runtime/persistence/transaction behavior
+- if the task touches transactional writes, include or preserve proof that failure paths leave no partial writes
 
 Do not leave behavior changes untested just because the solution builds.
 
@@ -120,6 +127,14 @@ A change is suspect if it does most of these:
 - moves logic into shared code "for convenience"
 - preserves the same coupling but under a new name
 - increases file count without reducing complexity
+
+Audit specifically for:
+- migrations whose rollback path drops unrelated objects
+- runtime model namespaces that import persisted entity types
+- tests that appear to prove fallback order but only use pre-resolved values
+- domain-significant magic strings or numbers that should be reviewed
+- orchestration classes that are deciding too much
+- engines/calculators that stopped being pure
 
 ## Project-Specific Guidance
 

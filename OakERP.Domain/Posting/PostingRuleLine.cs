@@ -15,7 +15,7 @@ public sealed class PostingRuleLine
     /// Optional semantic scope (e.g. "Header", "Line.Stock", "Line.NonStock").
     /// This is just a discriminator the engine can interpret.
     /// </summary>
-    public string Scope { get; set; } = "Header";
+    public string Scope { get; set; } = PostingRuleScopes.Header;
 
     public PostingRule PostingRule { get; set; } = default!;
 }
