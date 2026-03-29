@@ -16,6 +16,7 @@ codex-workflow-setup
 - Added a thin `oakerp-pr-workflow` skill that points back to the workflow doc.
 - Added a short `AGENTS.md` pointer to the workflow doc.
 - Followed up after PR creation to fix backend CI parity: both the GitHub workflow and `validate-pr.ps1` now restore only the backend projects they actually build/test instead of restoring `OakERP.sln`.
+- Followed up again after reviewing the new GitHub run: integration tests were failing on clean CI databases because Respawn reset ran before migrations created any tables, so the test setup now migrates first, then resets, then seeds.
 
 ## Files Touched
 - `docs/ai/tasks/active/codex-workflow-setup/task_plan.md`
@@ -24,6 +25,7 @@ codex-workflow-setup
 - `docs/ai/codex-workflow.md`
 - `tools/validate-pr.ps1`
 - `.github/workflows/ci-build-test.yml`
+- `OakERP.Tests.Integration/TestSetup/WebApiIntegrationTestBase.cs`
 - `global.json`
 - `.github/PULL_REQUEST_TEMPLATE.md`
 - `.codex/skills/oakerp-pr-workflow/SKILL.md`
@@ -44,6 +46,11 @@ codex-workflow-setup
   - `dotnet test OakERP.Tests.Integration/OakERP.Tests.Integration.csproj --no-restore --verbosity normal`
 - Existing API warning still appears during validation:
   - `OakERP.API/Controllers/BaseController.cs(23,57): warning CS8629`
+- GitHub Actions failure investigation:
+  - first failing run (`9c9ccae`) was due to `dotnet restore OakERP.sln` pulling MAUI workloads on Linux
+  - second failing run (`6904d18`) was due to integration test setup calling Respawn before migrations on a clean CI database
+- Linux parity check:
+  - reproduced the integration test run in a Linux `.NET 9` SDK container against a fresh PostgreSQL container after the setup fix, and the integration tests passed there as well
 
 ## Remaining
 - No remaining repo-side changes in this approved slice.

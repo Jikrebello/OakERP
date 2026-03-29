@@ -18,14 +18,18 @@ public abstract class WebApiIntegrationTestBase
     [SetUp]
     public async Task BaseSetUp()
     {
-        await TestDatabaseReset.ResetAsync();
-
         Factory = new OakErpWebFactory();
 
         await using (var scope = Factory.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             await db.Database.MigrateAsync();
+        }
+
+        await TestDatabaseReset.ResetAsync();
+
+        await using (var scope = Factory.Services.CreateAsyncScope())
+        {
             var seeder = scope.ServiceProvider.GetRequiredService<SeedCoordinator>();
             await seeder.RunAsync("Testing");
         }

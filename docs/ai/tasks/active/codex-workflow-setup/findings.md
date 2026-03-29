@@ -21,6 +21,7 @@ OakERP already has a GitHub PR template, backend CI, Codex architecture/tasking 
 - No `global.json`, despite CI being pinned to `.NET 9`.
 - No thin Codex PR workflow skill.
 - Backend CI currently restores `OakERP.sln`, which pulls in MAUI host workloads on GitHub runners even though this job is meant to validate backend-only changes.
+- Integration test setup assumes the reset database already has tables; on clean CI databases, Respawn fails before migrations run.
 
 ## Literal / Model-Family Notes
 - Repeated business-significant literals:
@@ -39,6 +40,7 @@ OakERP already has a GitHub PR template, backend CI, Codex architecture/tasking 
 - No test code changes are in scope.
 - The validation script itself should be run once after creation.
 - Backend CI and the local validation script should restore only the backend projects they actually build and test.
+- Integration test setup must support a clean database in CI, not just a previously initialized local test database.
 
 ## Rollback / Transaction Notes
 - Migration rollback reviewed:
@@ -55,3 +57,5 @@ OakERP already has a GitHub PR template, backend CI, Codex architecture/tasking 
 Add the repo-local workflow doc, PR validation script, SDK pin, thin skill, and a stronger PR template now. Leave GitHub settings, MCP auth, and Serena for external follow-up.
 
 Follow-up: narrow backend CI and `validate-pr.ps1` restore steps to the API and test projects instead of the full solution so PR checks do not depend on MAUI workloads.
+
+Follow-up: initialize the integration-test database schema before Respawn reset runs so clean CI databases do not fail during test `SetUp`.
