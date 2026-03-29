@@ -53,7 +53,6 @@ OakERP
 |   |       |       +-- findings.md
 |   |       |       +-- progress.md
 |   |       |       \-- task_plan.md
-|   |       +-- archive
 |   |       \-- templates
 |   |           +-- findings.md
 |   |           +-- progress.md
@@ -553,7 +552,6 @@ OakERP
 |   +-- appsettings.json
 |   +-- OakERP.Web.csproj
 |   \-- Program.cs
-+-- OakERP.WebAPI
 +-- pgAdmin
 |   \-- servers.json
 +-- tools
