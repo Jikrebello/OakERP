@@ -15,6 +15,7 @@ codex-workflow-setup
 - Updated the PR template with task link, scope statement, validation, behavior-change note, and deferred risk prompts.
 - Added a thin `oakerp-pr-workflow` skill that points back to the workflow doc.
 - Added a short `AGENTS.md` pointer to the workflow doc.
+- Followed up after PR creation to fix backend CI parity: both the GitHub workflow and `validate-pr.ps1` now restore only the backend projects they actually build/test instead of restoring `OakERP.sln`.
 
 ## Files Touched
 - `docs/ai/tasks/active/codex-workflow-setup/task_plan.md`
@@ -22,6 +23,7 @@ codex-workflow-setup
 - `docs/ai/tasks/active/codex-workflow-setup/progress.md`
 - `docs/ai/codex-workflow.md`
 - `tools/validate-pr.ps1`
+- `.github/workflows/ci-build-test.yml`
 - `global.json`
 - `.github/PULL_REQUEST_TEMPLATE.md`
 - `.codex/skills/oakerp-pr-workflow/SKILL.md`
@@ -34,7 +36,9 @@ codex-workflow-setup
 - Validation included:
   - `dotnet tool restore`
   - `dotnet csharpier check .`
-  - `dotnet restore OakERP.sln`
+  - `dotnet restore OakERP.API/OakERP.API.csproj`
+  - `dotnet restore OakERP.Tests.Unit/OakERP.Tests.Unit.csproj`
+  - `dotnet restore OakERP.Tests.Integration/OakERP.Tests.Integration.csproj`
   - `dotnet build OakERP.API/OakERP.API.csproj --no-restore`
   - `dotnet test OakERP.Tests.Unit/OakERP.Tests.Unit.csproj --no-restore --verbosity normal`
   - `dotnet test OakERP.Tests.Integration/OakERP.Tests.Integration.csproj --no-restore --verbosity normal`

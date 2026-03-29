@@ -42,10 +42,14 @@ pwsh ./tools/validate-pr.ps1
 This script is intentionally aligned with the current backend CI checks:
 - `dotnet tool restore`
 - `dotnet csharpier check .`
-- `dotnet restore OakERP.sln`
+- `dotnet restore OakERP.API/OakERP.API.csproj`
+- `dotnet restore OakERP.Tests.Unit/OakERP.Tests.Unit.csproj`
+- `dotnet restore OakERP.Tests.Integration/OakERP.Tests.Integration.csproj`
 - `dotnet build OakERP.API/OakERP.API.csproj --no-restore`
 - `dotnet test OakERP.Tests.Unit/OakERP.Tests.Unit.csproj --no-restore`
 - `dotnet test OakERP.Tests.Integration/OakERP.Tests.Integration.csproj --no-restore`
+
+The restore stays backend-targeted on purpose so GitHub CI does not fail on MAUI workloads from host projects that this job does not build or test.
 
 Integration-test note:
 - The script assumes the existing OakERP test database prerequisites are already available locally.

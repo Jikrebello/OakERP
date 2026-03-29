@@ -20,6 +20,7 @@ OakERP already has a GitHub PR template, backend CI, Codex architecture/tasking 
 - No repo-local one-command validation path that mirrors backend CI.
 - No `global.json`, despite CI being pinned to `.NET 9`.
 - No thin Codex PR workflow skill.
+- Backend CI currently restores `OakERP.sln`, which pulls in MAUI host workloads on GitHub runners even though this job is meant to validate backend-only changes.
 
 ## Literal / Model-Family Notes
 - Repeated business-significant literals:
@@ -37,6 +38,7 @@ OakERP already has a GitHub PR template, backend CI, Codex architecture/tasking 
 ## Testing Notes
 - No test code changes are in scope.
 - The validation script itself should be run once after creation.
+- Backend CI and the local validation script should restore only the backend projects they actually build and test.
 
 ## Rollback / Transaction Notes
 - Migration rollback reviewed:
@@ -51,3 +53,5 @@ OakERP already has a GitHub PR template, backend CI, Codex architecture/tasking 
 
 ## Recommendation
 Add the repo-local workflow doc, PR validation script, SDK pin, thin skill, and a stronger PR template now. Leave GitHub settings, MCP auth, and Serena for external follow-up.
+
+Follow-up: narrow backend CI and `validate-pr.ps1` restore steps to the API and test projects instead of the full solution so PR checks do not depend on MAUI workloads.
