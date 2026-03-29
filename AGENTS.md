@@ -79,6 +79,18 @@ If a task touches only a specific project, start with a targeted build/test for 
 
 If validation cannot run, explain exactly why.
 
+### Test Creation Expectation
+
+When a task introduces new business behavior, new orchestration logic, a new seam, or a new document flow, add or update tests as part of the same task.
+
+Default expectation:
+- add/update **unit tests** for local business/orchestration behavior
+- add/update **integration tests** when the change affects runtime wiring, persistence, API behavior, posting flow, or transaction boundaries
+
+Do not treat “build passes” as sufficient when behavior changed.
+
+If tests are intentionally deferred, say exactly why in `progress.md`.
+
 ## Planning Rules
 
 For any task that touches multiple projects, changes architecture, or affects more than roughly 3 files, create and maintain task files under:

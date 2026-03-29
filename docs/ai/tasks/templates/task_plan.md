@@ -27,6 +27,8 @@ List what must not be changed as part of this task.
 - [ ] Relevant tests pass
 - [ ] Docs updated if needed
 - [ ] Remaining risks are documented
+- [ ] Required unit tests added or updated
+- [ ] Required integration tests added or updated
 
 ## Planned Steps
 1.
@@ -39,6 +41,13 @@ dotnet restore
 dotnet build
 dotnet test
 ```
+
+## Test Notes
+State whether this task requires:
+- unit tests
+- integration tests
+- both
+- neither (with reason)
 
 ## Risks
 

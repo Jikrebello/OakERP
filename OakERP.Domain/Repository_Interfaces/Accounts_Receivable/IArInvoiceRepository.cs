@@ -8,6 +8,8 @@ public interface IArInvoiceRepository
 
     Task<ArInvoice?> FindNoTrackingAsync(Guid id, CancellationToken ct = default);
 
+    Task<ArInvoice?> GetTrackedForPostingAsync(Guid id, CancellationToken ct = default);
+
     IQueryable<ArInvoice> QueryNoTracking();
 
     Task AddAsync(ArInvoice entity);

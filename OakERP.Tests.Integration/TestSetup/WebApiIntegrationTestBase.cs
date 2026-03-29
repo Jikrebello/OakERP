@@ -21,7 +21,7 @@ public abstract class WebApiIntegrationTestBase
 
         Factory = new OakErpWebFactory();
 
-        using (var scope = Factory.Services.CreateScope())
+        await using (var scope = Factory.Services.CreateAsyncScope())
         {
             var seeder = scope.ServiceProvider.GetRequiredService<SeedCoordinator>();
             await seeder.RunAsync("Testing");
@@ -131,7 +131,7 @@ public abstract class WebApiIntegrationTestBase
     // Use these when you need to assert directly against the DB.
     protected async Task WithDbAsync(Func<ApplicationDbContext, Task> action)
     {
-        using var scope = Factory.Services.CreateScope();
+        await using var scope = Factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await action(db);
     }
@@ -140,7 +140,7 @@ public abstract class WebApiIntegrationTestBase
         Func<ApplicationDbContext, Task<TResult>> action
     )
     {
-        using var scope = Factory.Services.CreateScope();
+        await using var scope = Factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         return await action(db);
     }

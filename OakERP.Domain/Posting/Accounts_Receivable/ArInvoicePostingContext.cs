@@ -7,6 +7,7 @@ namespace OakERP.Domain.Posting.Accounts_Receivable;
 public sealed record ArInvoicePostingContext(
     ArInvoice Invoice,
     IReadOnlyList<ArInvoiceLine> Lines,
+    DateOnly PostingDate,
     FiscalPeriod Period,
     string BaseCurrencyCode,
     decimal FxRateDocToBase, // 1 doc-currency unit = X base-currency units

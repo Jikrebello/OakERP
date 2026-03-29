@@ -92,6 +92,16 @@ If validation fails:
 - record the exact failure in `progress.md`
 - explain whether it is caused by your change or pre-existing state
 
+### 5. Add Tests When Behavior Moves
+
+If a change introduces or changes behavior, add or update tests in the same slice unless explicitly told not to.
+
+Preferred defaults:
+- unit tests for pure logic, mapping, orchestration seams, and service behavior
+- integration tests for API/runtime/persistence/transaction behavior
+
+Do not leave behavior changes untested just because the solution builds.
+
 ## Review Heuristics
 
 A change is good if it does most of these:

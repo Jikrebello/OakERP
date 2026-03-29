@@ -21,7 +21,8 @@ builder
     .AddAuthServices()
     .AddSwaggerDocs()
     .AddPersistenceServices()
-    .AddRepositories();
+    .AddRepositories()
+    .AddPostingServices();
 
 // Seeders
 builder.Services.AddSeedersFromAssemblies(
