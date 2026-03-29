@@ -170,6 +170,7 @@ When adding docs:
 - prefer repo-specific instructions over generic framework tutorials
 - update architecture docs when structural rules change
 - avoid duplicating the same guidance in multiple places
+- for Codex branch/PR workflow guidance, use `docs/ai/codex-workflow.md` as the operational source of truth
 
 ## Safety Rails
 
