@@ -23,6 +23,7 @@ OakERP already has a GitHub PR template, backend CI, Codex architecture/tasking 
 - Backend CI currently restores `OakERP.sln`, which pulls in MAUI host workloads on GitHub runners even though this job is meant to validate backend-only changes.
 - Integration test setup assumes the reset database already has tables; on clean CI databases, Respawn fails before migrations run.
 - Integration tests also inherit `RunSeedOnStartup=true` from API `appsettings.Testing.json`, so `WebApplicationFactory` can trigger app startup seeding before the test harness runs migrations.
+- GitHub Actions creates `oakerp_test` directly but does not apply the repo `initdb` extension bootstrap, so migrations that rely on `uuid_generate_v4()` fail unless the workflow enables `uuid-ossp` explicitly.
 
 ## Literal / Model-Family Notes
 - Repeated business-significant literals:
@@ -43,6 +44,7 @@ OakERP already has a GitHub PR template, backend CI, Codex architecture/tasking 
 - Backend CI and the local validation script should restore only the backend projects they actually build and test.
 - Integration test setup must support a clean database in CI, not just a previously initialized local test database.
 - Integration tests need startup seeding disabled in the test host, because the test harness already owns migrate/reset/seed order.
+- The CI test database also needs the `uuid-ossp` extension enabled before migrations run, because local/docker bootstrap scripts are not part of the GitHub Actions database creation path.
 
 ## Rollback / Transaction Notes
 - Migration rollback reviewed:
@@ -63,3 +65,5 @@ Follow-up: narrow backend CI and `validate-pr.ps1` restore steps to the API and 
 Follow-up: initialize the integration-test database schema before Respawn reset runs so clean CI databases do not fail during test `SetUp`.
 
 Follow-up: disable API startup seeding in the integration test host so test seeding does not race the harness’s controlled setup flow.
+
+Follow-up: enable `uuid-ossp` in the GitHub Actions-created `oakerp_test` database so migrations using `uuid_generate_v4()` succeed on a clean CI runner.

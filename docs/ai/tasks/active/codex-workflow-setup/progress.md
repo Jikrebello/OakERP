@@ -18,6 +18,7 @@ codex-workflow-setup
 - Followed up after PR creation to fix backend CI parity: both the GitHub workflow and `validate-pr.ps1` now restore only the backend projects they actually build/test instead of restoring `OakERP.sln`.
 - Followed up again after reviewing the new GitHub run: integration tests were failing on clean CI databases because Respawn reset ran before migrations created any tables, so the test setup now migrates first, then resets, then seeds.
 - Followed up a third time after the next GitHub run: the integration test host was still auto-seeding on startup in `Testing`, so the WebApplicationFactory now overrides `RunSeedOnStartup=false` and leaves seeding under explicit test harness control.
+- Followed up a fourth time after the next GitHub run: GitHub Actions was creating `oakerp_test` without the repo’s usual extension bootstrap, so the workflow now enables `uuid-ossp` before migrations run.
 
 ## Files Touched
 - `docs/ai/tasks/active/codex-workflow-setup/task_plan.md`
@@ -52,6 +53,7 @@ codex-workflow-setup
   - first failing run (`9c9ccae`) was due to `dotnet restore OakERP.sln` pulling MAUI workloads on Linux
   - second failing run (`6904d18`) was due to integration test setup calling Respawn before migrations on a clean CI database
   - third failing run (`21552a9`) was due to `RunSeedOnStartup=true` in `Testing`, which triggered API startup seeding before the integration test harness had completed migration/setup
+  - fourth failing run (`c1df88c`) was due to the GitHub Actions-created `oakerp_test` database missing the `uuid-ossp` extension required by migrations that call `uuid_generate_v4()`
 - Linux parity check:
   - reproduced the integration test run in a Linux `.NET 9` SDK container against a fresh PostgreSQL container after the setup fix, and the integration tests passed there as well
 

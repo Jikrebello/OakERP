@@ -58,6 +58,10 @@ jobs:
           PGPASSWORD=oakpass psql -h localhost -p 5433 -U oakadmin -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'oakerp_test'" | grep -q 1 || \
           PGPASSWORD=oakpass psql -h localhost -p 5433 -U oakadmin -d postgres -c "CREATE DATABASE oakerp_test OWNER oakadmin;"
 
+      - name: Enable required PostgreSQL extensions
+        run: |
+          PGPASSWORD=oakpass psql -h localhost -p 5433 -U oakadmin -d oakerp_test -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+
       - name: Restore API
         run: dotnet restore OakERP.API/OakERP.API.csproj
 
