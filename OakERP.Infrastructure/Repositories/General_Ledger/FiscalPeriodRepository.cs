@@ -15,6 +15,19 @@ public class FiscalPeriodRepository(ApplicationDbContext db) : IFiscalPeriodRepo
     public Task<FiscalPeriod?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
         Set.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
 
+    public Task<FiscalPeriod?> GetOpenForDateAsync(
+        DateOnly postingDate,
+        CancellationToken ct = default
+    ) =>
+        Set.AsNoTracking()
+            .SingleOrDefaultAsync(
+                x =>
+                    x.Status == FiscalPeriodStatuses.Open
+                    && x.PeriodStart <= postingDate
+                    && x.PeriodEnd >= postingDate,
+                ct
+            );
+
     public IQueryable<FiscalPeriod> QueryNoTracking() => Set.AsNoTracking();
 
     public async Task AddAsync(FiscalPeriod entity) => await Set.AddAsync(entity);

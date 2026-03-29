@@ -18,6 +18,13 @@ Document what exists now.
 - 
 - 
 
+## Literal / Model-Family Notes
+- Repeated business-significant literals:
+- Repeated domain-significant numbers:
+- Runtime-vs-persisted model-family conflicts:
+- Thin orchestrators getting too thick:
+- Pure engines/calculators with side effects or lookups:
+
 ## Configuration / Environment Notes
 - 
 - 
@@ -26,7 +33,15 @@ Document what exists now.
 - 
 - 
 
+## Rollback / Transaction Notes
+- Migration rollback reviewed:
+- Transactional failure leaves no writes:
+
 ## Open Questions
+- 
+- 
+
+## Deferred Smells / Risks
 - 
 - 
 

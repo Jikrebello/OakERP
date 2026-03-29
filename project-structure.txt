@@ -1,4 +1,4 @@
-OakERP
+﻿OakERP
 +-- .codex
 |   \-- skills
 |       +-- oakerp-architecture
@@ -21,6 +21,14 @@ OakERP
 |   +-- ai
 |   |   \-- tasks
 |   |       +-- active
+|   |       |   +-- ar-invoice-posting-1a
+|   |       |   |   +-- findings.md
+|   |       |   |   +-- progress.md
+|   |       |   |   \-- task_plan.md
+|   |       |   +-- ar-invoice-posting-1b
+|   |       |   |   +-- findings.md
+|   |       |   |   +-- progress.md
+|   |       |   |   \-- task_plan.md
 |   |       |   +-- auth-boundary-cleanup
 |   |       |   |   +-- findings.md
 |   |       |   |   +-- progress.md
@@ -41,6 +49,10 @@ OakERP
 |   |       |   |   +-- findings.md
 |   |       |   |   +-- progress.md
 |   |       |   |   \-- task_plan.md
+|   |       |   +-- posting-remediation-slice
+|   |       |   |   +-- findings.md
+|   |       |   |   +-- progress.md
+|   |       |   |   \-- task_plan.md
 |   |       |   +-- shared-client-plumbing-separation
 |   |       |   |   +-- findings.md
 |   |       |   |   +-- progress.md
@@ -53,6 +65,7 @@ OakERP
 |   |       |       +-- findings.md
 |   |       |       +-- progress.md
 |   |       |       \-- task_plan.md
+|   |       +-- archive
 |   |       \-- templates
 |   |           +-- findings.md
 |   |           +-- progress.md
@@ -200,8 +213,8 @@ OakERP
 |   +-- db-setup.md
 |   +-- ef-core.md
 |   +-- Oak_ERP_Solution_Structure.txt
-|   +-- oakERP-testing-guide.md
 |   +-- OakERP.Docs.csproj
+|   +-- oakERP-testing-guide.md
 |   \-- README-dev.md
 +-- OakERP.Domain
 |   +-- Entities
@@ -230,6 +243,7 @@ OakERP
 |   |   |   \-- TaxRate.cs
 |   |   +-- General_Ledger
 |   |   |   +-- FiscalPeriod.cs
+|   |   |   +-- FiscalPeriodStatuses.cs
 |   |   |   +-- GlAccount.cs
 |   |   |   +-- GlEntry.cs
 |   |   |   +-- GlJournal.cs
@@ -250,10 +264,13 @@ OakERP
 |   |       \-- Tenant.cs
 |   +-- Posting
 |   |   +-- Accounts_Receivable
-|   |   |   \-- ArInvoicePostingContext.cs
+|   |   |   +-- ArInvoicePostingContext.cs
+|   |   |   +-- ArInvoicePostingLineContext.cs
+|   |   |   \-- IArInvoicePostingContextBuilder.cs
 |   |   +-- General_Ledger
 |   |   |   +-- GlEntryModel.cs
 |   |   |   +-- GlPostingSettings.cs
+|   |   |   +-- GlPostingSettingsKeys.cs
 |   |   |   \-- IGlSettingsProvider.cs
 |   |   +-- Inventory
 |   |   |   +-- IInventoryCostService.cs
@@ -264,7 +281,9 @@ OakERP
 |   |   +-- IPostingRuleProvider.cs
 |   |   +-- PostingEngineResult.cs
 |   |   +-- PostingRule.cs
-|   |   \-- PostingRuleLine.cs
+|   |   +-- PostingRuleLine.cs
+|   |   +-- PostingRuleScopes.cs
+|   |   \-- PostingSourceTypes.cs
 |   +-- Repository_Interfaces
 |   |   +-- Accounts_Payable
 |   |   |   +-- IApInvoiceLineRepository.cs
@@ -308,6 +327,8 @@ OakERP
 |   +-- Migrations
 |   |   +-- 20251201170038_Init.cs
 |   |   +-- 20251201170038_Init.Designer.cs
+|   |   +-- 20260329151445_AddArInvoiceLineLocation.cs
+|   |   +-- 20260329151445_AddArInvoiceLineLocation.Designer.cs
 |   |   \-- ApplicationDbContextModelSnapshot.cs
 |   +-- Persistence
 |   |   +-- Configurations
@@ -373,6 +394,16 @@ OakERP
 |   |   +-- ApplicationDbContext.cs
 |   |   +-- DesignTimeDbContextFactory.cs
 |   |   \-- UnitOfWork.cs
+|   +-- Posting
+|   |   +-- Accounts_Receivable
+|   |   |   +-- ArInvoicePostingContextBuilder.cs
+|   |   |   +-- ArInvoicePostingEngine.cs
+|   |   |   \-- ArInvoicePostingRuleProvider.cs
+|   |   +-- General_Ledger
+|   |   |   \-- AppSettingGlSettingsProvider.cs
+|   |   +-- Inventory
+|   |   |   \-- MovingAverageInventoryCostService.cs
+|   |   \-- PostingService.cs
 |   +-- Repositories
 |   |   +-- Accounts_Payable
 |   |   |   +-- ApInvoiceLineRepository.cs
@@ -509,6 +540,8 @@ OakERP
 +-- OakERP.Tests.Integration
 |   +-- Auth
 |   |   \-- AuthApiTests.cs
+|   +-- Posting
+|   |   \-- ArInvoicePostingTests.cs
 |   +-- TestSetup
 |   |   +-- Helpers
 |   |   |   +-- ApiTestException.cs
@@ -523,6 +556,12 @@ OakERP
 |   +-- Auth
 |   |   +-- AuthServiceTestFactory.cs
 |   |   \-- AuthServiceTests.cs
+|   +-- Posting
+|   |   +-- ArInvoicePostingContextBuilderTests.cs
+|   |   +-- ArInvoicePostingEngineTests.cs
+|   |   +-- MovingAverageInventoryCostServiceTests.cs
+|   |   +-- PostingServiceTestFactory.cs
+|   |   \-- PostingServiceTests.cs
 |   \-- OakERP.Tests.Unit.csproj
 +-- OakERP.UI
 |   +-- Extensions
@@ -552,6 +591,7 @@ OakERP
 |   +-- appsettings.json
 |   +-- OakERP.Web.csproj
 |   \-- Program.cs
++-- OakERP.WebAPI
 +-- pgAdmin
 |   \-- servers.json
 +-- tools
@@ -561,6 +601,7 @@ OakERP
 +-- .gitignore
 +-- AGENTS.md
 +-- docker-compose.yml
++-- dotnet-tools.json
 +-- ef.ps1
 +-- migrate.ps1
 +-- OakERP.sln

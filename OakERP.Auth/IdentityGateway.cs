@@ -11,7 +11,8 @@ public sealed class IdentityGateway(
     SignInManager<ApplicationUser> signInManager
 ) : IIdentityGateway
 {
-    public Task<ApplicationUser?> FindByEmailAsync(string email) => userManager.FindByEmailAsync(email);
+    public Task<ApplicationUser?> FindByEmailAsync(string email) =>
+        userManager.FindByEmailAsync(email);
 
     public Task<IdentityResult> CreateAsync(ApplicationUser user, string password) =>
         userManager.CreateAsync(user, password);
@@ -25,5 +26,6 @@ public sealed class IdentityGateway(
         bool lockoutOnFailure
     ) => signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure);
 
-    public Task<IList<string>> GetRolesAsync(ApplicationUser user) => userManager.GetRolesAsync(user);
+    public Task<IList<string>> GetRolesAsync(ApplicationUser user) =>
+        userManager.GetRolesAsync(user);
 }

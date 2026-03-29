@@ -1,5 +1,4 @@
 ﻿using OakERP.Common.Enums;
-using OakERP.Domain.Entities.Posting;
 
 namespace OakERP.Domain.Posting;
 

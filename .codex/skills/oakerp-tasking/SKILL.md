@@ -42,8 +42,17 @@ Example:
 ## Expectations
 For any task folder:
 - `task_plan.md` defines scope, constraints, success criteria, and validation.
-- `findings.md` captures current-state observations and dependency notes.
-- `progress.md` records what changed, what was validated, and what remains.
+- `findings.md` captures current-state observations, dependency notes, and deferred smells/risks.
+- `progress.md` records what changed, what was validated, what remains, and any deferred smells/risks left intentionally unresolved.
+
+If the task touches schema or posting behavior, also record:
+- whether migration rollback was reviewed or validated
+- which new domain-significant constants or enums were introduced
+- how rollback / transactional-failure behavior was verified
+
+If behavior changed, also record:
+- which tests were added or updated
+- why any missing test coverage was deferred
 
 ## Working Style
 1. Read `AGENTS.md`.
@@ -60,6 +69,7 @@ For any task folder:
 - If new dependency conflicts appear, record them in `findings.md` before widening scope.
 - Prefer one safe slice over one ambitious rewrite.
 - Generated artifacts like `project-structure.txt` are navigation aids, not architecture docs.
+- Record deferred code smells and risks explicitly instead of implying they were fixed.
 
 ## OakERP-Specific Notes
 - Prefer dependency-direction fixes over cosmetic reorganization.

@@ -123,7 +123,9 @@ public class AuthServiceTests
             .ReturnsAsync(IdentityResult.Success);
 
         _factory
-            .IdentityGateway.Setup(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), UserRoles.Admin))
+            .IdentityGateway.Setup(m =>
+                m.AddToRoleAsync(It.IsAny<ApplicationUser>(), UserRoles.Admin)
+            )
             .ReturnsAsync(IdentityResult.Success);
 
         _factory
@@ -231,9 +233,7 @@ public class AuthServiceTests
         };
         var tenant = new Tenant { Id = tenantId, Name = "NoLicenseTenant" };
 
-        _factory
-            .IdentityGateway.Setup(s => s.FindByEmailAsync(dto.Email))
-            .ReturnsAsync(fakeUser);
+        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
 
         _factory
             .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(fakeUser, dto.Password, false))
@@ -277,9 +277,7 @@ public class AuthServiceTests
             TenantId = tenantId,
         };
 
-        _factory
-            .IdentityGateway.Setup(s => s.FindByEmailAsync(dto.Email))
-            .ReturnsAsync(fakeUser);
+        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
 
         _factory
             .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(fakeUser, dto.Password, false))

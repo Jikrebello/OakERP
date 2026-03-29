@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using OakERP.Common.Enums;
 
 namespace OakERP.Infrastructure.Persistence
 {
@@ -29,7 +30,15 @@ namespace OakERP.Infrastructure.Persistence
                 ?? "Host=localhost;Port=5432;Database=oakerp;Username=oakadmin;Password=oakpass;Include Error Detail=true";
 
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseNpgsql(cs)
+                .UseNpgsql(
+                    cs,
+                    npgsql =>
+                        npgsql
+                            .MapEnum<DocStatus>("doc_status")
+                            .MapEnum<GlAccountType>("gl_account_type")
+                            .MapEnum<ItemType>("item_type")
+                            .MapEnum<InventoryTransactionType>("inventory_transaction_type")
+                )
                 .UseSnakeCaseNamingConvention()
                 .Options;
 

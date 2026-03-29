@@ -15,14 +15,13 @@ public class ExampleJsInterop : IAsyncDisposable
 
     public ExampleJsInterop(IJSRuntime jsRuntime)
     {
-        moduleTask = new(
-            () =>
-                jsRuntime
-                    .InvokeAsync<IJSObjectReference>(
-                        "import",
-                        "./_content/OakERP.Reports/exampleJsInterop.js"
-                    )
-                    .AsTask()
+        moduleTask = new(() =>
+            jsRuntime
+                .InvokeAsync<IJSObjectReference>(
+                    "import",
+                    "./_content/OakERP.Reports/exampleJsInterop.js"
+                )
+                .AsTask()
         );
     }
 

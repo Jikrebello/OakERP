@@ -121,6 +121,10 @@ Do not add new infrastructure or web framework dependencies to Domain.
 
 If a current framework dependency exists for historical reasons, treat it as technical debt, document it, and avoid spreading it further.
 
+Do not mix runtime domain models and persisted entity models in the same abstraction just because they represent similar concepts. Keep the families distinct unless a temporary bridge is explicitly documented.
+
+Keep domain rules, calculators, and engines pure when their role is deterministic output generation. Do not hide persistence, service lookups, or transport concerns inside them.
+
 ### Rule 3: Configuration Must Be Externalized
 
 Do not hardcode:
@@ -143,6 +147,24 @@ Avoid overlapping paths that all claim ownership.
 ### Rule 5: Shared Code Must Earn Its Place
 
 A class belongs in shared code only if it is genuinely shared across hosts and not merely convenient to place there.
+
+### Rule 6: Narrow Repositories Must Stay Entity-Local
+
+Use-case-specific repository methods are acceptable when they stay within the ownership of that repository’s aggregate or entity and do not turn into a general read-model layer.
+
+### Rule 7: Domain-Significant Literals Must Be Centralized
+
+Repeated business identifiers such as posting source types, runtime rule scopes, fiscal status codes, and configuration keys should live in constants, enums, or options rather than being scattered as raw strings.
+
+Review domain-significant numbers the same way. Centralize them only when they express shared business rules or precision standards, not for one-off local values.
+
+### Rule 8: Abstractions Must Earn Their Keep
+
+Introduce a new abstraction only when it removes a real coupling problem, isolates a volatile dependency, or eliminates meaningful duplication. Do not add layers “just in case.”
+
+### Rule 9: Orchestration Must Stay Thin When Intended
+
+If a service is meant to coordinate loading, validation, execution, persistence, and transactions, keep business rule selection and calculation logic out of it unless the design explicitly assigns that responsibility there.
 
 ## Known Current Pressure Points
 

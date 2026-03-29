@@ -17,10 +17,12 @@ public sealed class ArInvoiceLine
 
     public string? RevenueAccount { get; set; }
     public Guid? TaxRateId { get; set; }
+    public Guid? LocationId { get; set; }
     public decimal LineTotal { get; set; }
 
     public ArInvoice Invoice { get; set; } = default!;
     public Item? Item { get; set; }
+    public Location? Location { get; set; }
     public GlAccount? Revenue { get; set; }
     public TaxRate? TaxRate { get; set; }
 }

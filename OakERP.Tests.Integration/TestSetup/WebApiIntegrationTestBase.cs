@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using OakERP.Infrastructure.Persistence;
@@ -17,11 +18,17 @@ public abstract class WebApiIntegrationTestBase
     [SetUp]
     public async Task BaseSetUp()
     {
-        await TestDatabaseReset.ResetAsync();
-
         Factory = new OakErpWebFactory();
 
-        using (var scope = Factory.Services.CreateScope())
+        await using (var scope = Factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            await db.Database.MigrateAsync();
+        }
+
+        await TestDatabaseReset.ResetAsync();
+
+        await using (var scope = Factory.Services.CreateAsyncScope())
         {
             var seeder = scope.ServiceProvider.GetRequiredService<SeedCoordinator>();
             await seeder.RunAsync("Testing");
@@ -131,7 +138,7 @@ public abstract class WebApiIntegrationTestBase
     // Use these when you need to assert directly against the DB.
     protected async Task WithDbAsync(Func<ApplicationDbContext, Task> action)
     {
-        using var scope = Factory.Services.CreateScope();
+        await using var scope = Factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await action(db);
     }
@@ -140,7 +147,7 @@ public abstract class WebApiIntegrationTestBase
         Func<ApplicationDbContext, Task<TResult>> action
     )
     {
-        using var scope = Factory.Services.CreateScope();
+        await using var scope = Factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         return await action(db);
     }
