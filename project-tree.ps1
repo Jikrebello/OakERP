@@ -1,14 +1,64 @@
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $scriptDir
 
+$outputFile = 'project-structure.txt'
+
 $ignoreDirs = @(
-  'node_modules', '.git', '.github', '.husky', '.vscode', '.idea',
-  '.expo', '.next', 'dist', 'build', 'coverage', 'bin', 'obj'
+  '.git',
+  '.vs',
+  '.idea',
+  '.vscode',
+  '.husky',
+  'node_modules',
+  'bin',
+  'obj',
+  'dist',
+  'build',
+  'coverage',
+  'TestResults',
+  'artifacts'
 )
 
 $ignoreFiles = @(
-  '.DS_Store', 'Thumbs.db', 'package-lock.json'
+  '.DS_Store',
+  'Thumbs.db',
+  'package-lock.json',
+  'project-structure.txt',
+  'project_structure.txt'
 )
+
+$ignoreFilePatterns = @(
+  '*.user',
+  '*.rsuser',
+  '*.suo',
+  '*.coverage',
+  '*.coveragexml'
+)
+
+function Should-SkipItem {
+  param(
+    [Parameter(Mandatory = $true)]
+    [System.IO.FileSystemInfo]$Item
+  )
+
+  $name = $Item.Name
+
+  if ($Item.PSIsContainer) {
+    return $ignoreDirs -contains $name
+  }
+
+  if ($ignoreFiles -contains $name) {
+    return $true
+  }
+
+  foreach ($pattern in $ignoreFilePatterns) {
+    if ($name -like $pattern) {
+      return $true
+    }
+  }
+
+  return $false
+}
 
 function Show-Tree {
   param(
@@ -16,15 +66,9 @@ function Show-Tree {
     [string]$Prefix = ''
   )
 
-  $items = Get-ChildItem -LiteralPath $Path -Force | Where-Object {
-    $name = $_.Name
-    if ($_.PSIsContainer) {
-      $ignoreDirs -notcontains $name
-    }
-    else {
-      $ignoreFiles -notcontains $name
-    }
-  } | Sort-Object @{ Expression = { -not $_.PSIsContainer } }, Name
+  $items = Get-ChildItem -LiteralPath $Path -Force -ErrorAction Stop |
+  Where-Object { -not (Should-SkipItem -Item $_) } |
+  Sort-Object @{ Expression = { -not $_.PSIsContainer } }, Name
 
   for ($i = 0; $i -lt $items.Count; $i++) {
     $item = $items[$i]
@@ -43,6 +87,6 @@ function Show-Tree {
 @(
   (Split-Path -Leaf (Get-Location))
   Show-Tree
-) | Out-File -FilePath (Join-Path $scriptDir 'project-structure.txt') -Encoding utf8
+) | Set-Content -LiteralPath (Join-Path $scriptDir $outputFile) -Encoding utf8
 
-Write-Host "Created project-structure.txt in $scriptDir"
+Write-Host "Created $outputFile in $scriptDir"

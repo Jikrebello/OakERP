@@ -1,0 +1,65 @@
+name: ci-build-test
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  backend-build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: oakadmin
+          POSTGRES_PASSWORD: oakpass
+          POSTGRES_DB: oakerp
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd="pg_isready -U oakadmin -d oakerp"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      ASPNETCORE_ENVIRONMENT: Testing
+      ConnectionStrings__DefaultConnection: Host=localhost;Port=5433;Database=oakerp_test;Username=oakadmin;Password=oakpass;Include Error Detail=true
+      OakERP__Tests__TransactionalConnectionString: Host=localhost;Port=5433;Database=oakerp_test;Username=oakadmin;Password=oakpass;Include Error Detail=true
+      OakERP__Tests__ResetConnectionString: Host=localhost;Port=5433;Database=oakerp_test;Username=oakadmin;Password=oakpass;Include Error Detail=true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5433 -U oakadmin -d oakerp && exit 0
+            sleep 2
+          done
+          echo "PostgreSQL did not become ready in time."
+          exit 1
+
+      - name: Create test database
+        run: |
+          PGPASSWORD=oakpass psql -h localhost -p 5433 -U oakadmin -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'oakerp_test'" | grep -q 1 || \
+          PGPASSWORD=oakpass psql -h localhost -p 5433 -U oakadmin -d postgres -c "CREATE DATABASE oakerp_test OWNER oakadmin;"
+
+      - name: Restore
+        run: dotnet restore OakERP.sln
+
+      - name: Build API
+        run: dotnet build OakERP.API/OakERP.API.csproj --no-restore
+
+      - name: Run unit tests
+        run: dotnet test OakERP.Tests.Unit/OakERP.Tests.Unit.csproj --no-restore --verbosity normal
+
+      - name: Run integration tests
+        run: dotnet test OakERP.Tests.Integration/OakERP.Tests.Integration.csproj --no-restore --verbosity normal
