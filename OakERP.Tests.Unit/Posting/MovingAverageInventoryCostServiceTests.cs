@@ -18,8 +18,24 @@ public sealed class MovingAverageInventoryCostServiceTests
 
         await using var db = CreateDb();
         db.InventoryLedgers.AddRange(
-            CreateLedger(itemId, locationId, new DateOnly(2026, 3, 10), 5m, 10m, 50m, new DateTimeOffset(2026, 3, 10, 8, 0, 0, TimeSpan.Zero)),
-            CreateLedger(itemId, locationId, new DateOnly(2026, 3, 20), 5m, 20m, 100m, new DateTimeOffset(2026, 3, 20, 8, 0, 0, TimeSpan.Zero))
+            CreateLedger(
+                itemId,
+                locationId,
+                new DateOnly(2026, 3, 10),
+                5m,
+                10m,
+                50m,
+                new DateTimeOffset(2026, 3, 10, 8, 0, 0, TimeSpan.Zero)
+            ),
+            CreateLedger(
+                itemId,
+                locationId,
+                new DateOnly(2026, 3, 20),
+                5m,
+                20m,
+                100m,
+                new DateTimeOffset(2026, 3, 20, 8, 0, 0, TimeSpan.Zero)
+            )
         );
         await db.SaveChangesAsync();
 
@@ -94,8 +110,24 @@ public sealed class MovingAverageInventoryCostServiceTests
 
         await using var db = CreateDb();
         db.InventoryLedgers.AddRange(
-            CreateLedger(itemId, locationId, new DateOnly(2026, 3, 10), 5m, 10m, 50m, new DateTimeOffset(2026, 3, 10, 8, 0, 0, TimeSpan.Zero)),
-            CreateLedger(itemId, locationId, new DateOnly(2026, 3, 11), -5m, 10m, -50m, new DateTimeOffset(2026, 3, 11, 8, 0, 0, TimeSpan.Zero))
+            CreateLedger(
+                itemId,
+                locationId,
+                new DateOnly(2026, 3, 10),
+                5m,
+                10m,
+                50m,
+                new DateTimeOffset(2026, 3, 10, 8, 0, 0, TimeSpan.Zero)
+            ),
+            CreateLedger(
+                itemId,
+                locationId,
+                new DateOnly(2026, 3, 11),
+                -5m,
+                10m,
+                -50m,
+                new DateTimeOffset(2026, 3, 11, 8, 0, 0, TimeSpan.Zero)
+            )
         );
         await db.SaveChangesAsync();
 
@@ -134,7 +166,8 @@ public sealed class MovingAverageInventoryCostServiceTests
             ItemId = itemId,
             LocationId = locationId,
             TrxDate = trxDate,
-            TransactionType = qty > 0 ? InventoryTransactionType.Receipt : InventoryTransactionType.Issue,
+            TransactionType =
+                qty > 0 ? InventoryTransactionType.Receipt : InventoryTransactionType.Issue,
             Qty = qty,
             UnitCost = unitCost,
             ValueChange = valueChange,

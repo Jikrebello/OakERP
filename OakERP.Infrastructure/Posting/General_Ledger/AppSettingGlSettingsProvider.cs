@@ -15,7 +15,9 @@ public sealed class AppSettingGlSettingsProvider(ApplicationDbContext db) : IGlS
         PropertyNameCaseInsensitive = true,
     };
 
-    public async Task<GlPostingSettings> GetSettingsAsync(CancellationToken cancellationToken = default)
+    public async Task<GlPostingSettings> GetSettingsAsync(
+        CancellationToken cancellationToken = default
+    )
     {
         AppSetting? setting = await db.AppSettings.SingleOrDefaultAsync(
             x => x.Key == GlPostingSettingsKey,

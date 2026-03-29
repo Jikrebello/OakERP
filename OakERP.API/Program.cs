@@ -38,11 +38,7 @@ builder.Services.AddCors(options =>
         "OakCors",
         policy =>
         {
-            policy
-                .WithOrigins(allowedOrigins)
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
+            policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
         }
     );
 });
@@ -73,5 +69,4 @@ if (runSeedOnStartup)
 
 await app.RunAsync();
 
-public partial class Program
-{ }
+public partial class Program { }

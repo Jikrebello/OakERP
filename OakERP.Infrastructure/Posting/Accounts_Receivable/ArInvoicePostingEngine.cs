@@ -205,7 +205,10 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
             $"Posting rule '{rule.Name}' is missing the expected '{scope}' line for account key '{accountKey}'."
         );
 
-    private static string ResolveHeaderAccountNo(AccountKey accountKey, ArInvoicePostingContext context) =>
+    private static string ResolveHeaderAccountNo(
+        AccountKey accountKey,
+        ArInvoicePostingContext context
+    ) =>
         accountKey switch
         {
             AccountKey.AccountsReceivable => context.Settings.ArControlAccountNo,
@@ -214,5 +217,4 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
                 $"Header account key '{accountKey}' is not supported for AR invoice Slice 1A."
             ),
         };
-
 }

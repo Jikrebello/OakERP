@@ -88,7 +88,10 @@ public sealed class ArInvoicePostingEngineTests
         );
 
         var result = _engine.PostArInvoice(context);
-        var revenueLines = result.GlEntries.Where(x => x.Credit > 0m).Select(x => x.AccountNo).ToList();
+        var revenueLines = result
+            .GlEntries.Where(x => x.Credit > 0m)
+            .Select(x => x.AccountNo)
+            .ToList();
 
         revenueLines.ShouldBe(["4100", "4200", "4300", "4400"]);
     }

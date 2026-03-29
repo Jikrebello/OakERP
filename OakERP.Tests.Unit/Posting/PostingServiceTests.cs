@@ -27,11 +27,61 @@ public sealed class PostingServiceTests
         var stockLine = invoice.Lines.Single();
         var postingResult = new PostingEngineResult(
             [
-                new GlEntryModel(invoice.InvoiceDate, period.Id, "1100", 115m, 0m, "ARINV", invoice.Id, invoice.DocNo, "AR"),
-                new GlEntryModel(invoice.InvoiceDate, period.Id, "4000", 0m, 100m, "ARINV", invoice.Id, invoice.DocNo, "Revenue"),
-                new GlEntryModel(invoice.InvoiceDate, period.Id, "2100", 0m, 15m, "ARINV", invoice.Id, invoice.DocNo, "Tax"),
-                new GlEntryModel(invoice.InvoiceDate, period.Id, "5100", 12.35m, 0m, "ARINV", invoice.Id, invoice.DocNo, "COGS"),
-                new GlEntryModel(invoice.InvoiceDate, period.Id, "1300", 0m, 12.35m, "ARINV", invoice.Id, invoice.DocNo, "Inventory"),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "1100",
+                    115m,
+                    0m,
+                    "ARINV",
+                    invoice.Id,
+                    invoice.DocNo,
+                    "AR"
+                ),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "4000",
+                    0m,
+                    100m,
+                    "ARINV",
+                    invoice.Id,
+                    invoice.DocNo,
+                    "Revenue"
+                ),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "2100",
+                    0m,
+                    15m,
+                    "ARINV",
+                    invoice.Id,
+                    invoice.DocNo,
+                    "Tax"
+                ),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "5100",
+                    12.35m,
+                    0m,
+                    "ARINV",
+                    invoice.Id,
+                    invoice.DocNo,
+                    "COGS"
+                ),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "1300",
+                    0m,
+                    12.35m,
+                    "ARINV",
+                    invoice.Id,
+                    invoice.DocNo,
+                    "Inventory"
+                ),
             ],
             [
                 new InventoryMovementModel(
@@ -49,40 +99,115 @@ public sealed class PostingServiceTests
             ]
         );
 
-        _factory.ArInvoiceRepository
-            .Setup(x => x.GetTrackedForPostingAsync(invoice.Id, It.IsAny<CancellationToken>()))
+        _factory
+            .ArInvoiceRepository.Setup(x =>
+                x.GetTrackedForPostingAsync(invoice.Id, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(invoice);
-        _factory.GlSettingsProvider.Setup(x => x.GetSettingsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(settings);
-        _factory.FiscalPeriodRepository
-            .Setup(x => x.GetOpenForDateAsync(invoice.InvoiceDate, It.IsAny<CancellationToken>()))
+        _factory
+            .GlSettingsProvider.Setup(x => x.GetSettingsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(settings);
+        _factory
+            .FiscalPeriodRepository.Setup(x =>
+                x.GetOpenForDateAsync(invoice.InvoiceDate, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(period);
-        _factory.PostingRuleProvider
-            .Setup(x => x.GetActiveRuleAsync(DocKind.ArInvoice, It.IsAny<CancellationToken>()))
+        _factory
+            .PostingRuleProvider.Setup(x =>
+                x.GetActiveRuleAsync(DocKind.ArInvoice, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(rule);
-        _factory.PostingContextBuilder
-            .Setup(x => x.BuildAsync(invoice, invoice.InvoiceDate, period, settings, rule, It.IsAny<CancellationToken>()))
+        _factory
+            .PostingContextBuilder.Setup(x =>
+                x.BuildAsync(
+                    invoice,
+                    invoice.InvoiceDate,
+                    period,
+                    settings,
+                    rule,
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(context);
-        _factory.PostingEngine
-            .Setup(x => x.PostArInvoice(context))
-            .Returns(postingResult);
-        _factory.GlAccountRepository
-            .Setup(x => x.FindNoTrackingAsync("1100", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new GlAccount { AccountNo = "1100", Name = "AR", Type = GlAccountType.Asset, IsActive = true });
-        _factory.GlAccountRepository
-            .Setup(x => x.FindNoTrackingAsync("4000", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new GlAccount { AccountNo = "4000", Name = "Revenue", Type = GlAccountType.Revenue, IsActive = true });
-        _factory.GlAccountRepository
-            .Setup(x => x.FindNoTrackingAsync("2100", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new GlAccount { AccountNo = "2100", Name = "VAT", Type = GlAccountType.Liability, IsActive = true });
-        _factory.GlAccountRepository
-            .Setup(x => x.FindNoTrackingAsync("5100", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new GlAccount { AccountNo = "5100", Name = "COGS", Type = GlAccountType.Expense, IsActive = true });
-        _factory.GlAccountRepository
-            .Setup(x => x.FindNoTrackingAsync("1300", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new GlAccount { AccountNo = "1300", Name = "Inventory", Type = GlAccountType.Asset, IsActive = true });
-        _factory.GlEntryRepository.Setup(x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>())).Returns(Task.CompletedTask);
-        _factory.InventoryLedgerRepository.Setup(x => x.AddAsync(It.IsAny<Domain.Entities.Inventory.InventoryLedger>())).Returns(Task.CompletedTask);
-        _factory.UnitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(6);
+        _factory.PostingEngine.Setup(x => x.PostArInvoice(context)).Returns(postingResult);
+        _factory
+            .GlAccountRepository.Setup(x =>
+                x.FindNoTrackingAsync("1100", It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                new GlAccount
+                {
+                    AccountNo = "1100",
+                    Name = "AR",
+                    Type = GlAccountType.Asset,
+                    IsActive = true,
+                }
+            );
+        _factory
+            .GlAccountRepository.Setup(x =>
+                x.FindNoTrackingAsync("4000", It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                new GlAccount
+                {
+                    AccountNo = "4000",
+                    Name = "Revenue",
+                    Type = GlAccountType.Revenue,
+                    IsActive = true,
+                }
+            );
+        _factory
+            .GlAccountRepository.Setup(x =>
+                x.FindNoTrackingAsync("2100", It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                new GlAccount
+                {
+                    AccountNo = "2100",
+                    Name = "VAT",
+                    Type = GlAccountType.Liability,
+                    IsActive = true,
+                }
+            );
+        _factory
+            .GlAccountRepository.Setup(x =>
+                x.FindNoTrackingAsync("5100", It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                new GlAccount
+                {
+                    AccountNo = "5100",
+                    Name = "COGS",
+                    Type = GlAccountType.Expense,
+                    IsActive = true,
+                }
+            );
+        _factory
+            .GlAccountRepository.Setup(x =>
+                x.FindNoTrackingAsync("1300", It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                new GlAccount
+                {
+                    AccountNo = "1300",
+                    Name = "Inventory",
+                    Type = GlAccountType.Asset,
+                    IsActive = true,
+                }
+            );
+        _factory
+            .GlEntryRepository.Setup(x =>
+                x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>())
+            )
+            .Returns(Task.CompletedTask);
+        _factory
+            .InventoryLedgerRepository.Setup(x =>
+                x.AddAsync(It.IsAny<Domain.Entities.Inventory.InventoryLedger>())
+            )
+            .Returns(Task.CompletedTask);
+        _factory
+            .UnitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(6);
 
         var service = _factory.CreateService();
 
@@ -93,8 +218,14 @@ public sealed class PostingServiceTests
         invoice.DocStatus.ShouldBe(DocStatus.Posted);
         invoice.PostingDate.ShouldBe(invoice.InvoiceDate);
         invoice.UpdatedBy.ShouldBe("unit-tester");
-        _factory.GlEntryRepository.Verify(x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()), Times.Exactly(5));
-        _factory.InventoryLedgerRepository.Verify(x => x.AddAsync(It.IsAny<Domain.Entities.Inventory.InventoryLedger>()), Times.Once);
+        _factory.GlEntryRepository.Verify(
+            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            Times.Exactly(5)
+        );
+        _factory.InventoryLedgerRepository.Verify(
+            x => x.AddAsync(It.IsAny<Domain.Entities.Inventory.InventoryLedger>()),
+            Times.Once
+        );
         _factory.UnitOfWork.Verify(x => x.CommitAsync(), Times.Once);
     }
 
@@ -106,19 +237,38 @@ public sealed class PostingServiceTests
         var period = PostingServiceTestFactory.CreateOpenPeriod();
         var rule = PostingServiceTestFactory.CreateRule();
 
-        _factory.ArInvoiceRepository
-            .Setup(x => x.GetTrackedForPostingAsync(invoice.Id, It.IsAny<CancellationToken>()))
+        _factory
+            .ArInvoiceRepository.Setup(x =>
+                x.GetTrackedForPostingAsync(invoice.Id, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(invoice);
-        _factory.GlSettingsProvider.Setup(x => x.GetSettingsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(settings);
-        _factory.FiscalPeriodRepository
-            .Setup(x => x.GetOpenForDateAsync(invoice.InvoiceDate, It.IsAny<CancellationToken>()))
+        _factory
+            .GlSettingsProvider.Setup(x => x.GetSettingsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(settings);
+        _factory
+            .FiscalPeriodRepository.Setup(x =>
+                x.GetOpenForDateAsync(invoice.InvoiceDate, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(period);
-        _factory.PostingRuleProvider
-            .Setup(x => x.GetActiveRuleAsync(DocKind.ArInvoice, It.IsAny<CancellationToken>()))
+        _factory
+            .PostingRuleProvider.Setup(x =>
+                x.GetActiveRuleAsync(DocKind.ArInvoice, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(rule);
-        _factory.PostingContextBuilder
-            .Setup(x => x.BuildAsync(invoice, invoice.InvoiceDate, period, settings, rule, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Stock AR invoice line 1 requires a location."));
+        _factory
+            .PostingContextBuilder.Setup(x =>
+                x.BuildAsync(
+                    invoice,
+                    invoice.InvoiceDate,
+                    period,
+                    settings,
+                    rule,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(
+                new InvalidOperationException("Stock AR invoice line 1 requires a location.")
+            );
 
         var service = _factory.CreateService();
 
@@ -127,7 +277,10 @@ public sealed class PostingServiceTests
         );
 
         ex.Message.ShouldContain("requires a location");
-        _factory.PostingEngine.Verify(x => x.PostArInvoice(It.IsAny<ArInvoicePostingContext>()), Times.Never);
+        _factory.PostingEngine.Verify(
+            x => x.PostArInvoice(It.IsAny<ArInvoicePostingContext>()),
+            Times.Never
+        );
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
     }
 
@@ -140,35 +293,97 @@ public sealed class PostingServiceTests
         var rule = PostingServiceTestFactory.CreateRule();
         var postingResult = new PostingEngineResult(
             [
-                new GlEntryModel(invoice.InvoiceDate, period.Id, "1100", 115m, 0m, "ARINV", invoice.Id, invoice.DocNo, "AR"),
-                new GlEntryModel(invoice.InvoiceDate, period.Id, "4000", 0m, 100m, "ARINV", invoice.Id, invoice.DocNo, "Revenue"),
-                new GlEntryModel(invoice.InvoiceDate, period.Id, "2100", 0m, 15m, "ARINV", invoice.Id, invoice.DocNo, "Tax"),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "1100",
+                    115m,
+                    0m,
+                    "ARINV",
+                    invoice.Id,
+                    invoice.DocNo,
+                    "AR"
+                ),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "4000",
+                    0m,
+                    100m,
+                    "ARINV",
+                    invoice.Id,
+                    invoice.DocNo,
+                    "Revenue"
+                ),
+                new GlEntryModel(
+                    invoice.InvoiceDate,
+                    period.Id,
+                    "2100",
+                    0m,
+                    15m,
+                    "ARINV",
+                    invoice.Id,
+                    invoice.DocNo,
+                    "Tax"
+                ),
             ],
             []
         );
 
-        _factory.ArInvoiceRepository
-            .Setup(x => x.GetTrackedForPostingAsync(invoice.Id, It.IsAny<CancellationToken>()))
+        _factory
+            .ArInvoiceRepository.Setup(x =>
+                x.GetTrackedForPostingAsync(invoice.Id, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(invoice);
-        _factory.GlSettingsProvider.Setup(x => x.GetSettingsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(settings);
-        _factory.FiscalPeriodRepository
-            .Setup(x => x.GetOpenForDateAsync(invoice.InvoiceDate, It.IsAny<CancellationToken>()))
+        _factory
+            .GlSettingsProvider.Setup(x => x.GetSettingsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(settings);
+        _factory
+            .FiscalPeriodRepository.Setup(x =>
+                x.GetOpenForDateAsync(invoice.InvoiceDate, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(period);
-        _factory.PostingRuleProvider
-            .Setup(x => x.GetActiveRuleAsync(DocKind.ArInvoice, It.IsAny<CancellationToken>()))
+        _factory
+            .PostingRuleProvider.Setup(x =>
+                x.GetActiveRuleAsync(DocKind.ArInvoice, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(rule);
-        _factory.PostingContextBuilder
-            .Setup(x => x.BuildAsync(invoice, invoice.InvoiceDate, period, settings, rule, It.IsAny<CancellationToken>()))
+        _factory
+            .PostingContextBuilder.Setup(x =>
+                x.BuildAsync(
+                    invoice,
+                    invoice.InvoiceDate,
+                    period,
+                    settings,
+                    rule,
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(PostingServiceTestFactory.CreatePostingContext(invoice, rule));
-        _factory.PostingEngine
-            .Setup(x => x.PostArInvoice(It.IsAny<ArInvoicePostingContext>()))
+        _factory
+            .PostingEngine.Setup(x => x.PostArInvoice(It.IsAny<ArInvoicePostingContext>()))
             .Returns(postingResult);
-        _factory.GlAccountRepository
-            .Setup(x => x.FindNoTrackingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string accountNo, CancellationToken _) => new GlAccount { AccountNo = accountNo, Name = accountNo, Type = GlAccountType.Asset, IsActive = true });
-        _factory.GlEntryRepository.Setup(x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>())).Returns(Task.CompletedTask);
-        _factory.UnitOfWork
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        _factory
+            .GlAccountRepository.Setup(x =>
+                x.FindNoTrackingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                (string accountNo, CancellationToken _) =>
+                    new GlAccount
+                    {
+                        AccountNo = accountNo,
+                        Name = accountNo,
+                        Type = GlAccountType.Asset,
+                        IsActive = true,
+                    }
+            );
+        _factory
+            .GlEntryRepository.Setup(x =>
+                x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>())
+            )
+            .Returns(Task.CompletedTask);
+        _factory
+            .UnitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new DbUpdateException("save failed", new Exception()));
 
         var service = _factory.CreateService();

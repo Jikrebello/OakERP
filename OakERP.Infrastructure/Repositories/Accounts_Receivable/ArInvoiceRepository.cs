@@ -14,12 +14,12 @@ public class ArInvoiceRepository(ApplicationDbContext db) : IArInvoiceRepository
 
     public Task<ArInvoice?> GetTrackedForPostingAsync(Guid id, CancellationToken ct = default) =>
         Set.Include(x => x.Lines)
-            .ThenInclude(x => x.Item)
-            .ThenInclude(x => x!.Category)
+                .ThenInclude(x => x.Item)
+                    .ThenInclude(x => x!.Category)
             .Include(x => x.Lines)
-            .ThenInclude(x => x.Location)
+                .ThenInclude(x => x.Location)
             .Include(x => x.Lines)
-            .ThenInclude(x => x.TaxRate)
+                .ThenInclude(x => x.TaxRate)
             .SingleOrDefaultAsync(x => x.Id == id, ct);
 
     public ValueTask<ArInvoice?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>

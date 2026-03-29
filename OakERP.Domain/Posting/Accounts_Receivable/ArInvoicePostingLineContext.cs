@@ -12,4 +12,3 @@ public sealed record ArInvoicePostingLineContext(
     decimal? UnitCost,
     decimal? LineCogsValue
 );
-

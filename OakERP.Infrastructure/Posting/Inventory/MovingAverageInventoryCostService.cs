@@ -18,9 +18,7 @@ public sealed class MovingAverageInventoryCostService(
     {
         List<InventoryLedger> ledgers = await inventoryLedgerRepository
             .QueryNoTracking()
-            .Where(x =>
-                x.ItemId == itemId && x.LocationId == locationId && x.TrxDate <= asOfDate
-            )
+            .Where(x => x.ItemId == itemId && x.LocationId == locationId && x.TrxDate <= asOfDate)
             .OrderBy(x => x.TrxDate)
             .ThenBy(x => x.CreatedAt)
             .ThenBy(x => x.Id)

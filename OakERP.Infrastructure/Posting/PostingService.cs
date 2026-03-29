@@ -48,15 +48,19 @@ public sealed class PostingService(
         try
         {
             ArInvoice invoice =
-                await arInvoiceRepository.GetTrackedForPostingAsync(command.SourceId, cancellationToken)
-                ?? throw new InvalidOperationException("AR invoice was not found.");
+                await arInvoiceRepository.GetTrackedForPostingAsync(
+                    command.SourceId,
+                    cancellationToken
+                ) ?? throw new InvalidOperationException("AR invoice was not found.");
 
             if (invoice.DocStatus != DocStatus.Draft)
             {
                 throw new InvalidOperationException("Only draft AR invoices can be posted.");
             }
 
-            GlPostingSettings settings = await glSettingsProvider.GetSettingsAsync(cancellationToken);
+            GlPostingSettings settings = await glSettingsProvider.GetSettingsAsync(
+                cancellationToken
+            );
             DateOnly postingDate = command.PostingDate ?? invoice.InvoiceDate;
 
             if (
@@ -189,9 +193,14 @@ public sealed class PostingService(
         CancellationToken cancellationToken
     )
     {
-        foreach (string accountNo in entries.Select(x => x.AccountNo).Distinct(StringComparer.Ordinal))
+        foreach (
+            string accountNo in entries.Select(x => x.AccountNo).Distinct(StringComparer.Ordinal)
+        )
         {
-            var account = await glAccountRepository.FindNoTrackingAsync(accountNo, cancellationToken);
+            var account = await glAccountRepository.FindNoTrackingAsync(
+                accountNo,
+                cancellationToken
+            );
             if (account is null || !account.IsActive)
             {
                 throw new InvalidOperationException(
@@ -219,7 +228,8 @@ public sealed class PostingService(
             }
 
             bool validOneSided =
-                (entry.Debit > 0m && entry.Credit == 0m) || (entry.Credit > 0m && entry.Debit == 0m);
+                (entry.Debit > 0m && entry.Credit == 0m)
+                || (entry.Credit > 0m && entry.Debit == 0m);
             if (!validOneSided)
             {
                 throw new InvalidOperationException(

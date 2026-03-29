@@ -12,7 +12,9 @@ public sealed class ArInvoicePostingRuleProvider : IPostingRuleProvider
     {
         if (docKind != DocKind.ArInvoice)
         {
-            throw new NotSupportedException($"Posting rule for document kind '{docKind}' is not supported.");
+            throw new NotSupportedException(
+                $"Posting rule for document kind '{docKind}' is not supported."
+            );
         }
 
         var rule = new PostingRule

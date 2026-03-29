@@ -34,8 +34,8 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
             invoice.DocStatus.ShouldBe(DocStatus.Posted);
             invoice.PostingDate.ShouldBe(new DateOnly(2026, 3, 15));
 
-            var glEntries = await db.GlEntries
-                .Where(x => x.SourceId == invoiceId)
+            var glEntries = await db
+                .GlEntries.Where(x => x.SourceId == invoiceId)
                 .OrderBy(x => x.AccountNo)
                 .ToListAsync();
 
@@ -68,8 +68,8 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
             var invoice = await db.ArInvoices.SingleAsync(x => x.Id == invoiceId);
             invoice.DocStatus.ShouldBe(DocStatus.Posted);
 
-            var glEntries = await db.GlEntries
-                .Where(x => x.SourceId == invoiceId)
+            var glEntries = await db
+                .GlEntries.Where(x => x.SourceId == invoiceId)
                 .OrderBy(x => x.AccountNo)
                 .ToListAsync();
 
@@ -80,7 +80,9 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
             glEntries.ShouldContain(x => x.AccountNo == "5100" && x.Debit == 10m);
             glEntries.ShouldContain(x => x.AccountNo == "1300" && x.Credit == 10m);
 
-            var inventoryRows = await db.InventoryLedgers.Where(x => x.SourceId == invoiceId).ToListAsync();
+            var inventoryRows = await db
+                .InventoryLedgers.Where(x => x.SourceId == invoiceId)
+                .ToListAsync();
             inventoryRows.Count.ShouldBe(1);
             inventoryRows.Single().TransactionType.ShouldBe(InventoryTransactionType.SalesCogs);
             inventoryRows.Single().Qty.ShouldBe(-1m);
@@ -107,8 +109,8 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
 
         await WithDbAsync(async db =>
         {
-            var glEntries = await db.GlEntries
-                .Where(x => x.SourceId == invoiceId)
+            var glEntries = await db
+                .GlEntries.Where(x => x.SourceId == invoiceId)
                 .OrderBy(x => x.AccountNo)
                 .ToListAsync();
 
@@ -117,7 +119,9 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
             glEntries.ShouldContain(x => x.AccountNo == "5100" && x.Debit == 10m);
             glEntries.ShouldContain(x => x.AccountNo == "1300" && x.Credit == 10m);
 
-            var inventoryRows = await db.InventoryLedgers.Where(x => x.SourceId == invoiceId).ToListAsync();
+            var inventoryRows = await db
+                .InventoryLedgers.Where(x => x.SourceId == invoiceId)
+                .ToListAsync();
             inventoryRows.Count.ShouldBe(1);
             inventoryRows.Single().Qty.ShouldBe(-1m);
         });
@@ -161,7 +165,9 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
             includeCostHistory: false
         );
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() => PostInvoiceAsync(invoiceId));
+        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+            PostInvoiceAsync(invoiceId)
+        );
 
         ex.Message.ShouldContain("requires a location");
 
@@ -178,7 +184,9 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
             includeCostHistory: false
         );
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() => PostInvoiceAsync(invoiceId));
+        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+            PostInvoiceAsync(invoiceId)
+        );
 
         ex.Message.ShouldContain("prior cost basis");
 
@@ -267,7 +275,9 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
     {
         var invoiceId = await SeedInvoiceScenarioAsync(currencyCode: "USD");
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() => PostInvoiceAsync(invoiceId));
+        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+            PostInvoiceAsync(invoiceId)
+        );
 
         ex.Message.ShouldContain("base currency");
 
@@ -279,7 +289,9 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
         await using var scope = Factory.Services.CreateAsyncScope();
         var service = scope.ServiceProvider.GetRequiredService<IPostingService>();
 
-        return await service.PostAsync(new PostCommand(DocKind.ArInvoice, invoiceId, "integration-user"));
+        return await service.PostAsync(
+            new PostCommand(DocKind.ArInvoice, invoiceId, "integration-user")
+        );
     }
 
     private async Task AssertNoPostingWrittenAsync(Guid invoiceId)
@@ -336,11 +348,42 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
             );
 
             db.GlAccounts.AddRange(
-                new GlAccount { AccountNo = "1100", Name = "Accounts Receivable", Type = GlAccountType.Asset, IsActive = true, IsControl = true },
-                new GlAccount { AccountNo = "1300", Name = "Inventory", Type = GlAccountType.Asset, IsActive = true },
-                new GlAccount { AccountNo = "2100", Name = "Output VAT", Type = GlAccountType.Liability, IsActive = true },
-                new GlAccount { AccountNo = "4000", Name = "Sales", Type = GlAccountType.Revenue, IsActive = true },
-                new GlAccount { AccountNo = "5100", Name = "COGS", Type = GlAccountType.Expense, IsActive = true }
+                new GlAccount
+                {
+                    AccountNo = "1100",
+                    Name = "Accounts Receivable",
+                    Type = GlAccountType.Asset,
+                    IsActive = true,
+                    IsControl = true,
+                },
+                new GlAccount
+                {
+                    AccountNo = "1300",
+                    Name = "Inventory",
+                    Type = GlAccountType.Asset,
+                    IsActive = true,
+                },
+                new GlAccount
+                {
+                    AccountNo = "2100",
+                    Name = "Output VAT",
+                    Type = GlAccountType.Liability,
+                    IsActive = true,
+                },
+                new GlAccount
+                {
+                    AccountNo = "4000",
+                    Name = "Sales",
+                    Type = GlAccountType.Revenue,
+                    IsActive = true,
+                },
+                new GlAccount
+                {
+                    AccountNo = "5100",
+                    Name = "COGS",
+                    Type = GlAccountType.Expense,
+                    IsActive = true,
+                }
             );
 
             db.AppSettings.Add(

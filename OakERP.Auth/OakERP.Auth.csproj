@@ -1,23 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 
-	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-	</PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.10" />
+    <PackageReference
+      Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore"
+      Version="9.0.10"
+    />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.10" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.14.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.10" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.10" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.10" />
-		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.14.0" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\OakERP.Application\OakERP.Application.csproj" />
-		<ProjectReference Include="..\OakERP.Domain\OakERP.Domain.csproj" />
-		<ProjectReference Include="..\OakERP.Common\OakERP.Common.csproj" />
-	</ItemGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\OakERP.Application\OakERP.Application.csproj" />
+    <ProjectReference Include="..\OakERP.Domain\OakERP.Domain.csproj" />
+    <ProjectReference Include="..\OakERP.Common\OakERP.Common.csproj" />
+  </ItemGroup>
 </Project>

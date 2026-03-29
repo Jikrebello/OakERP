@@ -21,10 +21,12 @@ public sealed class PostingServiceTestFactory
     public Mock<IFiscalPeriodRepository> FiscalPeriodRepository { get; } = new(MockBehavior.Strict);
     public Mock<IGlAccountRepository> GlAccountRepository { get; } = new(MockBehavior.Strict);
     public Mock<IGlEntryRepository> GlEntryRepository { get; } = new(MockBehavior.Strict);
-    public Mock<IInventoryLedgerRepository> InventoryLedgerRepository { get; } = new(MockBehavior.Strict);
+    public Mock<IInventoryLedgerRepository> InventoryLedgerRepository { get; } =
+        new(MockBehavior.Strict);
     public Mock<IGlSettingsProvider> GlSettingsProvider { get; } = new(MockBehavior.Strict);
     public Mock<IPostingRuleProvider> PostingRuleProvider { get; } = new(MockBehavior.Strict);
-    public Mock<IArInvoicePostingContextBuilder> PostingContextBuilder { get; } = new(MockBehavior.Strict);
+    public Mock<IArInvoicePostingContextBuilder> PostingContextBuilder { get; } =
+        new(MockBehavior.Strict);
     public Mock<IPostingEngine> PostingEngine { get; } = new(MockBehavior.Strict);
     public Mock<IUnitOfWork> UnitOfWork { get; } = new(MockBehavior.Strict);
 
@@ -194,21 +196,28 @@ public sealed class PostingServiceTestFactory
     {
         var settings = CreateSettings();
         var period = CreateOpenPeriod();
-        var lines = invoice.Lines
-            .OrderBy(x => x.LineNo)
+        var lines = invoice
+            .Lines.OrderBy(x => x.LineNo)
             .Select(line =>
             {
                 bool isStock = line.Item?.Type == ItemType.Stock;
                 decimal? unitCost = isStock ? 12.3456m : null;
-                decimal? lineCogsValue = isStock ? Math.Round(line.Qty * unitCost!.Value, 2, MidpointRounding.AwayFromZero) : null;
+                decimal? lineCogsValue = isStock
+                    ? Math.Round(line.Qty * unitCost!.Value, 2, MidpointRounding.AwayFromZero)
+                    : null;
 
                 return new ArInvoicePostingLineContext(
                     line,
                     isStock,
                     line.RevenueAccount ?? settings.DefaultRevenueAccountNo,
                     line.LocationId,
-                    isStock ? line.Item?.Category?.CogsAccount ?? settings.DefaultCogsAccountNo : null,
-                    isStock ? line.Item?.Category?.InventoryAccount ?? settings.DefaultInventoryAssetAccountNo : null,
+                    isStock
+                        ? line.Item?.Category?.CogsAccount ?? settings.DefaultCogsAccountNo
+                        : null,
+                    isStock
+                        ? line.Item?.Category?.InventoryAccount
+                            ?? settings.DefaultInventoryAssetAccountNo
+                        : null,
                     unitCost,
                     lineCogsValue
                 );
