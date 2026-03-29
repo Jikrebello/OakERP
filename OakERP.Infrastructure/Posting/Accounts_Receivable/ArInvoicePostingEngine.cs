@@ -1,8 +1,8 @@
 using OakERP.Common.Enums;
-using OakERP.Domain.Entities.Accounts_Receivable;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.Accounts_Receivable;
 using OakERP.Domain.Posting.General_Ledger;
+using OakERP.Domain.Posting.Inventory;
 
 namespace OakERP.Infrastructure.Posting.Accounts_Receivable;
 
@@ -18,6 +18,7 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
         var invoice = context.Invoice;
 
         var glEntries = new List<GlEntryModel>();
+        var inventoryMovements = new List<InventoryMovementModel>();
 
         var arRule = FindRuleLine(
             rule,
@@ -49,21 +50,112 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
             amountSource: AmountSource.LineNet
         );
 
-        foreach (var line in context.Lines.OrderBy(x => x.LineNo))
+        foreach (var postingLine in context.Lines.OrderBy(x => x.Line.LineNo))
         {
-            var revenueAccountNo = ResolveRevenueAccountNo(line, context);
+            glEntries.Add(
+                new GlEntryModel(
+                    context.PostingDate,
+                    context.Period.Id,
+                    postingLine.RevenueAccountNo,
+                    0m,
+                    postingLine.Line.LineTotal,
+                    SourceType,
+                    invoice.Id,
+                    invoice.DocNo,
+                    $"AR invoice {invoice.DocNo} line {postingLine.Line.LineNo}"
+                )
+            );
+
+            if (!postingLine.IsStock)
+            {
+                continue;
+            }
+
+            string cogsAccountNo =
+                postingLine.CogsAccountNo
+                ?? throw new InvalidOperationException(
+                    $"Stock AR invoice line {postingLine.Line.LineNo} is missing a COGS account."
+                );
+            string inventoryAssetAccountNo =
+                postingLine.InventoryAssetAccountNo
+                ?? throw new InvalidOperationException(
+                    $"Stock AR invoice line {postingLine.Line.LineNo} is missing an inventory asset account."
+                );
+            Guid locationId =
+                postingLine.LocationId
+                ?? throw new InvalidOperationException(
+                    $"Stock AR invoice line {postingLine.Line.LineNo} is missing a location."
+                );
+            decimal unitCost =
+                postingLine.UnitCost
+                ?? throw new InvalidOperationException(
+                    $"Stock AR invoice line {postingLine.Line.LineNo} is missing a unit cost."
+                );
+            decimal lineCogsValue =
+                postingLine.LineCogsValue
+                ?? throw new InvalidOperationException(
+                    $"Stock AR invoice line {postingLine.Line.LineNo} is missing a COGS value."
+                );
+
+            FindRuleLine(
+                rule,
+                scope: "Line.Stock",
+                side: RuleSide.Debit,
+                accountKey: AccountKey.Cogs,
+                amountSource: AmountSource.LineCogsValue
+            );
+
+            FindRuleLine(
+                rule,
+                scope: "Line.Stock",
+                side: RuleSide.Credit,
+                accountKey: AccountKey.InventoryAsset,
+                amountSource: AmountSource.LineCogsValue
+            );
 
             glEntries.Add(
                 new GlEntryModel(
                     context.PostingDate,
                     context.Period.Id,
-                    revenueAccountNo,
+                    cogsAccountNo,
+                    lineCogsValue,
                     0m,
-                    line.LineTotal,
                     SourceType,
                     invoice.Id,
                     invoice.DocNo,
-                    $"AR invoice {invoice.DocNo} line {line.LineNo}"
+                    $"AR invoice {invoice.DocNo} line {postingLine.Line.LineNo} COGS"
+                )
+            );
+
+            glEntries.Add(
+                new GlEntryModel(
+                    context.PostingDate,
+                    context.Period.Id,
+                    inventoryAssetAccountNo,
+                    0m,
+                    lineCogsValue,
+                    SourceType,
+                    invoice.Id,
+                    invoice.DocNo,
+                    $"AR invoice {invoice.DocNo} line {postingLine.Line.LineNo} inventory"
+                )
+            );
+
+            inventoryMovements.Add(
+                new InventoryMovementModel(
+                    context.PostingDate,
+                    postingLine.Line.ItemId
+                        ?? throw new InvalidOperationException(
+                            $"Stock AR invoice line {postingLine.Line.LineNo} is missing an item."
+                        ),
+                    locationId,
+                    InventoryTransactionType.SalesCogs,
+                    -postingLine.Line.Qty,
+                    unitCost,
+                    -lineCogsValue,
+                    SourceType,
+                    invoice.Id,
+                    $"AR invoice {invoice.DocNo} line {postingLine.Line.LineNo}"
                 )
             );
         }
@@ -93,7 +185,7 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
             );
         }
 
-        return new PostingEngineResult(glEntries, []);
+        return new PostingEngineResult(glEntries, inventoryMovements);
     }
 
     private static PostingRuleLine FindRuleLine(
@@ -123,25 +215,4 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
             ),
         };
 
-    private static string ResolveRevenueAccountNo(
-        ArInvoiceLine line,
-        ArInvoicePostingContext context
-    )
-    {
-        var accountNo =
-            FirstNonBlank(
-                line.RevenueAccount,
-                line.Item?.DefaultRevenueAccountNo,
-                line.Item?.Category?.RevenueAccount,
-                context.Settings.DefaultRevenueAccountNo
-            )
-            ?? throw new InvalidOperationException(
-                $"No revenue account could be resolved for AR invoice line {line.LineNo}."
-            );
-
-        return accountNo;
-    }
-
-    private static string? FirstNonBlank(params string?[] values) =>
-        values.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
 }

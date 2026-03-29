@@ -17,6 +17,8 @@ public class ArInvoiceRepository(ApplicationDbContext db) : IArInvoiceRepository
             .ThenInclude(x => x.Item)
             .ThenInclude(x => x!.Category)
             .Include(x => x.Lines)
+            .ThenInclude(x => x.Location)
+            .Include(x => x.Lines)
             .ThenInclude(x => x.TaxRate)
             .SingleOrDefaultAsync(x => x.Id == id, ct);
 

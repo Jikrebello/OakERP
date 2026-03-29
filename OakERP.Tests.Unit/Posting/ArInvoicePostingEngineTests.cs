@@ -1,8 +1,4 @@
 using OakERP.Common.Enums;
-using OakERP.Domain.Entities.Accounts_Receivable;
-using OakERP.Domain.Entities.General_Ledger;
-using OakERP.Domain.Entities.Inventory;
-using OakERP.Domain.Posting.Accounts_Receivable;
 using OakERP.Infrastructure.Posting.Accounts_Receivable;
 using Shouldly;
 
@@ -17,16 +13,8 @@ public sealed class ArInvoicePostingEngineTests
     {
         var provider = new ArInvoicePostingRuleProvider();
         var invoice = PostingServiceTestFactory.CreateInvoice();
-        var settings = PostingServiceTestFactory.CreateSettings();
-        var period = PostingServiceTestFactory.CreateOpenPeriod();
-        var context = new ArInvoicePostingContext(
+        var context = PostingServiceTestFactory.CreatePostingContext(
             invoice,
-            invoice.Lines.OrderBy(x => x.LineNo).ToList(),
-            new DateOnly(2026, 3, 15),
-            period,
-            settings.BaseCurrencyCode,
-            1m,
-            settings,
             await provider.GetActiveRuleAsync(DocKind.ArInvoice)
         );
 
@@ -48,17 +36,8 @@ public sealed class ArInvoicePostingEngineTests
         var invoice = PostingServiceTestFactory.CreateInvoice();
         invoice.DocTotal = 100m;
         invoice.TaxTotal = 0m;
-
-        var settings = PostingServiceTestFactory.CreateSettings();
-        var period = PostingServiceTestFactory.CreateOpenPeriod();
-        var context = new ArInvoicePostingContext(
+        var context = PostingServiceTestFactory.CreatePostingContext(
             invoice,
-            invoice.Lines.ToList(),
-            invoice.InvoiceDate,
-            period,
-            settings.BaseCurrencyCode,
-            1m,
-            settings,
             await provider.GetActiveRuleAsync(DocKind.ArInvoice)
         );
 
@@ -72,56 +51,39 @@ public sealed class ArInvoicePostingEngineTests
     public async Task PostArInvoice_Should_Resolve_Revenue_Accounts_In_Configured_Order()
     {
         var provider = new ArInvoicePostingRuleProvider();
-        var category = new ItemCategory { RevenueAccount = "4300" };
-        var settings = PostingServiceTestFactory.CreateSettings() with { DefaultRevenueAccountNo = "4400" };
-        var invoice = new ArInvoice
-        {
-            Id = Guid.NewGuid(),
-            DocNo = "AR-1002",
-            CustomerId = Guid.NewGuid(),
-            InvoiceDate = new DateOnly(2026, 3, 15),
-            DueDate = new DateOnly(2026, 4, 14),
-            CurrencyCode = "ZAR",
-            TaxTotal = 0m,
-            DocTotal = 40m,
-            Lines =
-            [
-                new ArInvoiceLine
-                {
-                    LineNo = 1,
-                    LineTotal = 10m,
-                    RevenueAccount = "4100",
-                    Item = new Item { Type = ItemType.Service, DefaultRevenueAccountNo = "9999", Category = category },
-                },
-                new ArInvoiceLine
-                {
-                    LineNo = 2,
-                    LineTotal = 10m,
-                    Item = new Item { Type = ItemType.Nonstock, DefaultRevenueAccountNo = "4200", Category = category },
-                },
-                new ArInvoiceLine
-                {
-                    LineNo = 3,
-                    LineTotal = 10m,
-                    Item = new Item { Type = ItemType.Service, Category = category },
-                },
-                new ArInvoiceLine
-                {
-                    LineNo = 4,
-                    LineTotal = 10m,
-                    Item = new Item { Type = ItemType.Nonstock },
-                },
-            ],
-        };
+        var invoice = PostingServiceTestFactory.CreateInvoice();
+        invoice.DocTotal = 40m;
+        invoice.TaxTotal = 0m;
+        invoice.Lines =
+        [
+            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            {
+                LineNo = 1,
+                LineTotal = 10m,
+                RevenueAccount = "4100",
+            },
+            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            {
+                LineNo = 2,
+                LineTotal = 10m,
+                RevenueAccount = "4200",
+            },
+            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            {
+                LineNo = 3,
+                LineTotal = 10m,
+                RevenueAccount = "4300",
+            },
+            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            {
+                LineNo = 4,
+                LineTotal = 10m,
+                RevenueAccount = "4400",
+            },
+        ];
 
-        var context = new ArInvoicePostingContext(
+        var context = PostingServiceTestFactory.CreatePostingContext(
             invoice,
-            invoice.Lines.OrderBy(x => x.LineNo).ToList(),
-            invoice.InvoiceDate,
-            PostingServiceTestFactory.CreateOpenPeriod(),
-            settings.BaseCurrencyCode,
-            1m,
-            settings,
             await provider.GetActiveRuleAsync(DocKind.ArInvoice)
         );
 
@@ -129,5 +91,57 @@ public sealed class ArInvoicePostingEngineTests
         var revenueLines = result.GlEntries.Where(x => x.Credit > 0m).Select(x => x.AccountNo).ToList();
 
         revenueLines.ShouldBe(["4100", "4200", "4300", "4400"]);
+    }
+
+    [Fact]
+    public async Task PostArInvoice_Should_Create_Cogs_And_Inventory_Movements_For_Stock_Lines()
+    {
+        var provider = new ArInvoicePostingRuleProvider();
+        var invoice = PostingServiceTestFactory.CreateStockInvoice();
+        var context = PostingServiceTestFactory.CreatePostingContext(
+            invoice,
+            await provider.GetActiveRuleAsync(DocKind.ArInvoice)
+        );
+
+        var result = _engine.PostArInvoice(context);
+
+        result.GlEntries.Count.ShouldBe(5);
+        result.InventoryMovements.Count.ShouldBe(1);
+        result.GlEntries.ShouldContain(x => x.AccountNo == "5100" && x.Debit == 12.35m);
+        result.GlEntries.ShouldContain(x => x.AccountNo == "1300" && x.Credit == 12.35m);
+
+        var movement = result.InventoryMovements.Single();
+        movement.TransactionType.ShouldBe(InventoryTransactionType.SalesCogs);
+        movement.Qty.ShouldBe(-1m);
+        movement.UnitCost.ShouldBe(12.3456m);
+        movement.ValueChange.ShouldBe(-12.35m);
+    }
+
+    [Fact]
+    public async Task PostArInvoice_Should_Keep_NonStock_Behavior_On_Mixed_Invoice()
+    {
+        var provider = new ArInvoicePostingRuleProvider();
+        var invoice = PostingServiceTestFactory.CreateInvoice();
+        var stockInvoice = PostingServiceTestFactory.CreateStockInvoice();
+        stockInvoice.Lines.Single().LineNo = 2;
+        stockInvoice.Lines.Single().LineTotal = 50m;
+        stockInvoice.Lines.Single().Qty = 2m;
+        invoice.Lines.Add(stockInvoice.Lines.Single());
+        invoice.DocTotal = 165m;
+        invoice.TaxTotal = 15m;
+
+        var context = PostingServiceTestFactory.CreatePostingContext(
+            invoice,
+            await provider.GetActiveRuleAsync(DocKind.ArInvoice)
+        );
+
+        var result = _engine.PostArInvoice(context);
+
+        result.GlEntries.ShouldContain(x => x.AccountNo == "4000" && x.Credit == 100m);
+        result.GlEntries.ShouldContain(x => x.AccountNo == "4000" && x.Credit == 50m);
+        result.GlEntries.ShouldContain(x => x.AccountNo == "5100" && x.Debit == 24.69m);
+        result.InventoryMovements.Count.ShouldBe(1);
+        result.InventoryMovements.Single().Qty.ShouldBe(-2m);
+        result.InventoryMovements.Single().ValueChange.ShouldBe(-24.69m);
     }
 }

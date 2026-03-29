@@ -1,12 +1,16 @@
 using Moq;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Application.Posting;
+using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Accounts_Receivable;
 using OakERP.Domain.Entities.General_Ledger;
+using OakERP.Domain.Entities.Inventory;
 using OakERP.Domain.Posting;
+using OakERP.Domain.Posting.Accounts_Receivable;
 using OakERP.Domain.Posting.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Domain.Repository_Interfaces.General_Ledger;
+using OakERP.Domain.Repository_Interfaces.Inventory;
 using OakERP.Infrastructure.Posting;
 
 namespace OakERP.Tests.Unit.Posting;
@@ -17,8 +21,10 @@ public sealed class PostingServiceTestFactory
     public Mock<IFiscalPeriodRepository> FiscalPeriodRepository { get; } = new(MockBehavior.Strict);
     public Mock<IGlAccountRepository> GlAccountRepository { get; } = new(MockBehavior.Strict);
     public Mock<IGlEntryRepository> GlEntryRepository { get; } = new(MockBehavior.Strict);
+    public Mock<IInventoryLedgerRepository> InventoryLedgerRepository { get; } = new(MockBehavior.Strict);
     public Mock<IGlSettingsProvider> GlSettingsProvider { get; } = new(MockBehavior.Strict);
     public Mock<IPostingRuleProvider> PostingRuleProvider { get; } = new(MockBehavior.Strict);
+    public Mock<IArInvoicePostingContextBuilder> PostingContextBuilder { get; } = new(MockBehavior.Strict);
     public Mock<IPostingEngine> PostingEngine { get; } = new(MockBehavior.Strict);
     public Mock<IUnitOfWork> UnitOfWork { get; } = new(MockBehavior.Strict);
 
@@ -35,8 +41,10 @@ public sealed class PostingServiceTestFactory
             FiscalPeriodRepository.Object,
             GlAccountRepository.Object,
             GlEntryRepository.Object,
+            InventoryLedgerRepository.Object,
             GlSettingsProvider.Object,
             PostingRuleProvider.Object,
+            PostingContextBuilder.Object,
             PostingEngine.Object,
             UnitOfWork.Object
         );
@@ -73,24 +81,38 @@ public sealed class PostingServiceTestFactory
             [
                 new PostingRuleLine
                 {
-                    AccountKey = Common.Enums.AccountKey.AccountsReceivable,
-                    AmountSource = Common.Enums.AmountSource.HeaderDocTotal,
+                    AccountKey = AccountKey.AccountsReceivable,
+                    AmountSource = AmountSource.HeaderDocTotal,
                     Scope = "Header",
-                    Side = Common.Enums.RuleSide.Debit,
+                    Side = RuleSide.Debit,
                 },
                 new PostingRuleLine
                 {
-                    AccountKey = Common.Enums.AccountKey.Revenue,
-                    AmountSource = Common.Enums.AmountSource.LineNet,
+                    AccountKey = AccountKey.Revenue,
+                    AmountSource = AmountSource.LineNet,
                     Scope = "Line",
-                    Side = Common.Enums.RuleSide.Credit,
+                    Side = RuleSide.Credit,
                 },
                 new PostingRuleLine
                 {
-                    AccountKey = Common.Enums.AccountKey.TaxOutput,
-                    AmountSource = Common.Enums.AmountSource.HeaderTaxTotal,
+                    AccountKey = AccountKey.TaxOutput,
+                    AmountSource = AmountSource.HeaderTaxTotal,
                     Scope = "Tax",
-                    Side = Common.Enums.RuleSide.Credit,
+                    Side = RuleSide.Credit,
+                },
+                new PostingRuleLine
+                {
+                    AccountKey = AccountKey.Cogs,
+                    AmountSource = AmountSource.LineCogsValue,
+                    Scope = "Line.Stock",
+                    Side = RuleSide.Debit,
+                },
+                new PostingRuleLine
+                {
+                    AccountKey = AccountKey.InventoryAsset,
+                    AmountSource = AmountSource.LineCogsValue,
+                    Scope = "Line.Stock",
+                    Side = RuleSide.Credit,
                 },
             ],
         };
@@ -106,7 +128,7 @@ public sealed class PostingServiceTestFactory
             CurrencyCode = "ZAR",
             DocTotal = 115m,
             TaxTotal = 15m,
-            DocStatus = Common.Enums.DocStatus.Draft,
+            DocStatus = DocStatus.Draft,
             Lines =
             [
                 new ArInvoiceLine
@@ -120,4 +142,88 @@ public sealed class PostingServiceTestFactory
                 },
             ],
         };
+
+    public static ArInvoice CreateStockInvoice(bool includeLocation = true)
+    {
+        Guid itemId = Guid.NewGuid();
+
+        return new ArInvoice
+        {
+            Id = Guid.NewGuid(),
+            DocNo = "AR-STK-1001",
+            CustomerId = Guid.NewGuid(),
+            InvoiceDate = new DateOnly(2026, 3, 15),
+            DueDate = new DateOnly(2026, 4, 14),
+            CurrencyCode = "ZAR",
+            DocTotal = 115m,
+            TaxTotal = 15m,
+            DocStatus = DocStatus.Draft,
+            Lines =
+            [
+                new ArInvoiceLine
+                {
+                    Id = Guid.NewGuid(),
+                    LineNo = 1,
+                    ItemId = itemId,
+                    Item = new Item
+                    {
+                        Id = itemId,
+                        Type = ItemType.Stock,
+                        DefaultRevenueAccountNo = "4000",
+                        Category = new ItemCategory
+                        {
+                            RevenueAccount = "4000",
+                            CogsAccount = "5100",
+                            InventoryAccount = "1300",
+                        },
+                    },
+                    LocationId = includeLocation ? Guid.NewGuid() : null,
+                    Qty = 1m,
+                    UnitPrice = 100m,
+                    RevenueAccount = "4000",
+                    LineTotal = 100m,
+                },
+            ],
+        };
+    }
+
+    public static ArInvoicePostingContext CreatePostingContext(
+        ArInvoice invoice,
+        PostingRule? rule = null
+    )
+    {
+        var settings = CreateSettings();
+        var period = CreateOpenPeriod();
+        var lines = invoice.Lines
+            .OrderBy(x => x.LineNo)
+            .Select(line =>
+            {
+                bool isStock = line.Item?.Type == ItemType.Stock;
+                decimal? unitCost = isStock ? 12.3456m : null;
+                decimal? lineCogsValue = isStock ? Math.Round(line.Qty * unitCost!.Value, 2, MidpointRounding.AwayFromZero) : null;
+
+                return new ArInvoicePostingLineContext(
+                    line,
+                    isStock,
+                    line.RevenueAccount ?? settings.DefaultRevenueAccountNo,
+                    line.LocationId,
+                    isStock ? line.Item?.Category?.CogsAccount ?? settings.DefaultCogsAccountNo : null,
+                    isStock ? line.Item?.Category?.InventoryAccount ?? settings.DefaultInventoryAssetAccountNo : null,
+                    unitCost,
+                    lineCogsValue
+                );
+            })
+            .ToList();
+
+        return new ArInvoicePostingContext(
+            invoice,
+            lines,
+            invoice.InvoiceDate,
+            period,
+            settings.BaseCurrencyCode,
+            1m,
+            settings,
+            rule ?? CreateRule()
+        );
+    }
 }

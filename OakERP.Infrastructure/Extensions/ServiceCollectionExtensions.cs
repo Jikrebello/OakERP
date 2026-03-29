@@ -9,15 +9,20 @@ using OakERP.Application.Posting;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Users;
 using OakERP.Domain.Posting;
+using OakERP.Domain.Posting.Accounts_Receivable;
 using OakERP.Domain.Posting.General_Ledger;
+using OakERP.Domain.Posting.Inventory;
 using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Domain.Repository_Interfaces.General_Ledger;
+using OakERP.Domain.Repository_Interfaces.Inventory;
 using OakERP.Infrastructure.Posting;
 using OakERP.Infrastructure.Posting.Accounts_Receivable;
 using OakERP.Infrastructure.Posting.General_Ledger;
+using OakERP.Infrastructure.Posting.Inventory;
 using OakERP.Domain.Repository_Interfaces.Users;
 using OakERP.Infrastructure.Repositories.Accounts_Receivable;
 using OakERP.Infrastructure.Repositories.General_Ledger;
+using OakERP.Infrastructure.Repositories.Inventory;
 using OakERP.Infrastructure.Persistence;
 using OakERP.Infrastructure.Persistence.Seeding.Base;
 using OakERP.Infrastructure.Repositories.Users;
@@ -113,6 +118,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFiscalPeriodRepository, FiscalPeriodRepository>();
         services.AddScoped<IGlAccountRepository, GlAccountRepository>();
         services.AddScoped<IGlEntryRepository, GlEntryRepository>();
+        services.AddScoped<IInventoryLedgerRepository, InventoryLedgerRepository>();
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<ILicenseRepository, LicenseRepository>();
         return services;
@@ -124,6 +130,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPostingEngine, ArInvoicePostingEngine>();
         services.AddScoped<IPostingRuleProvider, ArInvoicePostingRuleProvider>();
         services.AddScoped<IGlSettingsProvider, AppSettingGlSettingsProvider>();
+        services.AddScoped<IArInvoicePostingContextBuilder, ArInvoicePostingContextBuilder>();
+        services.AddScoped<IInventoryCostService, MovingAverageInventoryCostService>();
 
         return services;
     }

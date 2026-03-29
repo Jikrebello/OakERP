@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using OakERP.Infrastructure.Persistence;
@@ -23,6 +24,8 @@ public abstract class WebApiIntegrationTestBase
 
         await using (var scope = Factory.Services.CreateAsyncScope())
         {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            await db.Database.MigrateAsync();
             var seeder = scope.ServiceProvider.GetRequiredService<SeedCoordinator>();
             await seeder.RunAsync("Testing");
         }

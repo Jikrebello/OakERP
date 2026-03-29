@@ -9,6 +9,7 @@ using OakERP.Domain.Posting.Accounts_Receivable;
 using OakERP.Domain.Posting.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Domain.Repository_Interfaces.General_Ledger;
+using OakERP.Domain.Repository_Interfaces.Inventory;
 
 namespace OakERP.Infrastructure.Posting;
 
@@ -17,8 +18,10 @@ public sealed class PostingService(
     IFiscalPeriodRepository fiscalPeriodRepository,
     IGlAccountRepository glAccountRepository,
     IGlEntryRepository glEntryRepository,
+    IInventoryLedgerRepository inventoryLedgerRepository,
     IGlSettingsProvider glSettingsProvider,
     IPostingRuleProvider postingRuleProvider,
+    IArInvoicePostingContextBuilder postingContextBuilder,
     IPostingEngine postingEngine,
     IUnitOfWork unitOfWork
 ) : IPostingService
@@ -37,7 +40,7 @@ public sealed class PostingService(
 
         if (command.Force)
         {
-            throw new InvalidOperationException("Force posting is not supported for Slice 1A.");
+            throw new InvalidOperationException("Force posting is not supported for Slice 1B.");
         }
 
         await unitOfWork.BeginTransactionAsync();
@@ -77,13 +80,6 @@ public sealed class PostingService(
 
             IReadOnlyList<ArInvoiceLine> lines = invoice.Lines.OrderBy(x => x.LineNo).ToList();
 
-            if (lines.Any(x => x.Item?.Type == ItemType.Stock))
-            {
-                throw new InvalidOperationException(
-                    "Slice 1A does not support AR invoice posting for stock lines."
-                );
-            }
-
             decimal expectedDocTotal = lines.Sum(x => x.LineTotal) + invoice.TaxTotal;
             if (expectedDocTotal != invoice.DocTotal)
             {
@@ -97,18 +93,16 @@ public sealed class PostingService(
                 cancellationToken
             );
 
-            PostingEngineResult postingResult = postingEngine.PostArInvoice(
-                new ArInvoicePostingContext(
-                    invoice,
-                    lines,
-                    postingDate,
-                    period,
-                    settings.BaseCurrencyCode,
-                    1m,
-                    settings,
-                    rule
-                )
+            ArInvoicePostingContext context = await postingContextBuilder.BuildAsync(
+                invoice,
+                postingDate,
+                period,
+                settings,
+                rule,
+                cancellationToken
             );
+
+            PostingEngineResult postingResult = postingEngine.PostArInvoice(context);
 
             ValidatePostingResult(postingResult);
             await ValidateAccountsAsync(postingResult.GlEntries, cancellationToken);
@@ -132,6 +126,26 @@ public sealed class PostingService(
                 );
             }
 
+            foreach (var movement in postingResult.InventoryMovements)
+            {
+                await inventoryLedgerRepository.AddAsync(
+                    new Domain.Entities.Inventory.InventoryLedger
+                    {
+                        TrxDate = movement.TrxDate,
+                        ItemId = movement.ItemId,
+                        LocationId = movement.LocationId,
+                        TransactionType = movement.TransactionType,
+                        Qty = movement.Qty,
+                        UnitCost = movement.UnitCost,
+                        ValueChange = movement.ValueChange,
+                        SourceType = movement.SourceType,
+                        SourceId = movement.SourceId,
+                        Note = movement.Note,
+                        CreatedBy = command.PerformedBy,
+                    }
+                );
+            }
+
             invoice.DocStatus = DocStatus.Posted;
             invoice.PostingDate = postingDate;
             invoice.UpdatedBy = command.PerformedBy;
@@ -147,7 +161,7 @@ public sealed class PostingService(
                 postingDate,
                 period.Id,
                 postingResult.GlEntries.Count,
-                0
+                postingResult.InventoryMovements.Count
             );
         }
         catch (DbUpdateConcurrencyException ex)
@@ -168,7 +182,7 @@ public sealed class PostingService(
     public Task<UnpostResult> UnpostAsync(
         UnpostCommand command,
         CancellationToken cancellationToken = default
-    ) => throw new NotSupportedException("Unposting is not supported for Slice 1A.");
+    ) => throw new NotSupportedException("Unposting is not supported for Slice 1B.");
 
     private async Task ValidateAccountsAsync(
         IReadOnlyList<GlEntryModel> entries,
@@ -189,11 +203,6 @@ public sealed class PostingService(
 
     private static void ValidatePostingResult(PostingEngineResult postingResult)
     {
-        if (postingResult.InventoryMovements.Count != 0)
-        {
-            throw new InvalidOperationException("Slice 1A must not produce inventory movements.");
-        }
-
         if (postingResult.GlEntries.Count == 0)
         {
             throw new InvalidOperationException("Posting did not produce any GL entries.");
@@ -225,6 +234,30 @@ public sealed class PostingService(
         if (debit != credit)
         {
             throw new InvalidOperationException("Posting produced unbalanced GL entries.");
+        }
+
+        foreach (var movement in postingResult.InventoryMovements)
+        {
+            if (movement.Qty >= 0m)
+            {
+                throw new InvalidOperationException(
+                    "AR invoice posting produced a non-negative inventory movement."
+                );
+            }
+
+            if (movement.UnitCost < 0m)
+            {
+                throw new InvalidOperationException(
+                    "AR invoice posting produced a negative inventory unit cost."
+                );
+            }
+
+            if (movement.ValueChange >= 0m)
+            {
+                throw new InvalidOperationException(
+                    "AR invoice posting produced a non-negative inventory value change."
+                );
+            }
         }
     }
 }

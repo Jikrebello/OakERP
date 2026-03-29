@@ -23,6 +23,7 @@ internal class ArInvoiceLineConfiguration : IEntityTypeConfiguration<ArInvoiceLi
 
         builder.HasIndex(x => x.ItemId);
         builder.HasIndex(x => x.TaxRateId);
+        builder.HasIndex(x => x.LocationId);
         builder.HasIndex(x => x.RevenueAccount);
 
         // Relationships
@@ -36,6 +37,12 @@ internal class ArInvoiceLineConfiguration : IEntityTypeConfiguration<ArInvoiceLi
             .HasOne(x => x.Item)
             .WithMany(i => i.ArInvoiceLines)
             .HasForeignKey(x => x.ItemId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder
+            .HasOne(x => x.Location)
+            .WithMany()
+            .HasForeignKey(x => x.LocationId)
             .OnDelete(DeleteBehavior.SetNull);
 
         builder

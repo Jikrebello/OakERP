@@ -18,7 +18,7 @@ public sealed class ArInvoicePostingRuleProvider : IPostingRuleProvider
         var rule = new PostingRule
         {
             DocKind = DocKind.ArInvoice,
-            Name = "AR Invoice GL Slice 1A",
+            Name = "AR Invoice Slice 1B",
             IsActive = true,
             Lines =
             [
@@ -42,6 +42,20 @@ public sealed class ArInvoicePostingRuleProvider : IPostingRuleProvider
                     AccountKey = AccountKey.TaxOutput,
                     AmountSource = AmountSource.HeaderTaxTotal,
                     Scope = "Tax",
+                },
+                new PostingRuleLine
+                {
+                    Side = RuleSide.Debit,
+                    AccountKey = AccountKey.Cogs,
+                    AmountSource = AmountSource.LineCogsValue,
+                    Scope = "Line.Stock",
+                },
+                new PostingRuleLine
+                {
+                    Side = RuleSide.Credit,
+                    AccountKey = AccountKey.InventoryAsset,
+                    AmountSource = AmountSource.LineCogsValue,
+                    Scope = "Line.Stock",
                 },
             ],
         };
