@@ -1,7 +1,9 @@
-﻿OakERP
+OakERP
 +-- .codex
 |   \-- skills
 |       +-- oakerp-architecture
+|       |   \-- SKILL.md
+|       +-- oakerp-pr-workflow
 |       |   \-- SKILL.md
 |       \-- oakerp-tasking
 |           \-- SKILL.md
@@ -19,57 +21,61 @@
 |   +-- adr
 |   |   \-- ADR-0001-architecture-principles.md
 |   +-- ai
-|   |   \-- tasks
-|   |       +-- active
-|   |       |   +-- ar-invoice-posting-1a
-|   |       |   |   +-- findings.md
-|   |       |   |   +-- progress.md
-|   |       |   |   \-- task_plan.md
-|   |       |   +-- ar-invoice-posting-1b
-|   |       |   |   +-- findings.md
-|   |       |   |   +-- progress.md
-|   |       |   |   \-- task_plan.md
-|   |       |   +-- auth-boundary-cleanup
-|   |       |   |   +-- findings.md
-|   |       |   |   +-- progress.md
-|   |       |   |   \-- task_plan.md
-|   |       |   +-- auth-identity-gateway-cleanup
-|   |       |   |   +-- findings.md
-|   |       |   |   +-- progress.md
-|   |       |   |   \-- task_plan.md
-|   |       |   +-- auth-jwt-input-cleanup
-|   |       |   |   +-- findings.md
-|   |       |   |   +-- progress.md
-|   |       |   |   \-- task_plan.md
-|   |       |   +-- composition-root-cleanup
-|   |       |   |   +-- findings.md
-|   |       |   |   +-- progress.md
-|   |       |   |   \-- task_plan.md
-|   |       |   +-- migration-seeding-clarification
-|   |       |   |   +-- findings.md
-|   |       |   |   +-- progress.md
-|   |       |   |   \-- task_plan.md
-|   |       |   +-- posting-remediation-slice
-|   |       |   |   +-- findings.md
-|   |       |   |   +-- progress.md
-|   |       |   |   \-- task_plan.md
-|   |       |   +-- shared-client-plumbing-separation
-|   |       |   |   +-- findings.md
-|   |       |   |   +-- progress.md
-|   |       |   |   \-- task_plan.md
-|   |       |   +-- shared-ui-auth-state-separation
-|   |       |   |   +-- findings.md
-|   |       |   |   +-- progress.md
-|   |       |   |   \-- task_plan.md
-|   |       |   \-- test-harness-cleanup
-|   |       |       +-- findings.md
-|   |       |       +-- progress.md
-|   |       |       \-- task_plan.md
-|   |       +-- archive
-|   |       \-- templates
-|   |           +-- findings.md
-|   |           +-- progress.md
-|   |           \-- task_plan.md
+|   |   +-- tasks
+|   |   |   +-- active
+|   |   |   |   +-- ar-invoice-posting-1a
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- ar-invoice-posting-1b
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- auth-boundary-cleanup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- auth-identity-gateway-cleanup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- auth-jwt-input-cleanup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- codex-workflow-setup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- composition-root-cleanup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- migration-seeding-clarification
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- posting-remediation-slice
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- shared-client-plumbing-separation
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- shared-ui-auth-state-separation
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   \-- test-harness-cleanup
+|   |   |   |       +-- findings.md
+|   |   |   |       +-- progress.md
+|   |   |   |       \-- task_plan.md
+|   |   |   \-- templates
+|   |   |       +-- findings.md
+|   |   |       +-- progress.md
+|   |   |       \-- task_plan.md
+|   |   \-- codex-workflow.md
 |   \-- architecture
 |       +-- dependency-rules.md
 |       \-- project-map.md
@@ -213,8 +219,8 @@
 |   +-- db-setup.md
 |   +-- ef-core.md
 |   +-- Oak_ERP_Solution_Structure.txt
-|   +-- OakERP.Docs.csproj
 |   +-- oakERP-testing-guide.md
+|   +-- OakERP.Docs.csproj
 |   \-- README-dev.md
 +-- OakERP.Domain
 |   +-- Entities
@@ -591,11 +597,11 @@
 |   +-- appsettings.json
 |   +-- OakERP.Web.csproj
 |   \-- Program.cs
-+-- OakERP.WebAPI
 +-- pgAdmin
 |   \-- servers.json
 +-- tools
-|   \-- new-codex-task.ps1
+|   +-- new-codex-task.ps1
+|   \-- validate-pr.ps1
 +-- .editorconfig
 +-- .gitattributes
 +-- .gitignore
@@ -603,6 +609,7 @@
 +-- docker-compose.yml
 +-- dotnet-tools.json
 +-- ef.ps1
++-- global.json
 +-- migrate.ps1
 +-- OakERP.sln
 +-- project-tree.ps1
