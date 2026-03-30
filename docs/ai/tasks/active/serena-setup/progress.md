@@ -14,6 +14,8 @@ serena-setup
 - Kept `.serena/project.yml` intentionally small and repo-specific: project name, `csharp` language, gitignore-aware behavior, and one short prompt pointing Serena back to existing repo guidance.
 - Added `.gitignore` rules so only `.serena/project.yml` is repo-tracked while local Serena files remain uncommitted.
 - Replaced the earlier "no Serena-specific workflow yet" note with a short operational section in `docs/ai/codex-workflow.md` that keeps Serena optional and subordinate to the existing Codex workflow.
+- Cleaned up an accidental local Serena expansion of `.serena/project.yml` before publish so the repo copy stays minimal.
+- Removed a generated `project-structure.txt` drift that had captured local-only Serena cache/memory files and was out of scope for this slice.
 
 ## Files Touched
 - `docs/ai/tasks/active/serena-setup/task_plan.md`
@@ -30,7 +32,11 @@ serena-setup
   - Confirmed both paths match the new `.serena/*` ignore rule.
 - `git status --short .serena/project.yml`
   - Confirmed `.serena/project.yml` remains visible to git as the intended tracked file.
-- No build or test commands were run because this slice changes repo docs/config only and does not affect application behavior.
+- `pwsh ./tools/validate-pr.ps1`
+  - Passed.
+  - Included `dotnet tool restore`, `dotnet csharpier check .`, targeted restore/build for API, and unit/integration test runs.
+  - Existing API warning remained during validation:
+    - `OakERP.API/Controllers/BaseController.cs(23,57): warning CS8629`
 
 ## Remaining
 - No remaining repo-side changes in this approved slice.
