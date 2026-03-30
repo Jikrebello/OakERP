@@ -13,6 +13,7 @@ var allowedOrigins =
 
 // Services
 builder.Services.AddControllers();
+builder.Services.AddRuntimeSupport();
 
 builder
     .Services.AddApplicationDb(builder.Configuration)
