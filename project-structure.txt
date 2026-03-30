@@ -1,4 +1,4 @@
-OakERP
+﻿OakERP
 +-- .codex
 |   \-- skills
 |       +-- oakerp-architecture
@@ -17,6 +17,18 @@ OakERP
 |   |   +-- ci-build-test.yml
 |   |   \-- update-project-tree.yml
 |   \-- PULL_REQUEST_TEMPLATE.md
++-- .serena
+|   +-- cache
+|   |   \-- csharp
+|   |       +-- document_symbols.pkl
+|   |       \-- raw_document_symbols.pkl
+|   +-- memories
+|   |   +-- project_overview.md
+|   |   +-- style_and_conventions.md
+|   |   +-- suggested_commands.md
+|   |   \-- task_completion.md
+|   +-- .gitignore
+|   \-- project.yml
 +-- docs
 |   +-- adr
 |   |   \-- ADR-0001-architecture-principles.md
@@ -59,6 +71,10 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- serena-setup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- shared-client-plumbing-separation
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
@@ -71,6 +87,7 @@ OakERP
 |   |   |   |       +-- findings.md
 |   |   |   |       +-- progress.md
 |   |   |   |       \-- task_plan.md
+|   |   |   +-- archive
 |   |   |   \-- templates
 |   |   |       +-- findings.md
 |   |   |       +-- progress.md
@@ -219,8 +236,8 @@ OakERP
 |   +-- db-setup.md
 |   +-- ef-core.md
 |   +-- Oak_ERP_Solution_Structure.txt
-|   +-- oakERP-testing-guide.md
 |   +-- OakERP.Docs.csproj
+|   +-- oakERP-testing-guide.md
 |   \-- README-dev.md
 +-- OakERP.Domain
 |   +-- Entities
@@ -597,6 +614,7 @@ OakERP
 |   +-- appsettings.json
 |   +-- OakERP.Web.csproj
 |   \-- Program.cs
++-- OakERP.WebAPI
 +-- pgAdmin
 |   \-- servers.json
 +-- tools
