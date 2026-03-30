@@ -1,4 +1,4 @@
-OakERP
+﻿OakERP
 +-- .codex
 |   \-- skills
 |       +-- oakerp-architecture
@@ -219,8 +219,8 @@ OakERP
 |   +-- db-setup.md
 |   +-- ef-core.md
 |   +-- Oak_ERP_Solution_Structure.txt
-|   +-- oakERP-testing-guide.md
 |   +-- OakERP.Docs.csproj
+|   +-- oakERP-testing-guide.md
 |   \-- README-dev.md
 +-- OakERP.Domain
 |   +-- Entities

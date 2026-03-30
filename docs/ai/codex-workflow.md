@@ -77,11 +77,14 @@ A PR is ready to move out of draft only when:
 - Do not commit MCP config, tokens, or machine-specific secrets into this repo.
 - If MCP or GitHub access is unavailable, continue with local branch/task/doc hygiene and call out the missing external setup.
 
+## Serena
+
+- Serena is optional and should complement Codex for symbol-aware lookup/editing, not replace this workflow.
+- Keep Serena client/MCP config, onboarding output, memories, dashboards, and machine-specific setup local-only.
+- If Serena is used with Codex, keep `docs/ai/tasks/active/...` and `pwsh ./tools/validate-pr.ps1` as the shared task and validation path.
+
 ## What This Repo Deliberately Does Not Do Yet
 
 - No repo-committed MCP config
 - No CODEOWNERS
 - No heavy PR automation beyond the current backend CI
-- No Serena-specific workflow yet
-
-Land one clean Codex-driven PR cycle with this workflow before introducing Serena.

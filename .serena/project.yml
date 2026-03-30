@@ -1,0 +1,4 @@
+project_name: "oak-erp"
+languages: ["csharp"]
+ignore_all_files_in_gitignore: true
+initial_prompt: "Read AGENTS.md and docs/ai/codex-workflow.md first; use the architecture docs and OakERP task files for non-trivial work."
