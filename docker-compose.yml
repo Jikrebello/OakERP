@@ -34,6 +34,19 @@ services:
       - pgadmin_data:/var/lib/pgadmin
       - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
 
+  seq:
+    profiles: ["seq"]
+    image: datalust/seq:latest
+    container_name: oakseq
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+    ports:
+      - "5341:80"
+    volumes:
+      - seq_data:/data
+
 volumes:
   postgres_data:
   pgadmin_data:
+  seq_data:
