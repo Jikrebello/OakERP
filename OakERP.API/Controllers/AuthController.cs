@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using OakERP.API.Runtime;
 using OakERP.Auth;
 using OakERP.Common.DTOs.Auth;
 
@@ -26,6 +28,7 @@ public class AuthController(IAuthService authService) : BaseApiController
     /// registration fails.</returns>
     [HttpPost("register")]
     [AllowAnonymous]
+    [EnableRateLimiting(AuthRateLimitSettings.PolicyName)]
     public async Task<IActionResult> Register(RegisterDTO dto)
     {
         var result = await authService.RegisterAsync(dto);
@@ -44,6 +47,7 @@ public class AuthController(IAuthService authService) : BaseApiController
     /// cref="UnauthorizedObjectResult"/> with the result.</returns>
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting(AuthRateLimitSettings.PolicyName)]
     public async Task<IActionResult> Login(LoginDTO dto)
     {
         var result = await authService.LoginAsync(dto);
