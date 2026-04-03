@@ -145,3 +145,29 @@ This removes volumes (including your DB) and re-runs any init scripts.
 docker compose pull oakadmin
 docker compose up -d oakadmin
 ```
+
+---
+
+### Optional local log UI with Seq
+
+OakERP can now send API logs to Seq for local development, but Seq stays disabled by default in
+checked-in config.
+
+Start Seq only when you want it:
+
+```bash
+docker compose --profile seq up -d seq
+```
+
+Then open:
+- http://localhost:5341
+
+To point the API at the local Seq instance, enable the sink through configuration instead of
+editing checked-in files:
+
+```powershell
+$env:Serilog__Seq__Enabled = "true"
+$env:Serilog__Seq__ServerUrl = "http://localhost:5341"
+```
+
+Do not commit Seq API keys or machine-specific overrides.

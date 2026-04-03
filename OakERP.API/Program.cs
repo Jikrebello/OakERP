@@ -8,8 +8,33 @@ using OakERP.Infrastructure.Persistence;
 using OakERP.Infrastructure.Persistence.Seeding;
 using OakERP.Infrastructure.Persistence.Seeding.Accounts;
 using OakERP.Infrastructure.Persistence.Seeding.Views;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog(
+    (context, services, loggerConfiguration) =>
+    {
+        loggerConfiguration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext()
+            .Enrich.WithProperty("Application", "OakERP.API")
+            .WriteTo.Console(
+                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext} {Message:lj} {Properties:j}{NewLine}{Exception}"
+            );
+
+        var seqLoggingSettings = SeqLoggingSettings.Bind(context.Configuration);
+        if (seqLoggingSettings.Enabled)
+        {
+            loggerConfiguration.WriteTo.Seq(
+                seqLoggingSettings.ServerUrl!,
+                apiKey: seqLoggingSettings.GetApiKeyOrNull()
+            );
+        }
+    },
+    writeToProviders: true
+);
+
 var allowedOrigins =
     builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? throw new InvalidOperationException("Cors:AllowedOrigins is not configured.");

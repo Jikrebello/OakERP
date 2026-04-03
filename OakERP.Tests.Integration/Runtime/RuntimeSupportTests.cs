@@ -75,7 +75,7 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
     }
 
     [Test]
-    public async Task Auth_Audit_Log_Should_Inherit_Correlation_Scope_For_Login_Failure()
+    public async Task Auth_Audit_Log_Should_Preserve_Correlation_Context_For_Login_Failure()
     {
         const string correlationId = "audit-runtime-correlation";
         using var loggerProvider = new InMemoryLoggerProvider();
@@ -115,9 +115,68 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
                 && Equals(auditReason, "InvalidCredentials")
             );
 
-        auditLog.ScopeProperties["CorrelationId"].ShouldBe(correlationId);
-        auditLog.ScopeProperties["TraceId"]?.ToString().ShouldNotBeNullOrWhiteSpace();
+        RuntimeSupportTestJson.GetContextValue(auditLog, "CorrelationId").ShouldBe(correlationId);
+        RuntimeSupportTestJson.GetContextValue(auditLog, "TraceId").ShouldNotBeNullOrWhiteSpace();
         auditLog.Properties["Email"].ShouldBe("missing@example.com");
+    }
+
+    [Test]
+    public async Task Runtime_Logs_Should_Be_Forwarded_To_Added_Providers()
+    {
+        const string correlationId = "provider-forwarding-correlation";
+        using var loggerProvider = new InMemoryLoggerProvider();
+
+        using var overrideFactory = Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddProvider(loggerProvider);
+                logging.SetMinimumLevel(LogLevel.Information);
+            });
+        });
+
+        using var client = overrideFactory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, ApiRoutes.Auth.Login)
+        {
+            Content = JsonContent.Create(
+                new LoginDTO { Email = "missing@example.com", Password = "bad-password" }
+            ),
+        };
+
+        request.Headers.Add(CorrelationHeaderName, correlationId);
+
+        var response = await client.SendAsync(request);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+
+        var requestLog = loggerProvider
+            .Entries.Where(entry =>
+                entry.Category == "OakERP.API.Extensions.RequestLoggingMiddleware"
+            )
+            .Single(entry =>
+                entry.Level == LogLevel.Information
+                && entry.Properties.TryGetValue("Method", out var method)
+                && Equals(method, "POST")
+                && entry.Properties.TryGetValue("Path", out var path)
+                && Equals(path, "/api/auth/login")
+                && entry.Properties.TryGetValue("StatusCode", out var statusCode)
+                && Equals(statusCode, 401)
+            );
+
+        RuntimeSupportTestJson.GetContextValue(requestLog, "CorrelationId").ShouldBe(correlationId);
+        RuntimeSupportTestJson.GetContextValue(requestLog, "TraceId").ShouldNotBeNullOrWhiteSpace();
+
+        var auditLog = loggerProvider
+            .Entries.Where(entry => entry.Category == "OakERP.Auth.AuthService")
+            .Single(entry =>
+                entry.Level == LogLevel.Warning
+                && entry.Properties.TryGetValue("AuditAction", out var auditAction)
+                && Equals(auditAction, "UserLogin")
+            );
+
+        RuntimeSupportTestJson.GetContextValue(auditLog, "CorrelationId").ShouldBe(correlationId);
+        RuntimeSupportTestJson.GetContextValue(auditLog, "TraceId").ShouldNotBeNullOrWhiteSpace();
     }
 
     [Test]
@@ -420,6 +479,18 @@ internal static class RuntimeSupportTestJson
     {
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         return document.RootElement.Clone();
+    }
+
+    public static string? GetContextValue(CapturedLogEntry entry, string propertyName)
+    {
+        if (entry.ScopeProperties.TryGetValue(propertyName, out var scopeValue))
+        {
+            return scopeValue?.ToString();
+        }
+
+        return entry.Properties.TryGetValue(propertyName, out var propertyValue)
+            ? propertyValue?.ToString()
+            : null;
     }
 }
 
