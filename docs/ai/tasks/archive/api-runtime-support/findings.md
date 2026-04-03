@@ -56,6 +56,9 @@ api-runtime-support
   reporting layer.
 - Unexpected login exceptions still rely on the existing global exception logging path; this slice
   does not add a broader exception-to-audit bridge.
+- Request timeout coverage remains partial: the slice verifies endpoint metadata and the configured
+  timeout ProblemDetails writer, but not a full end-to-end timed-out HTTP request in the current
+  `WebApplicationFactory` harness.
 - Solution-wide builds on this machine remain dependent on MAUI workloads outside the backend runtime
   slice.
 
@@ -63,3 +66,10 @@ api-runtime-support
 Keep future audit work separate from this slice. If OakERP later needs persistent audit retention or
 broader action coverage, that should be a deliberate new slice rather than an expansion of this
 minimal auth-focused implementation.
+
+## Merge Review Outcome
+- Reviewed the branch against `main` before merge.
+- No must-fix correctness issue was found in the runtime-support branch.
+- One should-fix cleanup issue found during review was the stale `Slice 3` wording in
+  `AuthRateLimitSettings`; that wording was corrected before archive.
+- The branch is clean enough to merge from a backend/runtime-support perspective.

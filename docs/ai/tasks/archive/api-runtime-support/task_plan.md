@@ -27,7 +27,7 @@ the current security-sensitive auth actions.
 - `OakERP.Auth`
 - `OakERP.Tests.Unit`
 - `OakERP.Tests.Integration`
-- `docs/ai/tasks/active/api-runtime-support/`
+- `docs/ai/tasks/archive/api-runtime-support/`
 
 ## Out of Scope
 - audit database or persistent audit store

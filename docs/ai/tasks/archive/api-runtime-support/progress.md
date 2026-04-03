@@ -39,9 +39,9 @@ api-runtime-support
 - Added targeted runtime coverage using an in-memory logger provider to prove auth audit logs inherit inbound correlation scope.
 
 ## Files Touched
-- `docs/ai/tasks/active/api-runtime-support/task_plan.md`
-- `docs/ai/tasks/active/api-runtime-support/findings.md`
-- `docs/ai/tasks/active/api-runtime-support/progress.md`
+- `docs/ai/tasks/archive/api-runtime-support/task_plan.md`
+- `docs/ai/tasks/archive/api-runtime-support/findings.md`
+- `docs/ai/tasks/archive/api-runtime-support/progress.md`
 - `OakERP.API/Program.cs`
 - `OakERP.API/Extensions/ServiceCollectionExtensions.cs`
 - `OakERP.API/Extensions/AppBuilderExtensions.cs`
@@ -72,6 +72,14 @@ api-runtime-support
   - `maui-tizen` for `OakERP.Desktop`
   - `maui-tizen` and `wasm-tools` for `OakERP.Mobile`
 - An initial parallel validation attempt hit transient file-lock errors on build outputs. Re-running the requested backend validations sequentially passed, so the lock was treated as environment noise rather than a code regression.
+
+## Merge Review Follow-Up
+- Reviewed the full branch against `main` with Serena symbol tracing across the runtime-support and auth seams.
+- `pwsh ./tools/validate-pr.ps1` passed.
+- `dotnet test OakERP.Tests.Integration/OakERP.Tests.Integration.csproj --filter ArInvoicePostingTests` passed.
+- No pre-merge correctness blocker was found in the branch diff.
+- One cleanup item identified during review was fixed before archive: removed stale slice-specific wording from the auth rate-limit settings exception message.
+- Remaining non-blocking gap: request timeout coverage still verifies endpoint metadata and the configured ProblemDetails writer, but not an end-to-end timed-out HTTP request through the middleware path.
 
 ## Remaining
 - Later runtime-support work only: any broader audit-retention or persistent audit-storage decisions.

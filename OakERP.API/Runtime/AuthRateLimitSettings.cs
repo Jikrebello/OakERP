@@ -34,7 +34,7 @@ public sealed class AuthRateLimitSettings
 
         if (settings.QueueLimit != 0)
         {
-            throw new InvalidOperationException($"{SectionName}:QueueLimit must be 0 in Slice 3.");
+            throw new InvalidOperationException($"{SectionName}:QueueLimit must be 0.");
         }
 
         return settings;
