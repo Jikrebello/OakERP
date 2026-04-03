@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using OakERP.API.Extensions;
+using OakERP.API.Runtime;
 using OakERP.Auth.Extensions;
 using OakERP.Infrastructure.Extensions;
 using OakERP.Infrastructure.Persistence;
@@ -13,6 +16,7 @@ var allowedOrigins =
 
 // Services
 builder.Services.AddControllers();
+builder.Services.AddRuntimeSupport(builder.Configuration);
 
 builder
     .Services.AddApplicationDb(builder.Configuration)
@@ -55,6 +59,19 @@ if (app.Environment.IsDevelopment())
 app.UseCors("OakCors");
 
 app.UseOakMiddleware();
+
+app.MapHealthChecks(
+        "/health/live",
+        new HealthCheckOptions { Predicate = registration => registration.Tags.Contains("live") }
+    )
+    .DisableRequestTimeout()
+    .AllowAnonymous();
+app.MapHealthChecks(
+        "/health/ready",
+        new HealthCheckOptions { Predicate = registration => registration.Tags.Contains("ready") }
+    )
+    .DisableRequestTimeout()
+    .AllowAnonymous();
 
 app.MapControllers();
 

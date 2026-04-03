@@ -178,6 +178,16 @@ Separate:
 
 when a task explicitly targets this boundary.
 
+## Tool Preference
+If Serena is active and available, prefer it for symbol-aware discovery before editing:
+- find symbol
+- find references
+- find implementations
+- trace call paths
+- identify minimal touched files
+
+Do not require repeated user prompting to use Serena when the task clearly benefits from it.
+
 ## Output Expectations
 
 When you finish a refactor, summarize:

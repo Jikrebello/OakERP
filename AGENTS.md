@@ -181,3 +181,15 @@ Do not:
 - rewrite large areas without a scoped plan
 - change Docker, migration flow, or deployment behavior unless the task explicitly asks for it
 - add new dependencies without explaining why they are needed
+
+## Serena Usage
+When Serena is available in the session, prefer Serena for:
+- symbol lookup
+- reference tracing
+- implementation discovery
+- dependency-path discovery
+- planning that depends on symbol-aware code navigation
+- refactors where symbol-level understanding is safer than raw file search
+
+Do not wait for an explicit user reminder to use Serena when it is clearly relevant.
+Use normal file-based Codex behavior for simple edits when Serena adds no value.
