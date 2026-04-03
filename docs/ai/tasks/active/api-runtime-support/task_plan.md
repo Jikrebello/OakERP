@@ -4,16 +4,14 @@
 api-runtime-support
 
 ## Goal
-Implement Slice 1 only: add minimal API-host runtime support for centralized exception handling,
-ProblemDetails for unhandled and empty framework-generated errors, simple request correlation, and
-request logging without changing successful response bodies or existing DTO-based business failure
-bodies.
+Implement Slice 2 only: add minimal API-host health checks and one controller-only request timeout
+policy without redesigning existing API contracts or broadening into later runtime-support work.
 
 ## Background
-OakERP.API currently has thin controller/auth wiring but no centralized host runtime support for
-operability. Unhandled exceptions, empty framework-generated 401 responses, and request diagnostics
-are not standardized, which makes the API harder to debug and operate before more feature work is
-added.
+Slice 1 is complete and already provides centralized exception handling, ProblemDetails for
+unhandled and empty framework-generated errors, correlation IDs, and request metadata logging.
+OakERP.API still lacks basic operational endpoints and timeout guardrails, so Slice 2 should add the
+smallest practical live/readiness checks plus one conservative controller timeout policy.
 
 ## Scope
 - `OakERP.API`
@@ -24,10 +22,11 @@ added.
 ## Out of Scope
 - redesigning existing controller success responses
 - replacing current DTO-based business failure responses with ProblemDetails
-- health checks, request timeouts, rate limiting, and audit logging
+- rate limiting and audit logging
 - Serilog, OpenTelemetry, or external logging packages
 - request/response body logging
-- controller-level try/catch additions
+- controller-level timeout attributes or multiple timeout tiers
+- provider-specific health-check packages
 
 ## Constraints
 - Preserve behavior unless explicitly asked otherwise.
@@ -39,11 +38,13 @@ added.
 - Review domain-significant magic numbers and strings.
 
 ## Success Criteria
-- [ ] Slice 1 runtime support is implemented without broadening scope
-- [ ] Unhandled exceptions are centrally translated to ProblemDetails
-- [ ] Empty framework-generated auth/status errors are returned as ProblemDetails
-- [ ] Correlation ID is accepted inbound or generated, echoed in the response, and included in log scope / ProblemDetails extensions
-- [ ] Request logging captures method, path, status code, duration, correlation ID, and safe user context without logging bodies or secrets
+- [ ] Slice 2 runtime support is implemented without broadening scope
+- [ ] `/health/live` is anonymous and fully DB-independent
+- [ ] `/health/ready` is anonymous and checks database connectivity only
+- [ ] Health endpoints remain host-local and do not change controller contracts
+- [ ] A single controller-only timeout policy is configured using built-in ASP.NET Core facilities
+- [ ] Timeout failures are written through the existing ProblemDetails path so `correlationId` and `traceId` remain present
+- [ ] Health endpoints are not subject to the controller timeout policy
 - [ ] Relevant build passes
 - [ ] Relevant tests pass
 - [ ] Docs updated if needed
@@ -56,11 +57,12 @@ added.
 - [ ] Deferred smells / risks recorded if intentionally left unresolved
 
 ## Planned Steps
-1. Configure built-in ProblemDetails and a centralized exception handler in `OakERP.API`.
-2. Add minimal correlation and request logging middleware in the API host only.
-3. Add status-code ProblemDetails handling for empty framework-generated errors such as 401.
-4. Add targeted integration tests for exception handling, unauthenticated responses, and correlation header behavior.
-5. Run requested validation and update task docs with results and deferred risks.
+1. Add built-in health-check registration in `OakERP.API` with separate live and ready probes.
+2. Implement one API-local database connectivity health check for readiness only.
+3. Add one built-in controller timeout policy and map it to controllers only.
+4. Write timeout failures through the existing ProblemDetails service path.
+5. Add targeted integration tests for live/readiness health and timeout behavior.
+6. Run requested validation and update task docs with results and deferred risks.
 
 ## Validation Commands
 ```powershell
@@ -76,9 +78,10 @@ State whether this task requires:
 
 ## Risks
 
-- `UseStatusCodePages` must not overwrite existing DTO-based business failure bodies.
-- Correlation/request logging must not capture authorization headers, tokens, passwords, or seed credentials.
-- Middleware order mistakes could prevent exception handling, auth, or ProblemDetails from behaving consistently.
+- Liveness must not accidentally depend on the database.
+- Readiness must stay limited to connectivity only and not grow into migration or seeding state checks.
+- Timeout policy wiring must not affect health endpoints or redesign existing controller contracts.
+- Timeout failures must not bypass the existing ProblemDetails path.
 
 ## Architecture Checks
 
@@ -91,4 +94,4 @@ State whether this task requires:
 ## Notes
 
 - This slice is intentionally host-focused and should stay inside `OakERP.API` except for tests.
-- If consistent ProblemDetails would require changing current business DTO error contracts, stop and report the conflict instead of widening the slice.
+- If timeout handling would require broader controller/action contract changes, stop and report the conflict instead of widening the slice.

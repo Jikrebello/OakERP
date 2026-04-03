@@ -12,6 +12,7 @@ public static class AppBuilderExtensions
                 await Results.Problem(statusCode: context.HttpContext.Response.StatusCode)
                     .ExecuteAsync(context.HttpContext)
         );
+        app.UseRequestTimeouts();
         app.UseAuthentication();
         app.UseAuthorization();
         return app;

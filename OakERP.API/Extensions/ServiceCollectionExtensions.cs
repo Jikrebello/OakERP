@@ -1,13 +1,22 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Http.Timeouts;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
+using OakERP.API.Runtime;
 using OakERP.API.Swagger.Filters.Auth;
 
 namespace OakERP.API.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddRuntimeSupport(this IServiceCollection services)
+    public static IServiceCollection AddRuntimeSupport(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
+        var timeoutSettings = RequestTimeoutSettings.Bind(configuration);
+
         services.AddProblemDetails(options =>
         {
             options.CustomizeProblemDetails = context =>
@@ -22,8 +31,40 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
+        services.AddHealthChecks()
+            .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"])
+            .AddCheck<DatabaseConnectivityHealthCheck>("database", tags: ["ready"]);
+        services.AddRequestTimeouts(options =>
+        {
+            options.DefaultPolicy = new RequestTimeoutPolicy
+            {
+                Timeout = TimeSpan.FromSeconds(timeoutSettings.ControllerSeconds),
+                TimeoutStatusCode = StatusCodes.Status503ServiceUnavailable,
+                WriteTimeoutResponse = WriteTimeoutProblemDetailsAsync,
+            };
+        });
 
         return services;
+    }
+
+    private static async Task WriteTimeoutProblemDetailsAsync(HttpContext context)
+    {
+        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+
+        var problemDetailsService = context.RequestServices.GetRequiredService<IProblemDetailsService>();
+
+        await problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext
+            {
+                HttpContext = context,
+                ProblemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status503ServiceUnavailable,
+                    Title = "The request timed out.",
+                    Type = "https://httpstatuses.com/503",
+                },
+            }
+        );
     }
 
     public static IServiceCollection AddSwaggerDocs(this IServiceCollection services)
