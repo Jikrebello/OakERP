@@ -8,7 +8,8 @@ public sealed class RequestTimeoutSettings
 
     public static RequestTimeoutSettings Bind(IConfiguration configuration)
     {
-        var settings = configuration.GetSection(SectionName).Get<RequestTimeoutSettings>()
+        var settings =
+            configuration.GetSection(SectionName).Get<RequestTimeoutSettings>()
             ?? new RequestTimeoutSettings();
 
         if (settings.ControllerSeconds <= 0)

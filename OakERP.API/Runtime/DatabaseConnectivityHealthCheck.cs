@@ -3,7 +3,8 @@ using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.API.Runtime;
 
-public sealed class DatabaseConnectivityHealthCheck(IServiceScopeFactory scopeFactory) : IHealthCheck
+public sealed class DatabaseConnectivityHealthCheck(IServiceScopeFactory scopeFactory)
+    : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,

@@ -14,12 +14,15 @@ public sealed class AuthRateLimitSettings
 
     public static AuthRateLimitSettings Bind(IConfiguration configuration)
     {
-        var settings = configuration.GetSection(SectionName).Get<AuthRateLimitSettings>()
+        var settings =
+            configuration.GetSection(SectionName).Get<AuthRateLimitSettings>()
             ?? new AuthRateLimitSettings();
 
         if (settings.PermitLimit <= 0)
         {
-            throw new InvalidOperationException($"{SectionName}:PermitLimit must be greater than 0.");
+            throw new InvalidOperationException(
+                $"{SectionName}:PermitLimit must be greater than 0."
+            );
         }
 
         if (settings.WindowSeconds <= 0)

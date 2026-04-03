@@ -4,12 +4,12 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next)
 {
     public Task InvokeAsync(HttpContext context)
     {
-        var inboundCorrelationId = context.Request.Headers[HttpContextExtensions.CorrelationHeaderName]
+        var inboundCorrelationId = context
+            .Request.Headers[HttpContextExtensions.CorrelationHeaderName]
             .FirstOrDefault();
 
         var correlationId =
-            !string.IsNullOrWhiteSpace(inboundCorrelationId)
-            && inboundCorrelationId.Length <= 128
+            !string.IsNullOrWhiteSpace(inboundCorrelationId) && inboundCorrelationId.Length <= 128
                 ? inboundCorrelationId
                 : Guid.NewGuid().ToString("N");
 

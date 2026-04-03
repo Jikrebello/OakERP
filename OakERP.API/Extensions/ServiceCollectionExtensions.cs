@@ -55,7 +55,8 @@ public static class ServiceCollectionExtensions
                     )
             );
         });
-        services.AddHealthChecks()
+        services
+            .AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"])
             .AddCheck<DatabaseConnectivityHealthCheck>("database", tags: ["ready"]);
         services.AddRequestTimeouts(options =>
@@ -74,7 +75,8 @@ public static class ServiceCollectionExtensions
     private static string GetAuthPartitionKey(HttpContext context)
     {
         var remoteIpAddress =
-            context.Connection.RemoteIpAddress?.ToString() ?? AuthRateLimitSettings.UnknownClientPartition;
+            context.Connection.RemoteIpAddress?.ToString()
+            ?? AuthRateLimitSettings.UnknownClientPartition;
 
         return $"{context.Request.Path}:{remoteIpAddress}";
     }
@@ -86,13 +88,16 @@ public static class ServiceCollectionExtensions
     {
         if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
         {
-            context.HttpContext.Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.TotalSeconds)
+            context.HttpContext.Response.Headers["Retry-After"] = Math.Ceiling(
+                    retryAfter.TotalSeconds
+                )
                 .ToString(CultureInfo.InvariantCulture);
         }
 
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
 
-        var problemDetailsService = context.HttpContext.RequestServices.GetRequiredService<IProblemDetailsService>();
+        var problemDetailsService =
+            context.HttpContext.RequestServices.GetRequiredService<IProblemDetailsService>();
 
         await problemDetailsService.TryWriteAsync(
             new ProblemDetailsContext
@@ -112,7 +117,8 @@ public static class ServiceCollectionExtensions
     {
         context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
 
-        var problemDetailsService = context.RequestServices.GetRequiredService<IProblemDetailsService>();
+        var problemDetailsService =
+            context.RequestServices.GetRequiredService<IProblemDetailsService>();
 
         await problemDetailsService.TryWriteAsync(
             new ProblemDetailsContext

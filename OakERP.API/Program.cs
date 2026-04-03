@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using OakERP.API.Runtime;
 using OakERP.API.Extensions;
+using OakERP.API.Runtime;
 using OakERP.Auth.Extensions;
 using OakERP.Infrastructure.Extensions;
 using OakERP.Infrastructure.Persistence;

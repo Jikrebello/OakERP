@@ -183,18 +183,20 @@ public class AuthServiceTests
         await service.RegisterAsync(dto);
 
         _factory.Logger.Verify(
-            logger => logger.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((state, _) =>
-                    HasStructuredProperty(state, "AuditAction", "UserRegistration")
-                    && HasStructuredProperty(state, "AuditOutcome", "Success")
-                    && HasStructuredProperty(state, "Email", dto.Email)
-                    && HasStructuredProperty(state, "TenantName", dto.TenantName)
+            logger =>
+                logger.Log(
+                    LogLevel.Information,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>(
+                        (state, _) =>
+                            HasStructuredProperty(state, "AuditAction", "UserRegistration")
+                            && HasStructuredProperty(state, "AuditOutcome", "Success")
+                            && HasStructuredProperty(state, "Email", dto.Email)
+                            && HasStructuredProperty(state, "TenantName", dto.TenantName)
+                    ),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
                 ),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-            ),
             Times.Once
         );
     }
@@ -236,18 +238,20 @@ public class AuthServiceTests
         await service.LoginAsync(dto);
 
         _factory.Logger.Verify(
-            logger => logger.Log(
-                LogLevel.Warning,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((state, _) =>
-                    HasStructuredProperty(state, "AuditAction", "UserLogin")
-                    && HasStructuredProperty(state, "AuditOutcome", "Failure")
-                    && HasStructuredProperty(state, "AuditReason", "InvalidCredentials")
-                    && HasStructuredProperty(state, "Email", dto.Email)
+            logger =>
+                logger.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>(
+                        (state, _) =>
+                            HasStructuredProperty(state, "AuditAction", "UserLogin")
+                            && HasStructuredProperty(state, "AuditOutcome", "Failure")
+                            && HasStructuredProperty(state, "AuditReason", "InvalidCredentials")
+                            && HasStructuredProperty(state, "Email", dto.Email)
+                    ),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
                 ),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-            ),
             Times.Once
         );
     }
@@ -437,7 +441,11 @@ public class AuthServiceTests
         );
     }
 
-    private static bool HasStructuredProperty(object state, string propertyName, object? expectedValue)
+    private static bool HasStructuredProperty(
+        object state,
+        string propertyName,
+        object? expectedValue
+    )
     {
         if (state is not IEnumerable<KeyValuePair<string, object?>> properties)
         {

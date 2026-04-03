@@ -1,14 +1,14 @@
 using System.Collections.Concurrent;
+using System.IO;
 using System.Net;
 using System.Net.Http.Json;
-using System.IO;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -150,14 +150,13 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
         response.Headers.GetValues(CorrelationHeaderName).Single().ShouldBe(correlationId);
 
         var body = await RuntimeSupportTestJson.ReadJsonAsync(response);
-        body.GetProperty("status").GetInt32().ShouldBe(
-            (int)HttpStatusCode.InternalServerError
-        );
+        body.GetProperty("status").GetInt32().ShouldBe((int)HttpStatusCode.InternalServerError);
         body.GetProperty("title").GetString().ShouldBe("An unexpected error occurred.");
         body.GetProperty("correlationId").GetString().ShouldBe(correlationId);
         body.GetProperty("traceId").GetString().ShouldNotBeNullOrWhiteSpace();
         body.ToString().ShouldNotContain("Simulated login failure");
     }
+
     private sealed class ThrowingAuthService : IAuthService
     {
         public Task<AuthResultDTO> RegisterAsync(RegisterDTO dto)
@@ -225,12 +224,18 @@ public class OperationalRuntimeTests
         var endpoints = factory.Services.GetRequiredService<EndpointDataSource>().Endpoints;
         var routeEndpoints = endpoints.OfType<RouteEndpoint>().ToList();
 
-        var liveEndpoint = routeEndpoints.Single(endpoint => endpoint.RoutePattern.RawText == "/health/live");
-        var readyEndpoint = routeEndpoints.Single(endpoint => endpoint.RoutePattern.RawText == "/health/ready");
+        var liveEndpoint = routeEndpoints.Single(endpoint =>
+            endpoint.RoutePattern.RawText == "/health/live"
+        );
+        var readyEndpoint = routeEndpoints.Single(endpoint =>
+            endpoint.RoutePattern.RawText == "/health/ready"
+        );
 
-        liveEndpoint.Metadata.Any(metadata => metadata.GetType().Name.Contains("DisableRequestTimeout"))
+        liveEndpoint
+            .Metadata.Any(metadata => metadata.GetType().Name.Contains("DisableRequestTimeout"))
             .ShouldBeTrue();
-        readyEndpoint.Metadata.Any(metadata => metadata.GetType().Name.Contains("DisableRequestTimeout"))
+        readyEndpoint
+            .Metadata.Any(metadata => metadata.GetType().Name.Contains("DisableRequestTimeout"))
             .ShouldBeTrue();
     }
 
@@ -239,7 +244,9 @@ public class OperationalRuntimeTests
     {
         await using var factory = new OakErpWebFactory();
 
-        var timeoutOptions = factory.Services.GetRequiredService<IOptions<RequestTimeoutOptions>>().Value;
+        var timeoutOptions = factory
+            .Services.GetRequiredService<IOptions<RequestTimeoutOptions>>()
+            .Value;
         timeoutOptions.DefaultPolicy.ShouldNotBeNull();
         timeoutOptions.DefaultPolicy!.WriteTimeoutResponse.ShouldNotBeNull();
 
@@ -257,7 +264,9 @@ public class OperationalRuntimeTests
         context.Response.ContentType.ShouldBe("application/problem+json");
 
         context.Response.Body.Position = 0;
-        using var document = JsonDocument.Parse(await new StreamReader(context.Response.Body).ReadToEndAsync());
+        using var document = JsonDocument.Parse(
+            await new StreamReader(context.Response.Body).ReadToEndAsync()
+        );
         var body = document.RootElement;
 
         body.GetProperty("status").GetInt32().ShouldBe(StatusCodes.Status503ServiceUnavailable);
@@ -283,7 +292,6 @@ public class OperationalRuntimeTests
             });
         });
     }
-
 }
 
 [TestFixture]
@@ -400,9 +408,9 @@ public class RateLimitingTests : WebApiIntegrationTestBase
 
     private int GetConfiguredAuthPermitLimit()
     {
-        return Factory.Services.GetRequiredService<IConfiguration>().GetValue<int>(
-            $"{AuthRateLimitSettings.SectionName}:PermitLimit"
-        );
+        return Factory
+            .Services.GetRequiredService<IConfiguration>()
+            .GetValue<int>($"{AuthRateLimitSettings.SectionName}:PermitLimit");
     }
 }
 
@@ -468,16 +476,17 @@ internal sealed class InMemoryLogger(
         var properties = ToDictionary(state);
         var scopeProperties = new Dictionary<string, object?>(StringComparer.Ordinal);
 
-        getScopeProvider().ForEachScope(
-            (scope, stateDictionary) =>
-            {
-                foreach (var pair in ToDictionary(scope))
+        getScopeProvider()
+            .ForEachScope(
+                (scope, stateDictionary) =>
                 {
-                    stateDictionary[pair.Key] = pair.Value;
-                }
-            },
-            scopeProperties
-        );
+                    foreach (var pair in ToDictionary(scope))
+                    {
+                        stateDictionary[pair.Key] = pair.Value;
+                    }
+                },
+                scopeProperties
+            );
 
         entries.Enqueue(
             new CapturedLogEntry(

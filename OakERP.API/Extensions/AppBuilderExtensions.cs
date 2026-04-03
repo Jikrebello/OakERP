@@ -8,10 +8,10 @@ public static class AppBuilderExtensions
         app.UseMiddleware<RequestLoggingMiddleware>();
         app.UseRouting();
         app.UseExceptionHandler();
-        app.UseStatusCodePages(
-            async context =>
-                await Results.Problem(statusCode: context.HttpContext.Response.StatusCode)
-                    .ExecuteAsync(context.HttpContext)
+        app.UseStatusCodePages(async context =>
+            await Results
+                .Problem(statusCode: context.HttpContext.Response.StatusCode)
+                .ExecuteAsync(context.HttpContext)
         );
         app.UseRateLimiter();
         app.UseRequestTimeouts();
