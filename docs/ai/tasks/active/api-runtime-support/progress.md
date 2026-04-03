@@ -31,6 +31,12 @@ api-runtime-support
 - Fixed a real middleware-order issue by adding explicit routing before endpoint-specific rate limiting; without it, the auth metadata did not activate the limiter.
 - Added targeted runtime coverage for non-throttled DTO behavior, throttled ProblemDetails behavior, auth-path separation, and health-endpoint exclusion.
 - Simplified the rate-limit tests to exhaust the configured permit limit from the real API host after a lower test override proved unreliable in the derived WebApplicationFactory path.
+- Audited current auth logging and request scope behavior for Slice 4 audit logging.
+- Moved the request logging scope so downstream service logs inherit request `CorrelationId` and `TraceId`.
+- Added structured audit logs in `AuthService` for registration and login outcomes, using `Information` for success, `Warning` for expected denials, and `Error` for unexpected registration exceptions.
+- Kept audit logging local to `AuthService` and avoided any new audit interface, sink abstraction, event bus, or persistence work.
+- Added unit coverage for registration-success and invalid-login audit log events.
+- Added targeted runtime coverage using an in-memory logger provider to prove auth audit logs inherit inbound correlation scope.
 
 ## Files Touched
 - `docs/ai/tasks/active/api-runtime-support/task_plan.md`
@@ -48,38 +54,36 @@ api-runtime-support
 - `OakERP.API/Runtime/AuthRateLimitSettings.cs`
 - `OakERP.API/Controllers/AuthController.cs`
 - `OakERP.API/appsettings.json`
+- `OakERP.Auth/AuthService.cs`
+- `OakERP.Tests.Unit/Auth/AuthServiceTests.cs`
 - `OakERP.Tests.Integration/Runtime/RuntimeSupportTests.cs`
 
 ## Validation
 - `dotnet build OakERP.API/OakERP.API.csproj`
 - `dotnet test OakERP.Tests.Unit/OakERP.Tests.Unit.csproj --filter AuthServiceTests`
-- `dotnet test OakERP.Tests.Integration/OakERP.Tests.Integration.csproj --filter AuthApiTests --no-restore`
-- `dotnet test OakERP.Tests.Integration/OakERP.Tests.Integration.csproj --filter RuntimeSupportTests`
-- `dotnet build OakERP.API/OakERP.API.csproj`
-- `dotnet build OakERP.sln`
-- `dotnet test OakERP.Tests.Integration/OakERP.Tests.Integration.csproj --filter FullyQualifiedName~OakERP.Tests.Integration.Runtime`
-- `dotnet build OakERP.API/OakERP.API.csproj`
 - `dotnet test OakERP.Tests.Integration/OakERP.Tests.Integration.csproj --filter FullyQualifiedName~OakERP.Tests.Integration.Runtime`
 - `dotnet build OakERP.sln`
-- No new unit tests were added for Slice 3 because the change is host wiring plus endpoint metadata, and the new behavior is covered through targeted runtime integration tests.
 
 ## Validation Notes
-- An initial attempt to run API build and integration tests in parallel triggered a transient file lock on `OakERP.API.dll` attributed to concurrent access/Defender scanning. Re-running sequentially passed; this was validation noise, not a product regression.
-- An initial Slice 3 regression was real: auth endpoint metadata did not activate rate limiting until explicit `UseRouting()` was added before `UseRateLimiter()`.
-- Lowering the permit limit through a derived `WebApplicationFactory` config override was not reliable for this host-bound configuration path, so the final tests exhaust the configured permit limit from the real API host instead.
+- `dotnet build OakERP.API/OakERP.API.csproj` passed.
+- `dotnet test OakERP.Tests.Unit/OakERP.Tests.Unit.csproj --filter AuthServiceTests` passed.
+- `dotnet test OakERP.Tests.Integration/OakERP.Tests.Integration.csproj --filter FullyQualifiedName~OakERP.Tests.Integration.Runtime` passed.
+- `dotnet build OakERP.sln` did not pass on this machine because required MAUI workloads are missing:
+  - `maui-tizen` for `OakERP.Desktop`
+  - `maui-tizen` and `wasm-tools` for `OakERP.Mobile`
+- An initial parallel validation attempt hit transient file-lock errors on build outputs. Re-running the requested backend validations sequentially passed, so the lock was treated as environment noise rather than a code regression.
 
 ## Remaining
-- Later runtime-support work only: audit logging.
-- Optional future follow-up: proxy-aware client identification if OakERP is deployed behind forwarded headers and auth throttling needs per-client accuracy beyond the current simple partitioning.
-- Optional future follow-up: broader cancellation-token propagation if OakERP wants harder timeout enforcement for long-running business flows.
+- Later runtime-support work only: any broader audit-retention or persistent audit-storage decisions.
+- Optional future follow-up: expand auth audit coverage to unexpected login exception paths only if OakERP decides it needs explicit exception-to-audit bridging.
+- Optional future follow-up: broader client-identification or audit retention only when OakERP has a concrete operational requirement.
 
 ## Deferred Smells / Risks
 - Mixed error-shape model remains after these slices: DTO bodies for expected business failures, ProblemDetails for unhandled and host/runtime failures.
-- Request logging is intentionally compact and host-local; richer structured logging/observability remains deferred.
-- The runtime-support slices intentionally avoid request/response body logging and avoid any auth-token or seed-secret logging, which keeps diagnostics metadata-only.
-- Readiness checks only database connectivity; migration state, seed state, and downstream dependencies remain intentionally deferred.
+- Request logging remains intentionally compact and host-local; richer structured logging and observability remain deferred.
+- Audit logging is intentionally narrow in this slice: auth actions only, log-backed only, no database, no reporting layer, and no generic audit subsystem.
 - Current business flows still do not propagate cancellation tokens through every lower layer, so hard timeout enforcement for mutating operations remains a later concern.
-- Auth rate limiting is intentionally narrow in this slice: no global limiter, no per-user/tenant limiter, no proxy-aware forwarding support, and no audit side effects.
+- Full solution validation on this machine remains blocked by missing MAUI workloads outside the backend runtime slice.
 
 ## Outcome
 - Slice 1 is implemented and validated.
@@ -96,6 +100,10 @@ api-runtime-support
 - Non-throttled auth requests still return their existing DTO bodies unchanged.
 - Throttled auth requests now return `429` ProblemDetails with `correlationId` and `traceId`.
 - Health endpoints remain unaffected by auth-rate-limit exhaustion.
+- Slice 4 is implemented and validated for the backend runtime scope.
+- Registration and login outcomes now emit structured audit logs from `AuthService`.
+- Downstream auth service logs now inherit request `CorrelationId` and `TraceId` via the request logging scope.
+- No API contracts, DB schema, or persistence behavior changed.
 
 ## Next Recommended Step
-- Start the next runtime-support slice separately for audit logging only. Keep broader client-identification and policy-matrix work deferred until OakERP has a concrete deployment topology and real operational feedback.
+- Keep any future audit retention or broader action coverage in a separate slice. Do not expand this auth-focused, log-backed implementation into a general audit subsystem without a concrete operational need.

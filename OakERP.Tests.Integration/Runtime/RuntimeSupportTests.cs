@@ -1,7 +1,9 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Json;
 using System.IO;
 using System.Text.Json;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using OakERP.API.Extensions;
@@ -69,6 +72,52 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
         result.ShouldNotBeNull();
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("Invalid login credentials.");
+    }
+
+    [Test]
+    public async Task Auth_Audit_Log_Should_Inherit_Correlation_Scope_For_Login_Failure()
+    {
+        const string correlationId = "audit-runtime-correlation";
+        using var loggerProvider = new InMemoryLoggerProvider();
+
+        using var overrideFactory = Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddProvider(loggerProvider);
+                logging.SetMinimumLevel(LogLevel.Information);
+            });
+        });
+
+        using var client = overrideFactory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, ApiRoutes.Auth.Login)
+        {
+            Content = JsonContent.Create(
+                new LoginDTO { Email = "missing@example.com", Password = "bad-password" }
+            ),
+        };
+
+        request.Headers.Add(CorrelationHeaderName, correlationId);
+
+        var response = await client.SendAsync(request);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        response.Content.Headers.ContentType?.MediaType.ShouldBe("application/json");
+
+        var auditLog = loggerProvider
+            .Entries.Where(entry => entry.Category == "OakERP.Auth.AuthService")
+            .Single(entry =>
+                entry.Level == LogLevel.Warning
+                && entry.Properties.TryGetValue("AuditAction", out var auditAction)
+                && Equals(auditAction, "UserLogin")
+                && entry.Properties.TryGetValue("AuditReason", out var auditReason)
+                && Equals(auditReason, "InvalidCredentials")
+            );
+
+        auditLog.ScopeProperties["CorrelationId"].ShouldBe(correlationId);
+        auditLog.ScopeProperties["TraceId"]?.ToString().ShouldNotBeNullOrWhiteSpace();
+        auditLog.Properties["Email"].ShouldBe("missing@example.com");
     }
 
     [Test]
@@ -363,5 +412,102 @@ internal static class RuntimeSupportTestJson
     {
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         return document.RootElement.Clone();
+    }
+}
+
+internal sealed record CapturedLogEntry(
+    string Category,
+    LogLevel Level,
+    string Message,
+    IReadOnlyDictionary<string, object?> Properties,
+    IReadOnlyDictionary<string, object?> ScopeProperties
+);
+
+internal sealed class InMemoryLoggerProvider : ILoggerProvider, ISupportExternalScope
+{
+    private readonly ConcurrentQueue<CapturedLogEntry> entries = new();
+    private IExternalScopeProvider scopeProvider = new LoggerExternalScopeProvider();
+
+    public IReadOnlyCollection<CapturedLogEntry> Entries => entries.ToArray();
+
+    public ILogger CreateLogger(string categoryName)
+    {
+        return new InMemoryLogger(categoryName, entries, () => scopeProvider);
+    }
+
+    public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+    {
+        this.scopeProvider = scopeProvider;
+    }
+
+    public void Dispose() { }
+}
+
+internal sealed class InMemoryLogger(
+    string categoryName,
+    ConcurrentQueue<CapturedLogEntry> entries,
+    Func<IExternalScopeProvider> getScopeProvider
+) : ILogger
+{
+    public IDisposable BeginScope<TState>(TState state)
+        where TState : notnull
+    {
+        return getScopeProvider().Push(state);
+    }
+
+    public bool IsEnabled(LogLevel logLevel) => true;
+
+    public void Log<TState>(
+        LogLevel logLevel,
+        EventId eventId,
+        TState state,
+        Exception? exception,
+        Func<TState, Exception?, string> formatter
+    )
+    {
+        var properties = ToDictionary(state);
+        var scopeProperties = new Dictionary<string, object?>(StringComparer.Ordinal);
+
+        getScopeProvider().ForEachScope(
+            (scope, stateDictionary) =>
+            {
+                foreach (var pair in ToDictionary(scope))
+                {
+                    stateDictionary[pair.Key] = pair.Value;
+                }
+            },
+            scopeProperties
+        );
+
+        entries.Enqueue(
+            new CapturedLogEntry(
+                categoryName,
+                logLevel,
+                formatter(state, exception),
+                properties,
+                scopeProperties
+            )
+        );
+    }
+
+    private static IReadOnlyDictionary<string, object?> ToDictionary(object? state)
+    {
+        if (state is IEnumerable<KeyValuePair<string, object?>> pairs)
+        {
+            return pairs
+                .Where(pair => pair.Key != "{OriginalFormat}")
+                .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+        }
+
+        if (state is IEnumerable<KeyValuePair<string, object>> nonNullablePairs)
+        {
+            return nonNullablePairs.ToDictionary(
+                pair => pair.Key,
+                pair => (object?)pair.Value,
+                StringComparer.Ordinal
+            );
+        }
+
+        return new Dictionary<string, object?>(StringComparer.Ordinal);
     }
 }

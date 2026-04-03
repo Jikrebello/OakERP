@@ -31,6 +31,20 @@ public class AuthService(
     ILogger<AuthService> logger
 ) : IAuthService
 {
+    private const string AuditActionRegistration = "UserRegistration";
+    private const string AuditActionLogin = "UserLogin";
+    private const string AuditOutcomeSuccess = "Success";
+    private const string AuditOutcomeFailure = "Failure";
+    private const string AuditReasonPasswordsDoNotMatch = "PasswordsDoNotMatch";
+    private const string AuditReasonEmailAlreadyExists = "EmailAlreadyExists";
+    private const string AuditReasonIdentityCreateFailed = "IdentityCreateFailed";
+    private const string AuditReasonRoleAssignmentFailed = "RoleAssignmentFailed";
+    private const string AuditReasonUnexpectedError = "UnexpectedError";
+    private const string AuditReasonInvalidCredentials = "InvalidCredentials";
+    private const string AuditReasonTenantNotFound = "TenantNotFound";
+    private const string AuditReasonLicenseNotFound = "LicenseNotFound";
+    private const string AuditReasonLicenseExpired = "LicenseExpired";
+
     // Single mapping point from the Identity-backed ApplicationUser entity
     // into the minimal auth-local JWT input contract.
     private static JwtTokenInput MapToJwtTokenInput(ApplicationUser user) =>
@@ -53,11 +67,27 @@ public class AuthService(
         var normalizedEmail = email.ToUpperInvariant();
 
         if (dto.Password != dto.ConfirmPassword)
+        {
+            LogAuditWarning(
+                AuditActionRegistration,
+                email,
+                AuditReasonPasswordsDoNotMatch,
+                tenantName: dto.TenantName
+            );
             return AuthResultDTO.Fail("Passwords do not match.", HttpStatusCode.BadRequest);
+        }
 
         var existingUser = await identityGateway.FindByEmailAsync(email);
         if (existingUser is not null)
+        {
+            LogAuditWarning(
+                AuditActionRegistration,
+                email,
+                AuditReasonEmailAlreadyExists,
+                tenantName: dto.TenantName
+            );
             return AuthResultDTO.Fail("Email already exists.", HttpStatusCode.Conflict);
+        }
 
         await unitOfWork.BeginTransactionAsync();
         try
@@ -96,6 +126,13 @@ public class AuthService(
             if (!createUserResult.Succeeded)
             {
                 await unitOfWork.RollbackAsync();
+                LogAuditWarning(
+                    AuditActionRegistration,
+                    email,
+                    AuditReasonIdentityCreateFailed,
+                    tenantId: tenant.Id,
+                    tenantName: tenant.Name
+                );
                 return AuthResultDTO.Fail(
                     createUserResult.Errors.First().Description,
                     HttpStatusCode.BadRequest
@@ -106,6 +143,14 @@ public class AuthService(
             if (!addToRoleResult.Succeeded)
             {
                 await unitOfWork.RollbackAsync();
+                LogAuditWarning(
+                    AuditActionRegistration,
+                    email,
+                    AuditReasonRoleAssignmentFailed,
+                    userId: user.Id,
+                    tenantId: tenant.Id,
+                    tenantName: tenant.Name
+                );
                 return AuthResultDTO.Fail(
                     "User created but failed to assign role.",
                     HttpStatusCode.InternalServerError
@@ -116,10 +161,12 @@ public class AuthService(
             await unitOfWork.SaveChangesAsync();
             await unitOfWork.CommitAsync();
 
-            logger.LogInformation(
-                "New user registered: {Email} under tenant {TenantName}",
-                user.Email,
-                tenant.Name
+            LogAuditInformation(
+                AuditActionRegistration,
+                email,
+                userId: user.Id,
+                tenantId: tenant.Id,
+                tenantName: tenant.Name
             );
 
             var token = jwtGenerator.Generate(MapToJwtTokenInput(user));
@@ -129,7 +176,13 @@ public class AuthService(
         catch (Exception ex)
         {
             await unitOfWork.RollbackAsync();
-            logger.LogError(ex, "Registration failed for email: {Email}", dto.Email);
+            LogAuditError(
+                ex,
+                AuditActionRegistration,
+                email,
+                AuditReasonUnexpectedError,
+                tenantName: dto.TenantName
+            );
             return AuthResultDTO.Fail(
                 "An unexpected error occurred during registration.",
                 HttpStatusCode.InternalServerError
@@ -155,7 +208,10 @@ public class AuthService(
         var user = await identityGateway.FindByEmailAsync(email);
 
         if (user is null)
+        {
+            LogAuditWarning(AuditActionLogin, email, AuditReasonInvalidCredentials);
             return AuthResultDTO.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
+        }
 
         // Check password WITHOUT signing in
         var pwdCheck = await identityGateway.CheckPasswordSignInAsync(
@@ -165,19 +221,57 @@ public class AuthService(
         );
 
         if (!pwdCheck.Succeeded)
+        {
+            LogAuditWarning(
+                AuditActionLogin,
+                email,
+                AuditReasonInvalidCredentials,
+                userId: user.Id,
+                tenantId: user.TenantId
+            );
             return AuthResultDTO.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
+        }
 
         // Load tenant (ideally include License in one query)
         var tenant = await tenantRepository.FindWithLicenseAsync(user.TenantId);
 
         if (tenant is null)
+        {
+            LogAuditWarning(
+                AuditActionLogin,
+                email,
+                AuditReasonTenantNotFound,
+                userId: user.Id,
+                tenantId: user.TenantId
+            );
             return AuthResultDTO.Fail("Tenant not found.", HttpStatusCode.NotFound);
+        }
 
         if (tenant.License is null)
+        {
+            LogAuditWarning(
+                AuditActionLogin,
+                email,
+                AuditReasonLicenseNotFound,
+                userId: user.Id,
+                tenantId: tenant.Id,
+                tenantName: tenant.Name
+            );
             return AuthResultDTO.Fail("License not found for tenant.", HttpStatusCode.Forbidden);
+        }
 
         if (tenant.License.ExpiryDate is not null && tenant.License.ExpiryDate <= DateTime.UtcNow)
+        {
+            LogAuditWarning(
+                AuditActionLogin,
+                email,
+                AuditReasonLicenseExpired,
+                userId: user.Id,
+                tenantId: tenant.Id,
+                tenantName: tenant.Name
+            );
             return AuthResultDTO.Fail("License has expired.", HttpStatusCode.Forbidden);
+        }
 
         // If you also need cookie auth for MVC endpoints, you could now:
         // await signInManager.SignInAsync(user, isPersistent: false);
@@ -185,6 +279,104 @@ public class AuthService(
         var primaryRole = (await identityGateway.GetRolesAsync(user)).FirstOrDefault() ?? "User";
         var token = jwtGenerator.Generate(MapToJwtTokenInput(user));
 
+        LogAuditInformation(
+            AuditActionLogin,
+            email,
+            userId: user.Id,
+            tenantId: tenant.Id,
+            tenantName: tenant.Name
+        );
+
         return AuthResultDTO.SuccessWith(token, userName: user.UserName!, role: primaryRole);
+    }
+
+    private void LogAuditInformation(
+        string action,
+        string email,
+        string? userId = null,
+        Guid? tenantId = null,
+        string? tenantName = null
+    )
+    {
+        LogAudit(
+            LogLevel.Information,
+            action,
+            AuditOutcomeSuccess,
+            email,
+            auditReason: null,
+            userId,
+            tenantId,
+            tenantName
+        );
+    }
+
+    private void LogAuditWarning(
+        string action,
+        string email,
+        string auditReason,
+        string? userId = null,
+        Guid? tenantId = null,
+        string? tenantName = null
+    )
+    {
+        LogAudit(
+            LogLevel.Warning,
+            action,
+            AuditOutcomeFailure,
+            email,
+            auditReason,
+            userId,
+            tenantId,
+            tenantName
+        );
+    }
+
+    private void LogAuditError(
+        Exception exception,
+        string action,
+        string email,
+        string auditReason,
+        string? userId = null,
+        Guid? tenantId = null,
+        string? tenantName = null
+    )
+    {
+        LogAudit(
+            LogLevel.Error,
+            action,
+            AuditOutcomeFailure,
+            email,
+            auditReason,
+            userId,
+            tenantId,
+            tenantName,
+            exception
+        );
+    }
+
+    private void LogAudit(
+        LogLevel level,
+        string action,
+        string outcome,
+        string email,
+        string? auditReason,
+        string? userId,
+        Guid? tenantId,
+        string? tenantName,
+        Exception? exception = null
+    )
+    {
+        logger.Log(
+            level,
+            exception,
+            "Audit event {AuditAction} {AuditOutcome} for {Email}. Reason={AuditReason} UserId={UserId} TenantId={TenantId} TenantName={TenantName}",
+            action,
+            outcome,
+            email,
+            auditReason,
+            userId,
+            tenantId,
+            tenantName
+        );
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OakERP.Auth;
 using OakERP.Common.DTOs.Auth;
@@ -145,6 +146,60 @@ public class AuthServiceTests
     }
 
     [Fact]
+    public async Task RegisterAsync_Should_Write_Audit_Log_On_Success()
+    {
+        var dto = new RegisterDTO
+        {
+            Email = "audit_register@example.com",
+            Password = "goodpassword",
+            ConfirmPassword = "goodpassword",
+            TenantName = "AuditTenant",
+        };
+
+        _factory
+            .IdentityGateway.Setup(m => m.FindByEmailAsync(dto.Email))
+            .ReturnsAsync((ApplicationUser)null!);
+
+        _factory
+            .IdentityGateway.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), dto.Password))
+            .ReturnsAsync(IdentityResult.Success);
+
+        _factory
+            .IdentityGateway.Setup(m =>
+                m.AddToRoleAsync(It.IsAny<ApplicationUser>(), UserRoles.Admin)
+            )
+            .ReturnsAsync(IdentityResult.Success);
+
+        _factory
+            .TenantRepository.Setup(r => r.AddAsync(It.IsAny<Tenant>()))
+            .Returns(Task.CompletedTask);
+
+        _factory
+            .UnitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        var service = _factory.CreateService();
+
+        await service.RegisterAsync(dto);
+
+        _factory.Logger.Verify(
+            logger => logger.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) =>
+                    HasStructuredProperty(state, "AuditAction", "UserRegistration")
+                    && HasStructuredProperty(state, "AuditOutcome", "Success")
+                    && HasStructuredProperty(state, "Email", dto.Email)
+                    && HasStructuredProperty(state, "TenantName", dto.TenantName)
+                ),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+            ),
+            Times.Once
+        );
+    }
+
+    [Fact]
     public async Task LoginAsync_Should_Fail_When_Credentials_Are_Invalid()
     {
         var dto = new LoginDTO { Email = "test@example.com", Password = "wrongpass" };
@@ -162,6 +217,39 @@ public class AuthServiceTests
 
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("Invalid login credentials.");
+    }
+
+    [Fact]
+    public async Task LoginAsync_Should_Write_Audit_Log_When_Credentials_Are_Invalid()
+    {
+        var dto = new LoginDTO { Email = "audit_login@example.com", Password = "wrongpass" };
+
+        var user = new ApplicationUser { Email = dto.Email, UserName = dto.Email };
+
+        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+        _factory
+            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(user, dto.Password, false))
+            .ReturnsAsync(SignInResult.Failed);
+
+        var service = _factory.CreateService();
+
+        await service.LoginAsync(dto);
+
+        _factory.Logger.Verify(
+            logger => logger.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) =>
+                    HasStructuredProperty(state, "AuditAction", "UserLogin")
+                    && HasStructuredProperty(state, "AuditOutcome", "Failure")
+                    && HasStructuredProperty(state, "AuditReason", "InvalidCredentials")
+                    && HasStructuredProperty(state, "Email", dto.Email)
+                ),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+            ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -347,5 +435,16 @@ public class AuthServiceTests
                 ),
             Times.Once
         );
+    }
+
+    private static bool HasStructuredProperty(object state, string propertyName, object? expectedValue)
+    {
+        if (state is not IEnumerable<KeyValuePair<string, object?>> properties)
+        {
+            return false;
+        }
+
+        var matchedProperty = properties.FirstOrDefault(property => property.Key == propertyName);
+        return Equals(matchedProperty.Value, expectedValue);
     }
 }
