@@ -3,11 +3,14 @@ using OakERP.Application.Interfaces.Persistence;
 using OakERP.Application.Posting;
 using OakERP.Common.Enums;
 using OakERP.Domain.Accounts_Receivable;
+using OakERP.Domain.Entities.Accounts_Payable;
 using OakERP.Domain.Entities.Accounts_Receivable;
 using OakERP.Domain.Entities.General_Ledger;
 using OakERP.Domain.Posting;
+using OakERP.Domain.Posting.Accounts_Payable;
 using OakERP.Domain.Posting.Accounts_Receivable;
 using OakERP.Domain.Posting.General_Ledger;
+using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
 using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Domain.Repository_Interfaces.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Inventory;
@@ -15,6 +18,7 @@ using OakERP.Domain.Repository_Interfaces.Inventory;
 namespace OakERP.Infrastructure.Posting;
 
 public sealed class PostingService(
+    IApInvoiceRepository apInvoiceRepository,
     IArInvoiceRepository arInvoiceRepository,
     IArReceiptRepository arReceiptRepository,
     IFiscalPeriodRepository fiscalPeriodRepository,
@@ -23,6 +27,7 @@ public sealed class PostingService(
     IInventoryLedgerRepository inventoryLedgerRepository,
     IGlSettingsProvider glSettingsProvider,
     IPostingRuleProvider postingRuleProvider,
+    IApInvoicePostingContextBuilder apInvoicePostingContextBuilder,
     IArInvoicePostingContextBuilder arInvoicePostingContextBuilder,
     IArReceiptPostingContextBuilder arReceiptPostingContextBuilder,
     IPostingEngine postingEngine,
@@ -35,6 +40,7 @@ public sealed class PostingService(
     ) =>
         command.DocKind switch
         {
+            DocKind.ApInvoice => PostApInvoiceAsync(command, cancellationToken),
             DocKind.ArInvoice => PostArInvoiceAsync(command, cancellationToken),
             DocKind.ArReceipt => PostArReceiptAsync(command, cancellationToken),
             _ => throw new NotSupportedException(
@@ -46,6 +52,129 @@ public sealed class PostingService(
         UnpostCommand command,
         CancellationToken cancellationToken = default
     ) => throw new NotSupportedException("Unposting is not supported for posting.");
+
+    private async Task<PostResult> PostApInvoiceAsync(
+        PostCommand command,
+        CancellationToken cancellationToken
+    )
+    {
+        if (command.Force)
+        {
+            throw new InvalidOperationException(
+                "Force posting is not supported for AP invoice posting."
+            );
+        }
+
+        await unitOfWork.BeginTransactionAsync();
+
+        try
+        {
+            ApInvoice invoice =
+                await apInvoiceRepository.GetTrackedForPostingAsync(
+                    command.SourceId,
+                    cancellationToken
+                ) ?? throw new InvalidOperationException("AP invoice was not found.");
+
+            if (invoice.DocStatus != DocStatus.Draft)
+            {
+                throw new InvalidOperationException("Only draft AP invoices can be posted.");
+            }
+
+            GlPostingSettings settings = await glSettingsProvider.GetSettingsAsync(
+                cancellationToken
+            );
+            DateOnly postingDate = command.PostingDate ?? invoice.InvoiceDate;
+
+            if (
+                !string.Equals(
+                    invoice.CurrencyCode,
+                    settings.BaseCurrencyCode,
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            {
+                throw new InvalidOperationException(
+                    "AP invoice posting currently supports only invoices in the base currency."
+                );
+            }
+
+            FiscalPeriod period =
+                await fiscalPeriodRepository.GetOpenForDateAsync(postingDate, cancellationToken)
+                ?? throw new InvalidOperationException(
+                    $"No open fiscal period exists for posting date {postingDate:yyyy-MM-dd}."
+                );
+
+            IReadOnlyList<ApInvoiceLine> lines = invoice.Lines.OrderBy(x => x.LineNo).ToList();
+            if (lines.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "AP invoice requires at least one line to be posted."
+                );
+            }
+
+            decimal expectedDocTotal = lines.Sum(x => x.LineTotal) + invoice.TaxTotal;
+            if (expectedDocTotal != invoice.DocTotal)
+            {
+                throw new InvalidOperationException(
+                    "AP invoice totals are inconsistent and cannot be posted."
+                );
+            }
+
+            PostingRule rule = await postingRuleProvider.GetActiveRuleAsync(
+                DocKind.ApInvoice,
+                cancellationToken
+            );
+
+            ApInvoicePostingContext context = await apInvoicePostingContextBuilder.BuildAsync(
+                invoice,
+                postingDate,
+                period,
+                settings,
+                rule,
+                cancellationToken
+            );
+
+            PostingEngineResult postingResult = postingEngine.PostApInvoice(context);
+
+            ValidatePostingResult(
+                postingResult,
+                PostingSourceTypes.ApInvoice,
+                inventoryRowsAllowed: false
+            );
+            await ValidateAccountsAsync(postingResult.GlEntries, cancellationToken);
+            await PersistPostingRowsAsync(postingResult, command.PerformedBy);
+
+            invoice.DocStatus = DocStatus.Posted;
+            invoice.UpdatedBy = command.PerformedBy;
+            invoice.UpdatedAt = DateTimeOffset.UtcNow;
+
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.CommitAsync();
+
+            return new PostResult(
+                command.DocKind,
+                invoice.Id,
+                invoice.DocNo,
+                postingDate,
+                period.Id,
+                postingResult.GlEntries.Count,
+                postingResult.InventoryMovements.Count
+            );
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            await unitOfWork.RollbackAsync();
+            throw new InvalidOperationException(
+                "The AP invoice was modified during posting. It may already be posted.",
+                ex
+            );
+        }
+        catch
+        {
+            await unitOfWork.RollbackAsync();
+            throw;
+        }
+    }
 
     private async Task<PostResult> PostArInvoiceAsync(
         PostCommand command,
@@ -422,7 +551,7 @@ public sealed class PostingService(
             if (postingResult.InventoryMovements.Count > 0)
             {
                 throw new InvalidOperationException(
-                    "AR receipt posting produced unexpected inventory movements."
+                    "Posting produced unexpected inventory movements."
                 );
             }
 

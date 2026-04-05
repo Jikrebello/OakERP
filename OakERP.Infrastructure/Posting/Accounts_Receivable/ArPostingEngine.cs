@@ -1,5 +1,6 @@
 using OakERP.Common.Enums;
 using OakERP.Domain.Posting;
+using OakERP.Domain.Posting.Accounts_Payable;
 using OakERP.Domain.Posting.Accounts_Receivable;
 using OakERP.Domain.Posting.General_Ledger;
 using OakERP.Domain.Posting.Inventory;
@@ -241,6 +242,89 @@ public sealed class ArPostingEngine : IPostingEngine
         return new PostingEngineResult(glEntries, []);
     }
 
+    public PostingEngineResult PostApInvoice(ApInvoicePostingContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var rule = context.Rule ?? throw new InvalidOperationException("Posting rule is required.");
+        var invoice = context.Invoice;
+
+        var apRule = FindRuleLine(
+            rule,
+            scope: PostingRuleScopes.Header,
+            side: RuleSide.Credit,
+            accountKey: AccountKey.AccountsPayable,
+            amountSource: AmountSource.HeaderDocTotal
+        );
+
+        _ = FindRuleLine(
+            rule,
+            scope: PostingRuleScopes.Line,
+            side: RuleSide.Debit,
+            accountKey: AccountKey.Expense,
+            amountSource: AmountSource.LineNet
+        );
+
+        var glEntries = new List<GlEntryModel>
+        {
+            new(
+                context.PostingDate,
+                context.Period.Id,
+                ResolveApInvoiceHeaderAccountNo(apRule.AccountKey, context),
+                0m,
+                invoice.DocTotal,
+                PostingSourceTypes.ApInvoice,
+                invoice.Id,
+                invoice.DocNo,
+                $"AP invoice {invoice.DocNo} AP control"
+            ),
+        };
+
+        foreach (var postingLine in context.Lines.OrderBy(x => x.Line.LineNo))
+        {
+            glEntries.Add(
+                new GlEntryModel(
+                    context.PostingDate,
+                    context.Period.Id,
+                    postingLine.ExpenseAccountNo,
+                    postingLine.Line.LineTotal,
+                    0m,
+                    PostingSourceTypes.ApInvoice,
+                    invoice.Id,
+                    invoice.DocNo,
+                    $"AP invoice {invoice.DocNo} line {postingLine.Line.LineNo}"
+                )
+            );
+        }
+
+        if (invoice.TaxTotal > 0m)
+        {
+            var taxRule = FindRuleLine(
+                rule,
+                scope: PostingRuleScopes.Tax,
+                side: RuleSide.Debit,
+                accountKey: AccountKey.TaxInput,
+                amountSource: AmountSource.HeaderTaxTotal
+            );
+
+            glEntries.Add(
+                new GlEntryModel(
+                    context.PostingDate,
+                    context.Period.Id,
+                    ResolveApInvoiceHeaderAccountNo(taxRule.AccountKey, context),
+                    invoice.TaxTotal,
+                    0m,
+                    PostingSourceTypes.ApInvoice,
+                    invoice.Id,
+                    invoice.DocNo,
+                    $"AP invoice {invoice.DocNo} tax"
+                )
+            );
+        }
+
+        return new PostingEngineResult(glEntries, []);
+    }
+
     private static PostingRuleLine FindRuleLine(
         PostingRule rule,
         string scope,
@@ -281,6 +365,19 @@ public sealed class ArPostingEngine : IPostingEngine
             AccountKey.AccountsReceivable => context.Settings.ArControlAccountNo,
             _ => throw new InvalidOperationException(
                 $"Header account key '{accountKey}' is not supported for AR receipt posting."
+            ),
+        };
+
+    private static string ResolveApInvoiceHeaderAccountNo(
+        AccountKey accountKey,
+        ApInvoicePostingContext context
+    ) =>
+        accountKey switch
+        {
+            AccountKey.AccountsPayable => context.Settings.ApControlAccountNo,
+            AccountKey.TaxInput => context.Settings.DefaultTaxInputAccountNo,
+            _ => throw new InvalidOperationException(
+                $"Header account key '{accountKey}' is not supported for AP invoice posting."
             ),
         };
 }

@@ -13,6 +13,7 @@ public sealed class ArPostingRuleProvider : IPostingRuleProvider
         return Task.FromResult(
             docKind switch
             {
+                DocKind.ApInvoice => CreateApInvoiceRule(),
                 DocKind.ArInvoice => CreateArInvoiceRule(),
                 DocKind.ArReceipt => CreateArReceiptRule(),
                 _ => throw new NotSupportedException(
@@ -89,6 +90,38 @@ public sealed class ArPostingRuleProvider : IPostingRuleProvider
                     AccountKey = AccountKey.AccountsReceivable,
                     AmountSource = AmountSource.HeaderDocTotal,
                     Scope = PostingRuleScopes.Header,
+                },
+            ],
+        };
+
+    private static PostingRule CreateApInvoiceRule() =>
+        new()
+        {
+            DocKind = DocKind.ApInvoice,
+            Name = "AP Invoice Runtime Rule",
+            IsActive = true,
+            Lines =
+            [
+                new PostingRuleLine
+                {
+                    Side = RuleSide.Credit,
+                    AccountKey = AccountKey.AccountsPayable,
+                    AmountSource = AmountSource.HeaderDocTotal,
+                    Scope = PostingRuleScopes.Header,
+                },
+                new PostingRuleLine
+                {
+                    Side = RuleSide.Debit,
+                    AccountKey = AccountKey.Expense,
+                    AmountSource = AmountSource.LineNet,
+                    Scope = PostingRuleScopes.Line,
+                },
+                new PostingRuleLine
+                {
+                    Side = RuleSide.Debit,
+                    AccountKey = AccountKey.TaxInput,
+                    AmountSource = AmountSource.HeaderTaxTotal,
+                    Scope = PostingRuleScopes.Tax,
                 },
             ],
         };
