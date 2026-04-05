@@ -1,4 +1,4 @@
-﻿OakERP
+OakERP
 +-- .codex
 |   \-- skills
 |       +-- oakerp-architecture
@@ -17,12 +17,55 @@
 |   |   +-- ci-build-test.yml
 |   |   \-- update-project-tree.yml
 |   \-- PULL_REQUEST_TEMPLATE.md
++-- .serena
+|   \-- project.yml
 +-- docs
 |   +-- adr
 |   |   \-- ADR-0001-architecture-principles.md
 |   +-- ai
 |   |   +-- tasks
 |   |   |   +-- active
+|   |   |   |   +-- ap-invoice-backend
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- ap-invoice-posting
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- ap-payment-capture-allocation
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- ap-payment-posting
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- ar-architecture-cleanup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- ar-receipt-capture-allocation
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- ar-receipt-posting
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- posting-runtime-normalization
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   \-- serilog-seq-logging
+|   |   |   |       +-- findings.md
+|   |   |   |       +-- progress.md
+|   |   |   |       \-- task_plan.md
+|   |   |   +-- archive
+|   |   |   |   +-- api-runtime-support
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- ar-invoice-posting-1a
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
@@ -59,6 +102,10 @@
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- serena-setup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- shared-client-plumbing-separation
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
@@ -85,14 +132,26 @@
 |   \-- init.sql
 +-- OakERP.API
 |   +-- Controllers
+|   |   +-- ApInvoicesController.cs
+|   |   +-- ApPaymentsController.cs
+|   |   +-- ArReceiptsController.cs
 |   |   +-- AuthController.cs
 |   |   +-- BaseController.cs
 |   |   \-- UsersController.cs
 |   +-- Extensions
 |   |   +-- AppBuilderExtensions.cs
+|   |   +-- CorrelationIdMiddleware.cs
+|   |   +-- GlobalExceptionHandler.cs
+|   |   +-- HttpContextExtensions.cs
+|   |   +-- RequestLoggingMiddleware.cs
 |   |   \-- ServiceCollectionExtensions.cs
 |   +-- Properties
 |   |   \-- launchSettings.json
+|   +-- Runtime
+|   |   +-- AuthRateLimitSettings.cs
+|   |   +-- DatabaseConnectivityHealthCheck.cs
+|   |   +-- RequestTimeoutSettings.cs
+|   |   \-- SeqLoggingSettings.cs
 |   +-- Swagger
 |   |   \-- Filters
 |   |       \-- Auth
@@ -106,6 +165,30 @@
 |   +-- OakERP.WebAPI.http
 |   \-- Program.cs
 +-- OakERP.Application
+|   +-- AccountsPayable
+|   |   +-- AllocateApPaymentCommand.cs
+|   |   +-- ApInvoiceCommandResultDTO.cs
+|   |   +-- ApInvoiceLineInputDTO.cs
+|   |   +-- ApInvoiceLineSnapshotDTO.cs
+|   |   +-- ApInvoiceSettlementSnapshotDTO.cs
+|   |   +-- ApInvoiceSnapshotDTO.cs
+|   |   +-- ApPaymentAllocationInputDTO.cs
+|   |   +-- ApPaymentAllocationSnapshotDTO.cs
+|   |   +-- ApPaymentCommandResultDTO.cs
+|   |   +-- ApPaymentSnapshotDTO.cs
+|   |   +-- CreateApInvoiceCommand.cs
+|   |   +-- CreateApPaymentCommand.cs
+|   |   +-- IApInvoiceService.cs
+|   |   \-- IApPaymentService.cs
+|   +-- AccountsReceivable
+|   |   +-- AllocateArReceiptCommand.cs
+|   |   +-- ArInvoiceSettlementSnapshotDTO.cs
+|   |   +-- ArReceiptAllocationInputDTO.cs
+|   |   +-- ArReceiptAllocationSnapshotDTO.cs
+|   |   +-- ArReceiptCommandResultDTO.cs
+|   |   +-- ArReceiptSnapshotDTO.cs
+|   |   +-- CreateArReceiptCommand.cs
+|   |   \-- IArReceiptService.cs
 |   +-- Interfaces
 |   |   \-- Persistence
 |   |       \-- IUnitOfWork.cs
@@ -219,10 +302,14 @@
 |   +-- db-setup.md
 |   +-- ef-core.md
 |   +-- Oak_ERP_Solution_Structure.txt
-|   +-- OakERP.Docs.csproj
 |   +-- oakERP-testing-guide.md
+|   +-- OakERP.Docs.csproj
 |   \-- README-dev.md
 +-- OakERP.Domain
+|   +-- Accounts_Payable
+|   |   \-- ApSettlementCalculator.cs
+|   +-- Accounts_Receivable
+|   |   \-- ArSettlementCalculator.cs
 |   +-- Entities
 |   |   +-- Accounts_Payable
 |   |   |   +-- ApInvoice.cs
@@ -269,10 +356,18 @@
 |   |       +-- License.cs
 |   |       \-- Tenant.cs
 |   +-- Posting
+|   |   +-- Accounts_Payable
+|   |   |   +-- ApInvoicePostingContext.cs
+|   |   |   +-- ApInvoicePostingLineContext.cs
+|   |   |   +-- ApPaymentPostingContext.cs
+|   |   |   +-- IApInvoicePostingContextBuilder.cs
+|   |   |   \-- IApPaymentPostingContextBuilder.cs
 |   |   +-- Accounts_Receivable
 |   |   |   +-- ArInvoicePostingContext.cs
 |   |   |   +-- ArInvoicePostingLineContext.cs
-|   |   |   \-- IArInvoicePostingContextBuilder.cs
+|   |   |   +-- ArReceiptPostingContext.cs
+|   |   |   +-- IArInvoicePostingContextBuilder.cs
+|   |   |   \-- IArReceiptPostingContextBuilder.cs
 |   |   +-- General_Ledger
 |   |   |   +-- GlEntryModel.cs
 |   |   |   +-- GlPostingSettings.cs
@@ -328,6 +423,17 @@
 |   |       \-- ITenantRepository.cs
 |   \-- OakERP.Domain.csproj
 +-- OakERP.Infrastructure
+|   +-- Accounts_Payable
+|   |   +-- ApInvoiceCommandValidator.cs
+|   |   +-- ApInvoiceService.cs
+|   |   +-- ApInvoiceSnapshotFactory.cs
+|   |   +-- ApPaymentCommandValidator.cs
+|   |   +-- ApPaymentService.cs
+|   |   \-- ApPaymentSnapshotFactory.cs
+|   +-- Accounts_Receivable
+|   |   +-- ArReceiptCommandValidator.cs
+|   |   +-- ArReceiptService.cs
+|   |   \-- ArReceiptSnapshotFactory.cs
 |   +-- Extensions
 |   |   \-- ServiceCollectionExtensions.cs
 |   +-- Migrations
@@ -401,14 +507,18 @@
 |   |   +-- DesignTimeDbContextFactory.cs
 |   |   \-- UnitOfWork.cs
 |   +-- Posting
+|   |   +-- Accounts_Payable
+|   |   |   +-- ApInvoicePostingContextBuilder.cs
+|   |   |   \-- ApPaymentPostingContextBuilder.cs
 |   |   +-- Accounts_Receivable
 |   |   |   +-- ArInvoicePostingContextBuilder.cs
-|   |   |   +-- ArInvoicePostingEngine.cs
-|   |   |   \-- ArInvoicePostingRuleProvider.cs
+|   |   |   \-- ArReceiptPostingContextBuilder.cs
 |   |   +-- General_Ledger
 |   |   |   \-- AppSettingGlSettingsProvider.cs
 |   |   +-- Inventory
 |   |   |   \-- MovingAverageInventoryCostService.cs
+|   |   +-- PostingEngine.cs
+|   |   +-- PostingRuleProvider.cs
 |   |   \-- PostingService.cs
 |   +-- Repositories
 |   |   +-- Accounts_Payable
@@ -544,10 +654,20 @@
 |   +-- OakERP.Shared.csproj
 |   \-- Routes.razor
 +-- OakERP.Tests.Integration
+|   +-- AccountsPayable
+|   |   +-- ApInvoiceApiTests.cs
+|   |   \-- ApPaymentApiTests.cs
+|   +-- AccountsReceivable
+|   |   \-- ArReceiptApiTests.cs
 |   +-- Auth
 |   |   \-- AuthApiTests.cs
 |   +-- Posting
-|   |   \-- ArInvoicePostingTests.cs
+|   |   +-- ApInvoicePostingTests.cs
+|   |   +-- ApPaymentPostingTests.cs
+|   |   +-- ArInvoicePostingTests.cs
+|   |   \-- ArReceiptPostingTests.cs
+|   +-- Runtime
+|   |   \-- RuntimeSupportTests.cs
 |   +-- TestSetup
 |   |   +-- Helpers
 |   |   |   +-- ApiTestException.cs
@@ -559,13 +679,32 @@
 |   +-- ApiRoutes.cs
 |   \-- OakERP.Tests.Integration.csproj
 +-- OakERP.Tests.Unit
+|   +-- AccountsPayable
+|   |   +-- ApInvoiceCommandValidatorTests.cs
+|   |   +-- ApInvoiceServiceTestFactory.cs
+|   |   +-- ApInvoiceServiceTests.cs
+|   |   +-- ApPaymentServiceTestFactory.cs
+|   |   +-- ApPaymentServiceTests.cs
+|   |   \-- ApSettlementCalculatorTests.cs
+|   +-- AccountsReceivable
+|   |   +-- ArReceiptCommandValidatorTests.cs
+|   |   +-- ArReceiptServiceTestFactory.cs
+|   |   +-- ArReceiptServiceTests.cs
+|   |   +-- ArReceiptSnapshotFactoryTests.cs
+|   |   \-- ArSettlementCalculatorTests.cs
 |   +-- Auth
 |   |   +-- AuthServiceTestFactory.cs
 |   |   \-- AuthServiceTests.cs
 |   +-- Posting
+|   |   +-- ApInvoicePostingContextBuilderTests.cs
+|   |   +-- ApPaymentPostingContextBuilderTests.cs
+|   |   +-- ApPostingServiceTests.cs
 |   |   +-- ArInvoicePostingContextBuilderTests.cs
-|   |   +-- ArInvoicePostingEngineTests.cs
 |   |   +-- MovingAverageInventoryCostServiceTests.cs
+|   |   +-- PostingEngineApInvoiceTests.cs
+|   |   +-- PostingEngineApPaymentTests.cs
+|   |   +-- PostingEngineArInvoiceTests.cs
+|   |   +-- PostingEngineArReceiptTests.cs
 |   |   +-- PostingServiceTestFactory.cs
 |   |   \-- PostingServiceTests.cs
 |   \-- OakERP.Tests.Unit.csproj
