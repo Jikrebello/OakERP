@@ -570,21 +570,21 @@ public sealed class PostingService(
             if (movement.TransactionType != InventoryTransactionType.SalesCogs)
             {
                 throw new InvalidOperationException(
-                    "AR invoice posting produced an inventory movement with an unexpected transaction type."
+                    "Posting produced an inventory movement with an unexpected transaction type."
                 );
             }
 
             if (movement.Qty >= 0m)
             {
                 throw new InvalidOperationException(
-                    "AR invoice posting produced a non-negative inventory movement."
+                    "Posting produced a non-negative inventory movement."
                 );
             }
 
             if (movement.UnitCost < 0m)
             {
                 throw new InvalidOperationException(
-                    "AR invoice posting produced a negative inventory unit cost."
+                    "Posting produced a negative inventory unit cost."
                 );
             }
 
@@ -596,14 +596,14 @@ public sealed class PostingService(
             if (movement.ValueChange != expectedValueChange)
             {
                 throw new InvalidOperationException(
-                    "AR invoice posting produced an inventory value change that does not match quantity and unit cost."
+                    "Posting produced an inventory value change that does not match quantity and unit cost."
                 );
             }
 
             if (movement.ValueChange >= 0m)
             {
                 throw new InvalidOperationException(
-                    "AR invoice posting produced a non-negative inventory value change."
+                    "Posting produced a non-negative inventory value change."
                 );
             }
         }

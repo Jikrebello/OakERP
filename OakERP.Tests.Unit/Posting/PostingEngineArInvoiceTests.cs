@@ -1,17 +1,17 @@
 using OakERP.Common.Enums;
-using OakERP.Infrastructure.Posting.Accounts_Receivable;
+using OakERP.Infrastructure.Posting;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.Posting;
 
-public sealed class ArPostingEngineInvoiceTests
+public sealed class PostingEngineArInvoiceTests
 {
-    private readonly ArPostingEngine _engine = new();
+    private readonly PostingEngine _engine = new();
 
     [Fact]
     public async Task PostArInvoice_Should_Create_Balanced_GlEntries_With_Tax()
     {
-        var provider = new ArPostingRuleProvider();
+        var provider = new PostingRuleProvider();
         var invoice = PostingServiceTestFactory.CreateInvoice();
         var context = PostingServiceTestFactory.CreatePostingContext(
             invoice,
@@ -32,7 +32,7 @@ public sealed class ArPostingEngineInvoiceTests
     [Fact]
     public async Task PostArInvoice_Should_Omit_Tax_Line_When_TaxTotal_Is_Zero()
     {
-        var provider = new ArPostingRuleProvider();
+        var provider = new PostingRuleProvider();
         var invoice = PostingServiceTestFactory.CreateInvoice();
         invoice.DocTotal = 100m;
         invoice.TaxTotal = 0m;
@@ -50,7 +50,7 @@ public sealed class ArPostingEngineInvoiceTests
     [Fact]
     public async Task PostArInvoice_Should_Use_Prepared_Revenue_Accounts_From_Context()
     {
-        var provider = new ArPostingRuleProvider();
+        var provider = new PostingRuleProvider();
         var invoice = PostingServiceTestFactory.CreateInvoice();
         invoice.DocTotal = 40m;
         invoice.TaxTotal = 0m;
@@ -99,7 +99,7 @@ public sealed class ArPostingEngineInvoiceTests
     [Fact]
     public async Task PostArInvoice_Should_Create_Cogs_And_Inventory_Movements_For_Stock_Lines()
     {
-        var provider = new ArPostingRuleProvider();
+        var provider = new PostingRuleProvider();
         var invoice = PostingServiceTestFactory.CreateStockInvoice();
         var context = PostingServiceTestFactory.CreatePostingContext(
             invoice,
@@ -123,7 +123,7 @@ public sealed class ArPostingEngineInvoiceTests
     [Fact]
     public async Task PostArInvoice_Should_Keep_NonStock_Behavior_On_Mixed_Invoice()
     {
-        var provider = new ArPostingRuleProvider();
+        var provider = new PostingRuleProvider();
         var invoice = PostingServiceTestFactory.CreateInvoice();
         var stockInvoice = PostingServiceTestFactory.CreateStockInvoice();
         stockInvoice.Lines.Single().LineNo = 2;

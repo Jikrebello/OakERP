@@ -1,17 +1,17 @@
 using OakERP.Common.Enums;
-using OakERP.Infrastructure.Posting.Accounts_Receivable;
+using OakERP.Infrastructure.Posting;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.Posting;
 
-public sealed class ArPostingEngineReceiptTests
+public sealed class PostingEngineArReceiptTests
 {
-    private readonly ArPostingEngine _engine = new();
+    private readonly PostingEngine _engine = new();
 
     [Fact]
     public async Task PostArReceipt_Should_Create_Balanced_Bank_And_Ar_Control_GlEntries()
     {
-        var provider = new ArPostingRuleProvider();
+        var provider = new PostingRuleProvider();
         var receipt = PostingServiceTestFactory.CreateReceipt(amount: 150m, allocatedAmount: 100m);
         var context = PostingServiceTestFactory.CreateReceiptPostingContext(
             receipt,
@@ -33,7 +33,7 @@ public sealed class ArPostingEngineReceiptTests
     [Fact]
     public async Task PostArReceipt_Should_Use_Full_Receipt_Amount_For_Unapplied_Cash()
     {
-        var provider = new ArPostingRuleProvider();
+        var provider = new PostingRuleProvider();
         var receipt = PostingServiceTestFactory.CreateReceipt(amount: 125m, allocatedAmount: 0m);
         var context = PostingServiceTestFactory.CreateReceiptPostingContext(
             receipt,

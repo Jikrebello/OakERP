@@ -1,16 +1,17 @@
 using OakERP.Domain.Posting;
+using OakERP.Infrastructure.Posting;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.Posting;
 
-public sealed class ApPostingEngineTests
+public sealed class PostingEngineApInvoiceTests
 {
     [Fact]
     public void PostApInvoice_Should_Create_ApControl_Expense_And_Tax_Entries()
     {
         var invoice = PostingServiceTestFactory.CreateApInvoice(taxTotal: 15m);
         var context = PostingServiceTestFactory.CreateApInvoicePostingContext(invoice);
-        var engine = new OakERP.Infrastructure.Posting.Accounts_Receivable.ArPostingEngine();
+        var engine = new PostingEngine();
 
         var result = engine.PostApInvoice(context);
 
@@ -29,7 +30,7 @@ public sealed class ApPostingEngineTests
     {
         var invoice = PostingServiceTestFactory.CreateApInvoice(taxTotal: 0m);
         var context = PostingServiceTestFactory.CreateApInvoicePostingContext(invoice);
-        var engine = new OakERP.Infrastructure.Posting.Accounts_Receivable.ArPostingEngine();
+        var engine = new PostingEngine();
 
         var result = engine.PostApInvoice(context);
 

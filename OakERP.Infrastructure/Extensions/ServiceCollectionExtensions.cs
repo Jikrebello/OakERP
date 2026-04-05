@@ -164,8 +164,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPostingServices(this IServiceCollection services)
     {
         services.AddScoped<IPostingService, PostingService>();
-        services.AddScoped<IPostingEngine, ArPostingEngine>();
-        services.AddScoped<IPostingRuleProvider, ArPostingRuleProvider>();
+        services.AddScoped<IPostingEngine, PostingEngine>();
+        services.AddScoped<IPostingRuleProvider, PostingRuleProvider>();
         services.AddScoped<IGlSettingsProvider, AppSettingGlSettingsProvider>();
         services.AddScoped<IApInvoicePostingContextBuilder, ApInvoicePostingContextBuilder>();
         services.AddScoped<IArInvoicePostingContextBuilder, ArInvoicePostingContextBuilder>();

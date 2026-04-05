@@ -1,9 +1,9 @@
 using OakERP.Common.Enums;
 using OakERP.Domain.Posting;
 
-namespace OakERP.Infrastructure.Posting.Accounts_Receivable;
+namespace OakERP.Infrastructure.Posting;
 
-public sealed class ArPostingRuleProvider : IPostingRuleProvider
+public sealed class PostingRuleProvider : IPostingRuleProvider
 {
     public Task<PostingRule> GetActiveRuleAsync(
         DocKind docKind,
