@@ -51,6 +51,7 @@ builder
     .AddSwaggerDocs()
     .AddPersistenceServices()
     .AddRepositories()
+    .AddAccountsReceivableServices()
     .AddPostingServices();
 
 // Seeders

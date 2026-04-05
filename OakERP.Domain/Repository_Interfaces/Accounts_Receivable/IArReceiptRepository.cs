@@ -8,6 +8,10 @@ public interface IArReceiptRepository
 
     Task<ArReceipt?> FindNoTrackingAsync(Guid id, CancellationToken ct = default);
 
+    Task<bool> ExistsDocNoAsync(string docNo, CancellationToken ct = default);
+
+    Task<ArReceipt?> GetTrackedForAllocationAsync(Guid id, CancellationToken ct = default);
+
     IQueryable<ArReceipt> QueryNoTracking();
 
     Task AddAsync(ArReceipt entity);

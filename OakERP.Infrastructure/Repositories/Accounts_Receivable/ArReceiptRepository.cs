@@ -12,6 +12,12 @@ public class ArReceiptRepository(ApplicationDbContext db) : IArReceiptRepository
     public Task<ArReceipt?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
         Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
+    public Task<bool> ExistsDocNoAsync(string docNo, CancellationToken ct = default) =>
+        Set.AsNoTracking().AnyAsync(x => x.DocNo == docNo, ct);
+
+    public Task<ArReceipt?> GetTrackedForAllocationAsync(Guid id, CancellationToken ct = default) =>
+        Set.Include(x => x.Allocations).SingleOrDefaultAsync(x => x.Id == id, ct);
+
     public ValueTask<ArReceipt?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
         Set.FindAsync([id], ct);
 

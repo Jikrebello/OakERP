@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OakERP.Application\OakERP.Application.csproj" />
     <ProjectReference Include="..\OakERP.Auth\OakERP.Auth.csproj" />
     <ProjectReference Include="..\OakERP.Infrastructure\OakERP.Infrastructure.csproj" />
   </ItemGroup>
