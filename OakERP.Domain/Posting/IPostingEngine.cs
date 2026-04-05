@@ -9,8 +9,9 @@ public interface IPostingEngine
     //   - returns what GL + inventory rows SHOULD be written
     PostingEngineResult PostArInvoice(ArInvoicePostingContext context);
 
+    PostingEngineResult PostArReceipt(ArReceiptPostingContext context);
+
     // Later:
     // PostingEngineResult PostApInvoice(ApInvoicePostingContext context);
-    // PostingEngineResult PostArReceipt(ArReceiptPostingContext context);
     // etc.
 }

@@ -3,6 +3,7 @@ using OakERP.Application.Interfaces.Persistence;
 using OakERP.Application.Posting;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Accounts_Receivable;
+using OakERP.Domain.Entities.Bank;
 using OakERP.Domain.Entities.General_Ledger;
 using OakERP.Domain.Entities.Inventory;
 using OakERP.Domain.Posting;
@@ -18,6 +19,7 @@ namespace OakERP.Tests.Unit.Posting;
 public sealed class PostingServiceTestFactory
 {
     public Mock<IArInvoiceRepository> ArInvoiceRepository { get; } = new(MockBehavior.Strict);
+    public Mock<IArReceiptRepository> ArReceiptRepository { get; } = new(MockBehavior.Strict);
     public Mock<IFiscalPeriodRepository> FiscalPeriodRepository { get; } = new(MockBehavior.Strict);
     public Mock<IGlAccountRepository> GlAccountRepository { get; } = new(MockBehavior.Strict);
     public Mock<IGlEntryRepository> GlEntryRepository { get; } = new(MockBehavior.Strict);
@@ -26,6 +28,8 @@ public sealed class PostingServiceTestFactory
     public Mock<IGlSettingsProvider> GlSettingsProvider { get; } = new(MockBehavior.Strict);
     public Mock<IPostingRuleProvider> PostingRuleProvider { get; } = new(MockBehavior.Strict);
     public Mock<IArInvoicePostingContextBuilder> PostingContextBuilder { get; } =
+        new(MockBehavior.Strict);
+    public Mock<IArReceiptPostingContextBuilder> ReceiptPostingContextBuilder { get; } =
         new(MockBehavior.Strict);
     public Mock<IPostingEngine> PostingEngine { get; } = new(MockBehavior.Strict);
     public Mock<IUnitOfWork> UnitOfWork { get; } = new(MockBehavior.Strict);
@@ -40,6 +44,7 @@ public sealed class PostingServiceTestFactory
     public PostingService CreateService() =>
         new(
             ArInvoiceRepository.Object,
+            ArReceiptRepository.Object,
             FiscalPeriodRepository.Object,
             GlAccountRepository.Object,
             GlEntryRepository.Object,
@@ -47,6 +52,7 @@ public sealed class PostingServiceTestFactory
             GlSettingsProvider.Object,
             PostingRuleProvider.Object,
             PostingContextBuilder.Object,
+            ReceiptPostingContextBuilder.Object,
             PostingEngine.Object,
             UnitOfWork.Object
         );
@@ -114,6 +120,29 @@ public sealed class PostingServiceTestFactory
                     AccountKey = AccountKey.InventoryAsset,
                     AmountSource = AmountSource.LineCogsValue,
                     Scope = PostingRuleScopes.LineStock,
+                    Side = RuleSide.Credit,
+                },
+            ],
+        };
+
+    public static PostingRule CreateReceiptRule() =>
+        new()
+        {
+            Name = "AR Receipt Runtime Rule",
+            Lines =
+            [
+                new PostingRuleLine
+                {
+                    AccountKey = AccountKey.Bank,
+                    AmountSource = AmountSource.HeaderDocTotal,
+                    Scope = PostingRuleScopes.Header,
+                    Side = RuleSide.Debit,
+                },
+                new PostingRuleLine
+                {
+                    AccountKey = AccountKey.AccountsReceivable,
+                    AmountSource = AmountSource.HeaderDocTotal,
+                    Scope = PostingRuleScopes.Header,
                     Side = RuleSide.Credit,
                 },
             ],
@@ -189,6 +218,49 @@ public sealed class PostingServiceTestFactory
         };
     }
 
+    public static ArReceipt CreateReceipt(
+        decimal amount = 100m,
+        decimal allocatedAmount = 0m,
+        string currencyCode = "ZAR",
+        bool bankAccountActive = true
+    )
+    {
+        var receipt = new ArReceipt
+        {
+            Id = Guid.NewGuid(),
+            DocNo = "RCPT-1001",
+            CustomerId = Guid.NewGuid(),
+            BankAccountId = Guid.NewGuid(),
+            ReceiptDate = new DateOnly(2026, 3, 20),
+            Amount = amount,
+            CurrencyCode = currencyCode,
+            DocStatus = DocStatus.Draft,
+            BankAccount = new BankAccount
+            {
+                Id = Guid.NewGuid(),
+                Name = "Main Bank",
+                GlAccountNo = "1000",
+                CurrencyCode = currencyCode,
+                IsActive = bankAccountActive,
+            },
+        };
+
+        if (allocatedAmount > 0m)
+        {
+            receipt.Allocations.Add(
+                new ArReceiptAllocation
+                {
+                    ArReceiptId = receipt.Id,
+                    ArInvoiceId = Guid.NewGuid(),
+                    AllocationDate = receipt.ReceiptDate,
+                    AmountApplied = allocatedAmount,
+                }
+            );
+        }
+
+        return receipt;
+    }
+
     public static ArInvoicePostingContext CreatePostingContext(
         ArInvoice invoice,
         PostingRule? rule = null
@@ -233,6 +305,29 @@ public sealed class PostingServiceTestFactory
             1m,
             settings,
             rule ?? CreateRule()
+        );
+    }
+
+    public static ArReceiptPostingContext CreateReceiptPostingContext(
+        ArReceipt receipt,
+        PostingRule? rule = null
+    )
+    {
+        var settings = CreateSettings();
+        var period = CreateOpenPeriod();
+        decimal allocatedAmount = receipt.Allocations.Sum(x => x.AmountApplied);
+
+        return new ArReceiptPostingContext(
+            receipt,
+            receipt.ReceiptDate,
+            period,
+            settings.BaseCurrencyCode,
+            1m,
+            settings,
+            rule ?? CreateReceiptRule(),
+            receipt.BankAccount.GlAccountNo,
+            allocatedAmount,
+            receipt.Amount - allocatedAmount
         );
     }
 }

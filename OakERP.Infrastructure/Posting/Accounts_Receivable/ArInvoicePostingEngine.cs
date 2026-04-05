@@ -189,6 +189,58 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
         return new PostingEngineResult(glEntries, inventoryMovements);
     }
 
+    public PostingEngineResult PostArReceipt(ArReceiptPostingContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var rule = context.Rule ?? throw new InvalidOperationException("Posting rule is required.");
+        var receipt = context.Receipt;
+
+        var bankRule = FindRuleLine(
+            rule,
+            scope: PostingRuleScopes.Header,
+            side: RuleSide.Debit,
+            accountKey: AccountKey.Bank,
+            amountSource: AmountSource.HeaderDocTotal
+        );
+
+        var arRule = FindRuleLine(
+            rule,
+            scope: PostingRuleScopes.Header,
+            side: RuleSide.Credit,
+            accountKey: AccountKey.AccountsReceivable,
+            amountSource: AmountSource.HeaderDocTotal
+        );
+
+        IReadOnlyList<GlEntryModel> glEntries =
+        [
+            new GlEntryModel(
+                context.PostingDate,
+                context.Period.Id,
+                ResolveReceiptHeaderAccountNo(bankRule.AccountKey, context),
+                receipt.Amount,
+                0m,
+                PostingSourceTypes.ArReceipt,
+                receipt.Id,
+                receipt.DocNo,
+                $"AR receipt {receipt.DocNo} bank"
+            ),
+            new GlEntryModel(
+                context.PostingDate,
+                context.Period.Id,
+                ResolveReceiptHeaderAccountNo(arRule.AccountKey, context),
+                0m,
+                receipt.Amount,
+                PostingSourceTypes.ArReceipt,
+                receipt.Id,
+                receipt.DocNo,
+                $"AR receipt {receipt.DocNo} AR control"
+            ),
+        ];
+
+        return new PostingEngineResult(glEntries, []);
+    }
+
     private static PostingRuleLine FindRuleLine(
         PostingRule rule,
         string scope,
@@ -216,6 +268,19 @@ public sealed class ArInvoicePostingEngine : IPostingEngine
             AccountKey.TaxOutput => context.Settings.DefaultTaxOutputAccountNo,
             _ => throw new InvalidOperationException(
                 $"Header account key '{accountKey}' is not supported for AR invoice posting."
+            ),
+        };
+
+    private static string ResolveReceiptHeaderAccountNo(
+        AccountKey accountKey,
+        ArReceiptPostingContext context
+    ) =>
+        accountKey switch
+        {
+            AccountKey.Bank => context.BankAccountNo,
+            AccountKey.AccountsReceivable => context.Settings.ArControlAccountNo,
+            _ => throw new InvalidOperationException(
+                $"Header account key '{accountKey}' is not supported for AR receipt posting."
             ),
         };
 }

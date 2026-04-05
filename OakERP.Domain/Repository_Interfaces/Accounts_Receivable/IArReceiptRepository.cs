@@ -12,6 +12,8 @@ public interface IArReceiptRepository
 
     Task<ArReceipt?> GetTrackedForAllocationAsync(Guid id, CancellationToken ct = default);
 
+    Task<ArReceipt?> GetTrackedForPostingAsync(Guid id, CancellationToken ct = default);
+
     IQueryable<ArReceipt> QueryNoTracking();
 
     Task AddAsync(ArReceipt entity);

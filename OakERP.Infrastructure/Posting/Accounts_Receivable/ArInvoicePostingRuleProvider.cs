@@ -10,14 +10,20 @@ public sealed class ArInvoicePostingRuleProvider : IPostingRuleProvider
         CancellationToken cancellationToken = default
     )
     {
-        if (docKind != DocKind.ArInvoice)
-        {
-            throw new NotSupportedException(
-                $"Posting rule for document kind '{docKind}' is not supported."
-            );
-        }
+        return Task.FromResult(
+            docKind switch
+            {
+                DocKind.ArInvoice => CreateArInvoiceRule(),
+                DocKind.ArReceipt => CreateArReceiptRule(),
+                _ => throw new NotSupportedException(
+                    $"Posting rule for document kind '{docKind}' is not supported."
+                ),
+            }
+        );
+    }
 
-        var rule = new PostingRule
+    private static PostingRule CreateArInvoiceRule() =>
+        new()
         {
             DocKind = DocKind.ArInvoice,
             Name = "AR Invoice Runtime Rule",
@@ -62,6 +68,28 @@ public sealed class ArInvoicePostingRuleProvider : IPostingRuleProvider
             ],
         };
 
-        return Task.FromResult(rule);
-    }
+    private static PostingRule CreateArReceiptRule() =>
+        new()
+        {
+            DocKind = DocKind.ArReceipt,
+            Name = "AR Receipt Runtime Rule",
+            IsActive = true,
+            Lines =
+            [
+                new PostingRuleLine
+                {
+                    Side = RuleSide.Debit,
+                    AccountKey = AccountKey.Bank,
+                    AmountSource = AmountSource.HeaderDocTotal,
+                    Scope = PostingRuleScopes.Header,
+                },
+                new PostingRuleLine
+                {
+                    Side = RuleSide.Credit,
+                    AccountKey = AccountKey.AccountsReceivable,
+                    AmountSource = AmountSource.HeaderDocTotal,
+                    Scope = PostingRuleScopes.Header,
+                },
+            ],
+        };
 }

@@ -18,6 +18,11 @@ public class ArReceiptRepository(ApplicationDbContext db) : IArReceiptRepository
     public Task<ArReceipt?> GetTrackedForAllocationAsync(Guid id, CancellationToken ct = default) =>
         Set.Include(x => x.Allocations).SingleOrDefaultAsync(x => x.Id == id, ct);
 
+    public Task<ArReceipt?> GetTrackedForPostingAsync(Guid id, CancellationToken ct = default) =>
+        Set.Include(x => x.BankAccount)
+            .Include(x => x.Allocations)
+            .SingleOrDefaultAsync(x => x.Id == id, ct);
+
     public ValueTask<ArReceipt?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
         Set.FindAsync([id], ct);
 

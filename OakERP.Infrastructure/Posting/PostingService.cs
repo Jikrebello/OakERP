@@ -15,29 +15,42 @@ namespace OakERP.Infrastructure.Posting;
 
 public sealed class PostingService(
     IArInvoiceRepository arInvoiceRepository,
+    IArReceiptRepository arReceiptRepository,
     IFiscalPeriodRepository fiscalPeriodRepository,
     IGlAccountRepository glAccountRepository,
     IGlEntryRepository glEntryRepository,
     IInventoryLedgerRepository inventoryLedgerRepository,
     IGlSettingsProvider glSettingsProvider,
     IPostingRuleProvider postingRuleProvider,
-    IArInvoicePostingContextBuilder postingContextBuilder,
+    IArInvoicePostingContextBuilder arInvoicePostingContextBuilder,
+    IArReceiptPostingContextBuilder arReceiptPostingContextBuilder,
     IPostingEngine postingEngine,
     IUnitOfWork unitOfWork
 ) : IPostingService
 {
-    public async Task<PostResult> PostAsync(
+    public Task<PostResult> PostAsync(
         PostCommand command,
         CancellationToken cancellationToken = default
+    ) =>
+        command.DocKind switch
+        {
+            DocKind.ArInvoice => PostArInvoiceAsync(command, cancellationToken),
+            DocKind.ArReceipt => PostArReceiptAsync(command, cancellationToken),
+            _ => throw new NotSupportedException(
+                $"Posting for document kind '{command.DocKind}' is not supported."
+            ),
+        };
+
+    public Task<UnpostResult> UnpostAsync(
+        UnpostCommand command,
+        CancellationToken cancellationToken = default
+    ) => throw new NotSupportedException("Unposting is not supported for posting.");
+
+    private async Task<PostResult> PostArInvoiceAsync(
+        PostCommand command,
+        CancellationToken cancellationToken
     )
     {
-        if (command.DocKind != DocKind.ArInvoice)
-        {
-            throw new NotSupportedException(
-                $"Posting for document kind '{command.DocKind}' is not supported."
-            );
-        }
-
         if (command.Force)
         {
             throw new InvalidOperationException(
@@ -65,13 +78,7 @@ public sealed class PostingService(
             );
             DateOnly postingDate = command.PostingDate ?? invoice.InvoiceDate;
 
-            if (
-                !string.Equals(
-                    invoice.CurrencyCode,
-                    settings.BaseCurrencyCode,
-                    StringComparison.OrdinalIgnoreCase
-                )
-            )
+            if (!MatchesCurrency(invoice.CurrencyCode, settings.BaseCurrencyCode))
             {
                 throw new InvalidOperationException(
                     "AR invoice posting currently supports only invoices in the base currency."
@@ -99,7 +106,7 @@ public sealed class PostingService(
                 cancellationToken
             );
 
-            ArInvoicePostingContext context = await postingContextBuilder.BuildAsync(
+            ArInvoicePostingContext context = await arInvoicePostingContextBuilder.BuildAsync(
                 invoice,
                 postingDate,
                 period,
@@ -110,47 +117,13 @@ public sealed class PostingService(
 
             PostingEngineResult postingResult = postingEngine.PostArInvoice(context);
 
-            ValidatePostingResult(postingResult);
+            ValidatePostingResult(
+                postingResult,
+                PostingSourceTypes.ArInvoice,
+                inventoryRowsAllowed: true
+            );
             await ValidateAccountsAsync(postingResult.GlEntries, cancellationToken);
-
-            foreach (GlEntryModel entry in postingResult.GlEntries)
-            {
-                await glEntryRepository.AddAsync(
-                    new GlEntry
-                    {
-                        EntryDate = entry.EntryDate,
-                        PeriodId = entry.PeriodId,
-                        AccountNo = entry.AccountNo,
-                        Debit = entry.Debit,
-                        Credit = entry.Credit,
-                        Description = entry.Description,
-                        SourceType = entry.SourceType,
-                        SourceId = entry.SourceId,
-                        SourceNo = entry.SourceNo,
-                        CreatedBy = command.PerformedBy,
-                    }
-                );
-            }
-
-            foreach (var movement in postingResult.InventoryMovements)
-            {
-                await inventoryLedgerRepository.AddAsync(
-                    new Domain.Entities.Inventory.InventoryLedger
-                    {
-                        TrxDate = movement.TrxDate,
-                        ItemId = movement.ItemId,
-                        LocationId = movement.LocationId,
-                        TransactionType = movement.TransactionType,
-                        Qty = movement.Qty,
-                        UnitCost = movement.UnitCost,
-                        ValueChange = movement.ValueChange,
-                        SourceType = movement.SourceType,
-                        SourceId = movement.SourceId,
-                        Note = movement.Note,
-                        CreatedBy = command.PerformedBy,
-                    }
-                );
-            }
+            await PersistPostingRowsAsync(postingResult, command.PerformedBy);
 
             invoice.DocStatus = DocStatus.Posted;
             invoice.PostingDate = postingDate;
@@ -185,10 +158,179 @@ public sealed class PostingService(
         }
     }
 
-    public Task<UnpostResult> UnpostAsync(
-        UnpostCommand command,
-        CancellationToken cancellationToken = default
-    ) => throw new NotSupportedException("Unposting is not supported for AR invoice posting.");
+    private async Task<PostResult> PostArReceiptAsync(
+        PostCommand command,
+        CancellationToken cancellationToken
+    )
+    {
+        if (command.Force)
+        {
+            throw new InvalidOperationException(
+                "Force posting is not supported for AR receipt posting."
+            );
+        }
+
+        await unitOfWork.BeginTransactionAsync();
+
+        try
+        {
+            ArReceipt receipt =
+                await arReceiptRepository.GetTrackedForPostingAsync(
+                    command.SourceId,
+                    cancellationToken
+                ) ?? throw new InvalidOperationException("AR receipt was not found.");
+
+            if (receipt.DocStatus != DocStatus.Draft)
+            {
+                throw new InvalidOperationException("Only draft AR receipts can be posted.");
+            }
+
+            GlPostingSettings settings = await glSettingsProvider.GetSettingsAsync(
+                cancellationToken
+            );
+            DateOnly postingDate = command.PostingDate ?? receipt.ReceiptDate;
+
+            if (!MatchesCurrency(receipt.CurrencyCode, settings.BaseCurrencyCode))
+            {
+                throw new InvalidOperationException(
+                    "AR receipt posting currently supports only receipts in the base currency."
+                );
+            }
+
+            if (receipt.BankAccount is null)
+            {
+                throw new InvalidOperationException("AR receipt bank account was not found.");
+            }
+
+            if (!receipt.BankAccount.IsActive)
+            {
+                throw new InvalidOperationException(
+                    "AR receipt posting requires an active bank account."
+                );
+            }
+
+            if (!MatchesCurrency(receipt.BankAccount.CurrencyCode, receipt.CurrencyCode))
+            {
+                throw new InvalidOperationException(
+                    "AR receipt bank account currency must match the receipt currency."
+                );
+            }
+
+            decimal allocatedAmount = GetReceiptAllocatedAmount(receipt);
+            if (allocatedAmount > receipt.Amount)
+            {
+                throw new InvalidOperationException(
+                    "AR receipt allocations exceed the receipt amount and cannot be posted."
+                );
+            }
+
+            FiscalPeriod period =
+                await fiscalPeriodRepository.GetOpenForDateAsync(postingDate, cancellationToken)
+                ?? throw new InvalidOperationException(
+                    $"No open fiscal period exists for posting date {postingDate:yyyy-MM-dd}."
+                );
+
+            PostingRule rule = await postingRuleProvider.GetActiveRuleAsync(
+                DocKind.ArReceipt,
+                cancellationToken
+            );
+
+            ArReceiptPostingContext context = await arReceiptPostingContextBuilder.BuildAsync(
+                receipt,
+                postingDate,
+                period,
+                settings,
+                rule,
+                cancellationToken
+            );
+
+            PostingEngineResult postingResult = postingEngine.PostArReceipt(context);
+
+            ValidatePostingResult(
+                postingResult,
+                PostingSourceTypes.ArReceipt,
+                inventoryRowsAllowed: false
+            );
+            await ValidateAccountsAsync(postingResult.GlEntries, cancellationToken);
+            await PersistPostingRowsAsync(postingResult, command.PerformedBy);
+
+            receipt.DocStatus = DocStatus.Posted;
+            receipt.PostingDate = postingDate;
+            receipt.UpdatedBy = command.PerformedBy;
+            receipt.UpdatedAt = DateTimeOffset.UtcNow;
+
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.CommitAsync();
+
+            return new PostResult(
+                command.DocKind,
+                receipt.Id,
+                receipt.DocNo,
+                postingDate,
+                period.Id,
+                postingResult.GlEntries.Count,
+                postingResult.InventoryMovements.Count
+            );
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            await unitOfWork.RollbackAsync();
+            throw new InvalidOperationException(
+                "The AR receipt was modified during posting. It may already be posted.",
+                ex
+            );
+        }
+        catch
+        {
+            await unitOfWork.RollbackAsync();
+            throw;
+        }
+    }
+
+    private async Task PersistPostingRowsAsync(
+        PostingEngineResult postingResult,
+        string performedBy
+    )
+    {
+        foreach (GlEntryModel entry in postingResult.GlEntries)
+        {
+            await glEntryRepository.AddAsync(
+                new GlEntry
+                {
+                    EntryDate = entry.EntryDate,
+                    PeriodId = entry.PeriodId,
+                    AccountNo = entry.AccountNo,
+                    Debit = entry.Debit,
+                    Credit = entry.Credit,
+                    Description = entry.Description,
+                    SourceType = entry.SourceType,
+                    SourceId = entry.SourceId,
+                    SourceNo = entry.SourceNo,
+                    CreatedBy = performedBy,
+                }
+            );
+        }
+
+        foreach (var movement in postingResult.InventoryMovements)
+        {
+            await inventoryLedgerRepository.AddAsync(
+                new Domain.Entities.Inventory.InventoryLedger
+                {
+                    TrxDate = movement.TrxDate,
+                    ItemId = movement.ItemId,
+                    LocationId = movement.LocationId,
+                    TransactionType = movement.TransactionType,
+                    Qty = movement.Qty,
+                    UnitCost = movement.UnitCost,
+                    ValueChange = movement.ValueChange,
+                    SourceType = movement.SourceType,
+                    SourceId = movement.SourceId,
+                    Note = movement.Note,
+                    CreatedBy = performedBy,
+                }
+            );
+        }
+    }
 
     private async Task ValidateAccountsAsync(
         IReadOnlyList<GlEntryModel> entries,
@@ -212,7 +354,11 @@ public sealed class PostingService(
         }
     }
 
-    private static void ValidatePostingResult(PostingEngineResult postingResult)
+    private static void ValidatePostingResult(
+        PostingEngineResult postingResult,
+        string expectedSourceType,
+        bool inventoryRowsAllowed
+    )
     {
         if (postingResult.GlEntries.Count == 0)
         {
@@ -224,39 +370,12 @@ public sealed class PostingService(
 
         foreach (GlEntryModel entry in postingResult.GlEntries)
         {
-            if (string.IsNullOrWhiteSpace(entry.SourceType))
-            {
-                throw new InvalidOperationException(
-                    "Posting produced a GL row without a source type."
-                );
-            }
-
-            if (
-                !string.Equals(
-                    entry.SourceType,
-                    PostingSourceTypes.ArInvoice,
-                    StringComparison.Ordinal
-                )
-            )
-            {
-                throw new InvalidOperationException(
-                    "Posting produced a GL row with an unexpected source type."
-                );
-            }
-
-            if (entry.SourceId == Guid.Empty)
-            {
-                throw new InvalidOperationException(
-                    "Posting produced a GL row without a source id."
-                );
-            }
-
-            if (string.IsNullOrWhiteSpace(entry.SourceNo))
-            {
-                throw new InvalidOperationException(
-                    "Posting produced a GL row without a source number."
-                );
-            }
+            ValidateTraceability(
+                entry.SourceType,
+                entry.SourceId,
+                entry.SourceNo,
+                expectedSourceType
+            );
 
             if (entry.Debit < 0m || entry.Credit < 0m)
             {
@@ -282,41 +401,26 @@ public sealed class PostingService(
             throw new InvalidOperationException("Posting produced unbalanced GL entries.");
         }
 
+        if (!inventoryRowsAllowed)
+        {
+            if (postingResult.InventoryMovements.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    "AR receipt posting produced unexpected inventory movements."
+                );
+            }
+
+            return;
+        }
+
         foreach (var movement in postingResult.InventoryMovements)
         {
-            if (string.IsNullOrWhiteSpace(movement.SourceType))
-            {
-                throw new InvalidOperationException(
-                    "AR invoice posting produced an inventory movement without a source type."
-                );
-            }
-
-            if (
-                !string.Equals(
-                    movement.SourceType,
-                    PostingSourceTypes.ArInvoice,
-                    StringComparison.Ordinal
-                )
-            )
-            {
-                throw new InvalidOperationException(
-                    "AR invoice posting produced an inventory movement with an unexpected source type."
-                );
-            }
-
-            if (movement.SourceId == Guid.Empty)
-            {
-                throw new InvalidOperationException(
-                    "AR invoice posting produced an inventory movement without a source id."
-                );
-            }
-
-            if (string.IsNullOrWhiteSpace(movement.Note))
-            {
-                throw new InvalidOperationException(
-                    "AR invoice posting produced an inventory movement without a trace note."
-                );
-            }
+            ValidateTraceability(
+                movement.SourceType,
+                movement.SourceId,
+                movement.Note,
+                expectedSourceType
+            );
 
             if (movement.TransactionType != InventoryTransactionType.SalesCogs)
             {
@@ -359,4 +463,42 @@ public sealed class PostingService(
             }
         }
     }
+
+    private static void ValidateTraceability(
+        string sourceType,
+        Guid sourceId,
+        string? sourceText,
+        string expectedSourceType
+    )
+    {
+        if (string.IsNullOrWhiteSpace(sourceType))
+        {
+            throw new InvalidOperationException("Posting produced a row without a source type.");
+        }
+
+        if (!string.Equals(sourceType, expectedSourceType, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "Posting produced a row with an unexpected source type."
+            );
+        }
+
+        if (sourceId == Guid.Empty)
+        {
+            throw new InvalidOperationException("Posting produced a row without a source id.");
+        }
+
+        if (string.IsNullOrWhiteSpace(sourceText))
+        {
+            throw new InvalidOperationException(
+                "Posting produced a row without traceability text."
+            );
+        }
+    }
+
+    private static decimal GetReceiptAllocatedAmount(ArReceipt receipt) =>
+        receipt.Allocations.Sum(x => x.AmountApplied);
+
+    private static bool MatchesCurrency(string left, string right) =>
+        string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
 }

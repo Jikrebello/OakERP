@@ -146,6 +146,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPostingRuleProvider, ArInvoicePostingRuleProvider>();
         services.AddScoped<IGlSettingsProvider, AppSettingGlSettingsProvider>();
         services.AddScoped<IArInvoicePostingContextBuilder, ArInvoicePostingContextBuilder>();
+        services.AddScoped<IArReceiptPostingContextBuilder, ArReceiptPostingContextBuilder>();
         services.AddScoped<IInventoryCostService, MovingAverageInventoryCostService>();
 
         return services;
