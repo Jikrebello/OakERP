@@ -17,6 +17,15 @@ public class ApInvoiceRepository(ApplicationDbContext db) : IApInvoiceRepository
 
     public IQueryable<ApInvoice> QueryNoTracking() => Set.AsNoTracking();
 
+    public Task<bool> ExistsDocNoAsync(string docNo, CancellationToken ct = default) =>
+        Set.AsNoTracking().AnyAsync(x => x.DocNo == docNo, ct);
+
+    public Task<bool> ExistsVendorInvoiceNoAsync(
+        Guid vendorId,
+        string invoiceNo,
+        CancellationToken ct = default
+    ) => Set.AsNoTracking().AnyAsync(x => x.VendorId == vendorId && x.InvoiceNo == invoiceNo, ct);
+
     public async Task AddAsync(ApInvoice entity) => await Set.AddAsync(entity);
 
     public Task RemoveAsync(ApInvoice entity)

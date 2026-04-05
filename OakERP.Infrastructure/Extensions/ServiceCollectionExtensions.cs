@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using OakERP.Application.AccountsPayable;
 using OakERP.Application.AccountsReceivable;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Application.Posting;
@@ -13,11 +14,14 @@ using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.Accounts_Receivable;
 using OakERP.Domain.Posting.General_Ledger;
 using OakERP.Domain.Posting.Inventory;
+using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
 using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Domain.Repository_Interfaces.Bank;
+using OakERP.Domain.Repository_Interfaces.Common;
 using OakERP.Domain.Repository_Interfaces.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Inventory;
 using OakERP.Domain.Repository_Interfaces.Users;
+using OakERP.Infrastructure.Accounts_Payable;
 using OakERP.Infrastructure.Accounts_Receivable;
 using OakERP.Infrastructure.Persistence;
 using OakERP.Infrastructure.Persistence.Seeding.Base;
@@ -25,8 +29,10 @@ using OakERP.Infrastructure.Posting;
 using OakERP.Infrastructure.Posting.Accounts_Receivable;
 using OakERP.Infrastructure.Posting.General_Ledger;
 using OakERP.Infrastructure.Posting.Inventory;
+using OakERP.Infrastructure.Repositories.Accounts_Payable;
 using OakERP.Infrastructure.Repositories.Accounts_Receivable;
 using OakERP.Infrastructure.Repositories.Bank;
+using OakERP.Infrastructure.Repositories.Common;
 using OakERP.Infrastructure.Repositories.General_Ledger;
 using OakERP.Infrastructure.Repositories.Inventory;
 using OakERP.Infrastructure.Repositories.Users;
@@ -118,11 +124,14 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
+        services.AddScoped<IApInvoiceRepository, ApInvoiceRepository>();
+        services.AddScoped<IVendorRepository, VendorRepository>();
         services.AddScoped<IArInvoiceRepository, ArInvoiceRepository>();
         services.AddScoped<IArReceiptRepository, ArReceiptRepository>();
         services.AddScoped<IArReceiptAllocationRepository, ArReceiptAllocationRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IBankAccountRepository, BankAccountRepository>();
+        services.AddScoped<ICurrencyRepository, CurrencyRepository>();
         services.AddScoped<IFiscalPeriodRepository, FiscalPeriodRepository>();
         services.AddScoped<IGlAccountRepository, GlAccountRepository>();
         services.AddScoped<IGlEntryRepository, GlEntryRepository>();
@@ -137,6 +146,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ArReceiptCommandValidator>();
         services.AddScoped<ArReceiptSnapshotFactory>();
         services.AddScoped<IArReceiptService, ArReceiptService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddAccountsPayableServices(this IServiceCollection services)
+    {
+        services.AddScoped<ApInvoiceCommandValidator>();
+        services.AddScoped<ApInvoiceSnapshotFactory>();
+        services.AddScoped<IApInvoiceService, ApInvoiceService>();
 
         return services;
     }

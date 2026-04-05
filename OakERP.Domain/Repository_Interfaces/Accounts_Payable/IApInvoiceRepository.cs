@@ -10,6 +10,14 @@ public interface IApInvoiceRepository
 
     IQueryable<ApInvoice> QueryNoTracking();
 
+    Task<bool> ExistsDocNoAsync(string docNo, CancellationToken ct = default);
+
+    Task<bool> ExistsVendorInvoiceNoAsync(
+        Guid vendorId,
+        string invoiceNo,
+        CancellationToken ct = default
+    );
+
     Task AddAsync(ApInvoice entity);
 
     Task RemoveAsync(ApInvoice entity);
