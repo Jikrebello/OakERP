@@ -8,6 +8,11 @@ public interface IApInvoiceRepository
 
     Task<ApInvoice?> FindNoTrackingAsync(Guid id, CancellationToken ct = default);
 
+    Task<IReadOnlyList<ApInvoice>> GetTrackedForSettlementAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken ct = default
+    );
+
     Task<ApInvoice?> GetTrackedForPostingAsync(Guid id, CancellationToken ct = default);
 
     IQueryable<ApInvoice> QueryNoTracking();

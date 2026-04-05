@@ -12,6 +12,14 @@ public class ApInvoiceRepository(ApplicationDbContext db) : IApInvoiceRepository
     public Task<ApInvoice?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
         Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
+    public async Task<IReadOnlyList<ApInvoice>> GetTrackedForSettlementAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken ct = default
+    ) =>
+        ids.Count == 0
+            ? []
+            : await Set.Include(x => x.Allocations).Where(x => ids.Contains(x.Id)).ToListAsync(ct);
+
     public ValueTask<ApInvoice?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
         Set.FindAsync([id], ct);
 

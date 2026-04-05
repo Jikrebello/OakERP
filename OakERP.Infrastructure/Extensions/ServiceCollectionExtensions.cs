@@ -127,6 +127,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddScoped<IApInvoiceRepository, ApInvoiceRepository>();
+        services.AddScoped<IApPaymentRepository, ApPaymentRepository>();
+        services.AddScoped<IApPaymentAllocationRepository, ApPaymentAllocationRepository>();
         services.AddScoped<IVendorRepository, VendorRepository>();
         services.AddScoped<IArInvoiceRepository, ArInvoiceRepository>();
         services.AddScoped<IArReceiptRepository, ArReceiptRepository>();
@@ -156,7 +158,10 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<ApInvoiceCommandValidator>();
         services.AddScoped<ApInvoiceSnapshotFactory>();
+        services.AddScoped<ApPaymentCommandValidator>();
+        services.AddScoped<ApPaymentSnapshotFactory>();
         services.AddScoped<IApInvoiceService, ApInvoiceService>();
+        services.AddScoped<IApPaymentService, ApPaymentService>();
 
         return services;
     }

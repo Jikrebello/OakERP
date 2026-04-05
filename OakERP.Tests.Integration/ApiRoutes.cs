@@ -19,6 +19,14 @@ public static class ApiRoutes
         public const string Create = "/api/ap-invoices";
     }
 
+    public static class ApPayments
+    {
+        public const string Create = "/api/ap-payments";
+
+        public static string Allocate(Guid paymentId) =>
+            $"/api/ap-payments/{paymentId}/allocations";
+    }
+
     public static class ArReceipts
     {
         public const string Create = "/api/ar-receipts";
