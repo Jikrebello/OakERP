@@ -3,7 +3,7 @@ using OakERP.Domain.Posting;
 
 namespace OakERP.Infrastructure.Posting.Accounts_Receivable;
 
-public sealed class ArInvoicePostingRuleProvider : IPostingRuleProvider
+public sealed class ArPostingRuleProvider : IPostingRuleProvider
 {
     public Task<PostingRule> GetActiveRuleAsync(
         DocKind docKind,

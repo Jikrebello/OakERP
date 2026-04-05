@@ -8,11 +8,7 @@ public sealed record ArReceiptPostingContext(
     ArReceipt Receipt,
     DateOnly PostingDate,
     FiscalPeriod Period,
-    string BaseCurrencyCode,
-    decimal FxRateDocToBase,
     GlPostingSettings Settings,
     PostingRule Rule,
-    string BankAccountNo,
-    decimal AllocatedAmount,
-    decimal UnappliedAmount
+    string BankAccountNo
 );

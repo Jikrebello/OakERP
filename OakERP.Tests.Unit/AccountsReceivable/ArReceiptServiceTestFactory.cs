@@ -48,6 +48,8 @@ public sealed class ArReceiptServiceTestFactory
             CustomerRepository.Object,
             BankAccountRepository.Object,
             GlSettingsProvider.Object,
+            new ArReceiptCommandValidator(),
+            new ArReceiptSnapshotFactory(),
             UnitOfWork.Object,
             Logger.Object
         );

@@ -134,6 +134,8 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddAccountsReceivableServices(this IServiceCollection services)
     {
+        services.AddScoped<ArReceiptCommandValidator>();
+        services.AddScoped<ArReceiptSnapshotFactory>();
         services.AddScoped<IArReceiptService, ArReceiptService>();
 
         return services;
@@ -142,8 +144,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPostingServices(this IServiceCollection services)
     {
         services.AddScoped<IPostingService, PostingService>();
-        services.AddScoped<IPostingEngine, ArInvoicePostingEngine>();
-        services.AddScoped<IPostingRuleProvider, ArInvoicePostingRuleProvider>();
+        services.AddScoped<IPostingEngine, ArPostingEngine>();
+        services.AddScoped<IPostingRuleProvider, ArPostingRuleProvider>();
         services.AddScoped<IGlSettingsProvider, AppSettingGlSettingsProvider>();
         services.AddScoped<IArInvoicePostingContextBuilder, ArInvoicePostingContextBuilder>();
         services.AddScoped<IArReceiptPostingContextBuilder, ArReceiptPostingContextBuilder>();

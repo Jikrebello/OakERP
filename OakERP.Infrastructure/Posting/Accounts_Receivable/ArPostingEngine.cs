@@ -6,7 +6,7 @@ using OakERP.Domain.Posting.Inventory;
 
 namespace OakERP.Infrastructure.Posting.Accounts_Receivable;
 
-public sealed class ArInvoicePostingEngine : IPostingEngine
+public sealed class ArPostingEngine : IPostingEngine
 {
     public PostingEngineResult PostArInvoice(ArInvoicePostingContext context)
     {

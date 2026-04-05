@@ -4,14 +4,14 @@ using Shouldly;
 
 namespace OakERP.Tests.Unit.Posting;
 
-public sealed class ArReceiptPostingEngineTests
+public sealed class ArPostingEngineReceiptTests
 {
-    private readonly ArInvoicePostingEngine _engine = new();
+    private readonly ArPostingEngine _engine = new();
 
     [Fact]
     public async Task PostArReceipt_Should_Create_Balanced_Bank_And_Ar_Control_GlEntries()
     {
-        var provider = new ArInvoicePostingRuleProvider();
+        var provider = new ArPostingRuleProvider();
         var receipt = PostingServiceTestFactory.CreateReceipt(amount: 150m, allocatedAmount: 100m);
         var context = PostingServiceTestFactory.CreateReceiptPostingContext(
             receipt,
@@ -33,7 +33,7 @@ public sealed class ArReceiptPostingEngineTests
     [Fact]
     public async Task PostArReceipt_Should_Use_Full_Receipt_Amount_For_Unapplied_Cash()
     {
-        var provider = new ArInvoicePostingRuleProvider();
+        var provider = new ArPostingRuleProvider();
         var receipt = PostingServiceTestFactory.CreateReceipt(amount: 125m, allocatedAmount: 0m);
         var context = PostingServiceTestFactory.CreateReceiptPostingContext(
             receipt,

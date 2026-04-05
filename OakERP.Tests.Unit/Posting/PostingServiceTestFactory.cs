@@ -315,19 +315,14 @@ public sealed class PostingServiceTestFactory
     {
         var settings = CreateSettings();
         var period = CreateOpenPeriod();
-        decimal allocatedAmount = receipt.Allocations.Sum(x => x.AmountApplied);
 
         return new ArReceiptPostingContext(
             receipt,
             receipt.ReceiptDate,
             period,
-            settings.BaseCurrencyCode,
-            1m,
             settings,
             rule ?? CreateReceiptRule(),
-            receipt.BankAccount.GlAccountNo,
-            allocatedAmount,
-            receipt.Amount - allocatedAmount
+            receipt.BankAccount.GlAccountNo
         );
     }
 }

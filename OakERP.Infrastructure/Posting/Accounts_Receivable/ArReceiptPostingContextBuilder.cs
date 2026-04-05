@@ -28,22 +28,8 @@ public sealed class ArReceiptPostingContextBuilder : IArReceiptPostingContextBui
                 "AR receipt posting requires a bank account GL account."
             );
 
-        decimal allocatedAmount = receipt.Allocations.Sum(x => x.AmountApplied);
-        decimal unappliedAmount = receipt.Amount - allocatedAmount;
-
         return Task.FromResult(
-            new ArReceiptPostingContext(
-                receipt,
-                postingDate,
-                period,
-                settings.BaseCurrencyCode,
-                1m,
-                settings,
-                rule,
-                bankAccountNo,
-                allocatedAmount,
-                unappliedAmount
-            )
+            new ArReceiptPostingContext(receipt, postingDate, period, settings, rule, bankAccountNo)
         );
     }
 }

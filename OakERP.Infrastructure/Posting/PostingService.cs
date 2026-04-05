@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Application.Posting;
 using OakERP.Common.Enums;
+using OakERP.Domain.Accounts_Receivable;
 using OakERP.Domain.Entities.Accounts_Receivable;
 using OakERP.Domain.Entities.General_Ledger;
 using OakERP.Domain.Posting;
@@ -78,7 +79,12 @@ public sealed class PostingService(
             );
             DateOnly postingDate = command.PostingDate ?? invoice.InvoiceDate;
 
-            if (!MatchesCurrency(invoice.CurrencyCode, settings.BaseCurrencyCode))
+            if (
+                !ArSettlementCalculator.MatchesCurrency(
+                    invoice.CurrencyCode,
+                    settings.BaseCurrencyCode
+                )
+            )
             {
                 throw new InvalidOperationException(
                     "AR invoice posting currently supports only invoices in the base currency."
@@ -190,7 +196,12 @@ public sealed class PostingService(
             );
             DateOnly postingDate = command.PostingDate ?? receipt.ReceiptDate;
 
-            if (!MatchesCurrency(receipt.CurrencyCode, settings.BaseCurrencyCode))
+            if (
+                !ArSettlementCalculator.MatchesCurrency(
+                    receipt.CurrencyCode,
+                    settings.BaseCurrencyCode
+                )
+            )
             {
                 throw new InvalidOperationException(
                     "AR receipt posting currently supports only receipts in the base currency."
@@ -209,14 +220,19 @@ public sealed class PostingService(
                 );
             }
 
-            if (!MatchesCurrency(receipt.BankAccount.CurrencyCode, receipt.CurrencyCode))
+            if (
+                !ArSettlementCalculator.MatchesCurrency(
+                    receipt.BankAccount.CurrencyCode,
+                    receipt.CurrencyCode
+                )
+            )
             {
                 throw new InvalidOperationException(
                     "AR receipt bank account currency must match the receipt currency."
                 );
             }
 
-            decimal allocatedAmount = GetReceiptAllocatedAmount(receipt);
+            decimal allocatedAmount = ArSettlementCalculator.GetReceiptAllocatedAmount(receipt);
             if (allocatedAmount > receipt.Amount)
             {
                 throw new InvalidOperationException(
@@ -495,10 +511,4 @@ public sealed class PostingService(
             );
         }
     }
-
-    private static decimal GetReceiptAllocatedAmount(ArReceipt receipt) =>
-        receipt.Allocations.Sum(x => x.AmountApplied);
-
-    private static bool MatchesCurrency(string left, string right) =>
-        string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
 }

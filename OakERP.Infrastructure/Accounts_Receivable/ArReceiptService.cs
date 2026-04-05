@@ -5,6 +5,7 @@ using Npgsql;
 using OakERP.Application.AccountsReceivable;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.Enums;
+using OakERP.Domain.Accounts_Receivable;
 using OakERP.Domain.Entities.Accounts_Receivable;
 using OakERP.Domain.Posting.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
@@ -19,6 +20,8 @@ public sealed class ArReceiptService(
     ICustomerRepository customerRepository,
     IBankAccountRepository bankAccountRepository,
     IGlSettingsProvider glSettingsProvider,
+    ArReceiptCommandValidator commandValidator,
+    ArReceiptSnapshotFactory snapshotFactory,
     IUnitOfWork unitOfWork,
     ILogger<ArReceiptService> logger
 ) : IArReceiptService
@@ -33,26 +36,13 @@ public sealed class ArReceiptService(
             GlPostingSettings settings = await glSettingsProvider.GetSettingsAsync(
                 cancellationToken
             );
-            string docNo = command.DocNo.Trim();
-            string? memo = NormalizeOptional(command.Memo);
-            string currencyCode = NormalizeCurrencyCode(
-                command.CurrencyCode,
-                settings.BaseCurrencyCode
-            );
-            string performedBy = GetPerformedBy(command.PerformedBy);
-            IReadOnlyList<ArReceiptAllocationInputDTO> allocations = command.Allocations ?? [];
-
-            ArReceiptCommandResultDTO? validationFailure = ValidateCreateRequest(
+            ArReceiptCreateValidationResult validatedCommand = commandValidator.ValidateCreate(
                 command,
-                docNo,
-                memo,
-                currencyCode,
-                settings.BaseCurrencyCode,
-                allocations
+                settings
             );
-            if (validationFailure is not null)
+            if (validatedCommand.Failure is not null)
             {
-                return validationFailure;
+                return validatedCommand.Failure;
             }
 
             var customer = await customerRepository.FindNoTrackingAsync(
@@ -95,7 +85,12 @@ public sealed class ArReceiptService(
                 );
             }
 
-            if (!MatchesCurrency(bankAccount.CurrencyCode, currencyCode))
+            if (
+                !ArSettlementCalculator.MatchesCurrency(
+                    bankAccount.CurrencyCode,
+                    validatedCommand.CurrencyCode
+                )
+            )
             {
                 return ArReceiptCommandResultDTO.Fail(
                     "Bank account currency must match the receipt currency.",
@@ -103,7 +98,10 @@ public sealed class ArReceiptService(
                 );
             }
 
-            bool docNoExists = await arReceiptRepository.ExistsDocNoAsync(docNo, cancellationToken);
+            bool docNoExists = await arReceiptRepository.ExistsDocNoAsync(
+                validatedCommand.DocNo,
+                cancellationToken
+            );
             if (docNoExists)
             {
                 return ArReceiptCommandResultDTO.Fail(
@@ -118,25 +116,25 @@ public sealed class ArReceiptService(
             {
                 var receipt = new ArReceipt
                 {
-                    DocNo = docNo,
+                    DocNo = validatedCommand.DocNo,
                     CustomerId = command.CustomerId,
                     BankAccountId = command.BankAccountId,
                     ReceiptDate = command.ReceiptDate,
                     Amount = command.Amount,
-                    CurrencyCode = currencyCode,
+                    CurrencyCode = validatedCommand.CurrencyCode,
                     DocStatus = DocStatus.Draft,
-                    Memo = memo,
-                    CreatedBy = performedBy,
-                    UpdatedBy = performedBy,
+                    Memo = validatedCommand.Memo,
+                    CreatedBy = validatedCommand.PerformedBy,
+                    UpdatedBy = validatedCommand.PerformedBy,
                     UpdatedAt = DateTimeOffset.UtcNow,
                 };
 
                 await arReceiptRepository.AddAsync(receipt);
 
                 var invoiceLoad = await LoadTrackedInvoicesAsync(
-                    allocations.Select(x => x.ArInvoiceId).ToArray(),
+                    validatedCommand.Allocations.Select(x => x.ArInvoiceId).ToArray(),
                     receipt.CustomerId,
-                    currencyCode,
+                    validatedCommand.CurrencyCode,
                     cancellationToken
                 );
                 if (invoiceLoad.failure is not null)
@@ -148,9 +146,9 @@ public sealed class ArReceiptService(
                 var allocationResult = await ApplyAllocationsAsync(
                     receipt,
                     invoiceLoad.invoices!,
-                    allocations,
+                    validatedCommand.Allocations,
                     command.AllocationDate ?? command.ReceiptDate,
-                    performedBy
+                    validatedCommand.PerformedBy
                 );
                 if (allocationResult.failure is not null)
                 {
@@ -161,13 +159,12 @@ public sealed class ArReceiptService(
                 await unitOfWork.SaveChangesAsync(cancellationToken);
                 await unitOfWork.CommitAsync();
 
-                return ArReceiptCommandResultDTO.SuccessWith(
-                    BuildReceiptSnapshot(receipt, allocationResult.receiptAllocations),
-                    BuildInvoiceSnapshots(
-                        invoiceLoad.invoices!.Values,
-                        allocationResult.settledAmounts
-                    ),
-                    "AR receipt created successfully."
+                return snapshotFactory.BuildSuccess(
+                    receipt,
+                    invoiceLoad.invoices!.Values,
+                    "AR receipt created successfully.",
+                    allocationResult.settledAmounts,
+                    allocationResult.receiptAllocations
                 );
             }
             catch (DbUpdateConcurrencyException ex)
@@ -175,7 +172,7 @@ public sealed class ArReceiptService(
                 await unitOfWork.RollbackAsync();
                 logger.LogWarning(
                     "Concurrency failure while creating AR receipt {DocNo}. Entries: {Entries}",
-                    docNo,
+                    validatedCommand.DocNo,
                     string.Join(", ", ex.Entries.Select(x => x.Entity.GetType().Name))
                 );
                 return ArReceiptCommandResultDTO.Fail(
@@ -194,7 +191,11 @@ public sealed class ArReceiptService(
             catch (Exception ex)
             {
                 await unitOfWork.RollbackAsync();
-                logger.LogError(ex, "Unexpected failure while creating AR receipt {DocNo}", docNo);
+                logger.LogError(
+                    ex,
+                    "Unexpected failure while creating AR receipt {DocNo}",
+                    validatedCommand.DocNo
+                );
                 return ArReceiptCommandResultDTO.Fail(
                     "An unexpected error occurred while creating the AR receipt.",
                     HttpStatusCode.InternalServerError
@@ -218,14 +219,12 @@ public sealed class ArReceiptService(
     {
         try
         {
-            IReadOnlyList<ArReceiptAllocationInputDTO> allocations = command.Allocations ?? [];
-            ArReceiptCommandResultDTO? validationFailure = ValidateAllocateRequest(
-                command,
-                allocations
+            ArReceiptAllocateValidationResult validatedCommand = commandValidator.ValidateAllocate(
+                command
             );
-            if (validationFailure is not null)
+            if (validatedCommand.Failure is not null)
             {
-                return validationFailure;
+                return validatedCommand.Failure;
             }
 
             await unitOfWork.BeginTransactionAsync();
@@ -257,7 +256,12 @@ public sealed class ArReceiptService(
                 GlPostingSettings settings = await glSettingsProvider.GetSettingsAsync(
                     cancellationToken
                 );
-                if (!MatchesCurrency(receipt.CurrencyCode, settings.BaseCurrencyCode))
+                if (
+                    !ArSettlementCalculator.MatchesCurrency(
+                        receipt.CurrencyCode,
+                        settings.BaseCurrencyCode
+                    )
+                )
                 {
                     await unitOfWork.RollbackAsync();
                     return ArReceiptCommandResultDTO.Fail(
@@ -267,7 +271,7 @@ public sealed class ArReceiptService(
                 }
 
                 var invoiceLoad = await LoadTrackedInvoicesAsync(
-                    allocations.Select(x => x.ArInvoiceId).ToArray(),
+                    validatedCommand.Allocations.Select(x => x.ArInvoiceId).ToArray(),
                     receipt.CustomerId,
                     receipt.CurrencyCode,
                     cancellationToken
@@ -281,9 +285,9 @@ public sealed class ArReceiptService(
                 var allocationResult = await ApplyAllocationsAsync(
                     receipt,
                     invoiceLoad.invoices!,
-                    allocations,
+                    validatedCommand.Allocations,
                     command.AllocationDate ?? receipt.ReceiptDate,
-                    GetPerformedBy(command.PerformedBy)
+                    validatedCommand.PerformedBy
                 );
                 if (allocationResult.failure is not null)
                 {
@@ -294,13 +298,12 @@ public sealed class ArReceiptService(
                 await unitOfWork.SaveChangesAsync(cancellationToken);
                 await unitOfWork.CommitAsync();
 
-                return ArReceiptCommandResultDTO.SuccessWith(
-                    BuildReceiptSnapshot(receipt, allocationResult.receiptAllocations),
-                    BuildInvoiceSnapshots(
-                        invoiceLoad.invoices!.Values,
-                        allocationResult.settledAmounts
-                    ),
-                    "AR receipt allocations saved successfully."
+                return snapshotFactory.BuildSuccess(
+                    receipt,
+                    invoiceLoad.invoices!.Values,
+                    "AR receipt allocations saved successfully.",
+                    allocationResult.settledAmounts,
+                    allocationResult.receiptAllocations
                 );
             }
             catch (DbUpdateConcurrencyException ex)
@@ -399,7 +402,7 @@ public sealed class ArReceiptService(
                 );
             }
 
-            if (!MatchesCurrency(invoice.CurrencyCode, currencyCode))
+            if (!ArSettlementCalculator.MatchesCurrency(invoice.CurrencyCode, currencyCode))
             {
                 return (
                     null,
@@ -410,7 +413,7 @@ public sealed class ArReceiptService(
                 );
             }
 
-            if (GetInvoiceRemainingAmount(invoice) <= 0m)
+            if (ArSettlementCalculator.GetInvoiceRemainingAmount(invoice) <= 0m)
             {
                 return (
                     null,
@@ -441,7 +444,7 @@ public sealed class ArReceiptService(
         List<ArReceiptAllocation> receiptAllocations = [.. receipt.Allocations];
         Dictionary<Guid, decimal> settledAmounts = invoices.ToDictionary(
             x => x.Key,
-            x => GetInvoiceSettledAmount(x.Value)
+            x => ArSettlementCalculator.GetInvoiceSettledAmount(x.Value)
         );
 
         if (allocations.Count == 0)
@@ -450,7 +453,7 @@ public sealed class ArReceiptService(
         }
 
         decimal requestedTotal = allocations.Sum(x => x.AmountApplied);
-        decimal receiptUnappliedAmount = GetReceiptUnappliedAmount(receipt);
+        decimal receiptUnappliedAmount = ArSettlementCalculator.GetReceiptUnappliedAmount(receipt);
 
         if (requestedTotal > receiptUnappliedAmount)
         {
@@ -519,228 +522,6 @@ public sealed class ArReceiptService(
 
         return (null, settledAmounts, receiptAllocations);
     }
-
-    private static ArReceiptCommandResultDTO? ValidateCreateRequest(
-        CreateArReceiptCommand command,
-        string docNo,
-        string? memo,
-        string currencyCode,
-        string baseCurrencyCode,
-        IReadOnlyList<ArReceiptAllocationInputDTO> allocations
-    )
-    {
-        if (string.IsNullOrWhiteSpace(docNo))
-        {
-            return ArReceiptCommandResultDTO.Fail(
-                "Document number is required.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        if (docNo.Length > 40)
-        {
-            return ArReceiptCommandResultDTO.Fail(
-                "Document number may not exceed 40 characters.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        if (command.CustomerId == Guid.Empty)
-        {
-            return ArReceiptCommandResultDTO.Fail(
-                "Customer id is required.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        if (command.BankAccountId == Guid.Empty)
-        {
-            return ArReceiptCommandResultDTO.Fail(
-                "Bank account id is required.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        if (command.Amount <= 0m)
-        {
-            return ArReceiptCommandResultDTO.Fail(
-                "Receipt amount must be greater than zero.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        if (memo is not null && memo.Length > 512)
-        {
-            return ArReceiptCommandResultDTO.Fail(
-                "Receipt memo may not exceed 512 characters.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        if (!MatchesCurrency(currencyCode, baseCurrencyCode))
-        {
-            return ArReceiptCommandResultDTO.Fail(
-                "AR receipt capture currently supports only the base currency.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        return ValidateAllocationInputs(allocations, allowEmpty: true);
-    }
-
-    private static ArReceiptCommandResultDTO? ValidateAllocateRequest(
-        AllocateArReceiptCommand command,
-        IReadOnlyList<ArReceiptAllocationInputDTO> allocations
-    )
-    {
-        if (command.ReceiptId == Guid.Empty)
-        {
-            return ArReceiptCommandResultDTO.Fail(
-                "Receipt id is required.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        return ValidateAllocationInputs(allocations, allowEmpty: false);
-    }
-
-    private static ArReceiptCommandResultDTO? ValidateAllocationInputs(
-        IReadOnlyList<ArReceiptAllocationInputDTO> allocations,
-        bool allowEmpty
-    )
-    {
-        if (!allowEmpty && allocations.Count == 0)
-        {
-            return ArReceiptCommandResultDTO.Fail(
-                "At least one allocation is required.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        HashSet<Guid> invoiceIds = [];
-
-        foreach (ArReceiptAllocationInputDTO allocation in allocations)
-        {
-            if (allocation.ArInvoiceId == Guid.Empty)
-            {
-                return ArReceiptCommandResultDTO.Fail(
-                    "Allocation invoice id is required.",
-                    HttpStatusCode.BadRequest
-                );
-            }
-
-            if (!invoiceIds.Add(allocation.ArInvoiceId))
-            {
-                return ArReceiptCommandResultDTO.Fail(
-                    "Each invoice may appear only once per allocation request.",
-                    HttpStatusCode.BadRequest
-                );
-            }
-
-            if (allocation.AmountApplied <= 0m)
-            {
-                return ArReceiptCommandResultDTO.Fail(
-                    "Allocation amount must be greater than zero.",
-                    HttpStatusCode.BadRequest
-                );
-            }
-        }
-
-        return null;
-    }
-
-    private static ArReceiptSnapshotDTO BuildReceiptSnapshot(
-        ArReceipt receipt,
-        IReadOnlyCollection<ArReceiptAllocation>? allocationOverrides = null
-    )
-    {
-        IEnumerable<ArReceiptAllocation> allocations = allocationOverrides is not null
-            ? allocationOverrides
-            : receipt.Allocations;
-
-        return new ArReceiptSnapshotDTO
-        {
-            ReceiptId = receipt.Id,
-            DocNo = receipt.DocNo,
-            CustomerId = receipt.CustomerId,
-            BankAccountId = receipt.BankAccountId,
-            ReceiptDate = receipt.ReceiptDate,
-            Amount = receipt.Amount,
-            CurrencyCode = receipt.CurrencyCode,
-            DocStatus = receipt.DocStatus,
-            Memo = receipt.Memo,
-            AllocatedAmount = GetReceiptAllocatedAmount(receipt, allocations),
-            UnappliedAmount = GetReceiptUnappliedAmount(receipt, allocations),
-            Allocations = allocations
-                .OrderBy(x => x.AllocationDate)
-                .ThenBy(x => x.Id)
-                .Select(x => new ArReceiptAllocationSnapshotDTO
-                {
-                    AllocationId = x.Id,
-                    ArInvoiceId = x.ArInvoiceId,
-                    AllocationDate = x.AllocationDate,
-                    AmountApplied = x.AmountApplied,
-                })
-                .ToList(),
-        };
-    }
-
-    private static IReadOnlyList<ArInvoiceSettlementSnapshotDTO> BuildInvoiceSnapshots(
-        IEnumerable<ArInvoice> invoices,
-        IReadOnlyDictionary<Guid, decimal>? settledAmountOverrides = null
-    ) =>
-        invoices
-            .OrderBy(x => x.DocNo, StringComparer.Ordinal)
-            .Select(x =>
-            {
-                decimal settledAmount =
-                    settledAmountOverrides?.TryGetValue(x.Id, out decimal overrideAmount) == true
-                        ? overrideAmount
-                        : GetInvoiceSettledAmount(x);
-
-                return new ArInvoiceSettlementSnapshotDTO
-                {
-                    InvoiceId = x.Id,
-                    DocNo = x.DocNo,
-                    DocStatus = x.DocStatus,
-                    DocTotal = x.DocTotal,
-                    SettledAmount = settledAmount,
-                    RemainingAmount = x.DocTotal - settledAmount,
-                };
-            })
-            .ToList();
-
-    private static decimal GetReceiptAllocatedAmount(
-        ArReceipt receipt,
-        IEnumerable<ArReceiptAllocation>? allocations = null
-    ) => (allocations ?? receipt.Allocations).Sum(x => x.AmountApplied);
-
-    private static decimal GetReceiptUnappliedAmount(
-        ArReceipt receipt,
-        IEnumerable<ArReceiptAllocation>? allocations = null
-    ) => receipt.Amount - GetReceiptAllocatedAmount(receipt, allocations);
-
-    private static decimal GetInvoiceSettledAmount(ArInvoice invoice) =>
-        invoice.Allocations.Sum(x =>
-            x.AmountApplied + (x.DiscountGiven ?? 0m) + (x.WriteOffAmount ?? 0m)
-        );
-
-    private static decimal GetInvoiceRemainingAmount(ArInvoice invoice) =>
-        invoice.DocTotal - GetInvoiceSettledAmount(invoice);
-
-    private static string NormalizeCurrencyCode(string? currencyCode, string baseCurrencyCode) =>
-        string.IsNullOrWhiteSpace(currencyCode)
-            ? baseCurrencyCode.ToUpperInvariant()
-            : currencyCode.Trim().ToUpperInvariant();
-
-    private static string? NormalizeOptional(string? value) =>
-        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
-    private static string GetPerformedBy(string? performedBy) =>
-        string.IsNullOrWhiteSpace(performedBy) ? "system" : performedBy.Trim();
-
-    private static bool MatchesCurrency(string left, string right) =>
-        string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
 
     private static bool IsUniqueDocNoViolation(DbUpdateException ex) =>
         ex.InnerException is PostgresException postgresException
