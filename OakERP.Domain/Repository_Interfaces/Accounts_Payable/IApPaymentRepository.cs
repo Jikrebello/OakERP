@@ -8,6 +8,10 @@ public interface IApPaymentRepository
 
     Task<ApPayment?> FindNoTrackingAsync(Guid id, CancellationToken ct = default);
 
+    Task<bool> ExistsDocNoAsync(string docNo, CancellationToken ct = default);
+
+    Task<ApPayment?> GetTrackedForAllocationAsync(Guid id, CancellationToken ct = default);
+
     IQueryable<ApPayment> QueryNoTracking();
 
     Task AddAsync(ApPayment entity);

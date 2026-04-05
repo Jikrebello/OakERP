@@ -12,6 +12,19 @@ public class ArInvoiceRepository(ApplicationDbContext db) : IArInvoiceRepository
     public Task<ArInvoice?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
         Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
+    public async Task<IReadOnlyList<ArInvoice>> GetTrackedForAllocationAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken ct = default
+    )
+    {
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        return await Set.Where(x => ids.Contains(x.Id)).Include(x => x.Allocations).ToListAsync(ct);
+    }
+
     public Task<ArInvoice?> GetTrackedForPostingAsync(Guid id, CancellationToken ct = default) =>
         Set.Include(x => x.Lines)
                 .ThenInclude(x => x.Item)

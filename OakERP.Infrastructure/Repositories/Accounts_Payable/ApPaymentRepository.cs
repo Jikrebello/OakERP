@@ -12,6 +12,14 @@ public class ApPaymentRepository(ApplicationDbContext db) : IApPaymentRepository
     public Task<ApPayment?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
         Set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
 
+    public Task<bool> ExistsDocNoAsync(string docNo, CancellationToken ct = default) =>
+        Set.AsNoTracking().AnyAsync(x => x.DocNo == docNo, ct);
+
+    public Task<ApPayment?> GetTrackedForAllocationAsync(Guid id, CancellationToken ct = default) =>
+        Set.Include(x => x.BankAccount)
+            .Include(x => x.Allocations)
+            .SingleOrDefaultAsync(x => x.Id == id, ct);
+
     public ValueTask<ApPayment?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
         Set.FindAsync([id], ct);
 
