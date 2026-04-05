@@ -14,6 +14,7 @@ public sealed class PostingRuleProvider : IPostingRuleProvider
             docKind switch
             {
                 DocKind.ApInvoice => CreateApInvoiceRule(),
+                DocKind.ApPayment => CreateApPaymentRule(),
                 DocKind.ArInvoice => CreateArInvoiceRule(),
                 DocKind.ArReceipt => CreateArReceiptRule(),
                 _ => throw new NotSupportedException(
@@ -122,6 +123,31 @@ public sealed class PostingRuleProvider : IPostingRuleProvider
                     AccountKey = AccountKey.TaxInput,
                     AmountSource = AmountSource.HeaderTaxTotal,
                     Scope = PostingRuleScopes.Tax,
+                },
+            ],
+        };
+
+    private static PostingRule CreateApPaymentRule() =>
+        new()
+        {
+            DocKind = DocKind.ApPayment,
+            Name = "AP Payment Runtime Rule",
+            IsActive = true,
+            Lines =
+            [
+                new PostingRuleLine
+                {
+                    Side = RuleSide.Debit,
+                    AccountKey = AccountKey.Bank,
+                    AmountSource = AmountSource.HeaderDocTotal,
+                    Scope = PostingRuleScopes.Header,
+                },
+                new PostingRuleLine
+                {
+                    Side = RuleSide.Credit,
+                    AccountKey = AccountKey.AccountsPayable,
+                    AmountSource = AmountSource.HeaderDocTotal,
+                    Scope = PostingRuleScopes.Header,
                 },
             ],
         };

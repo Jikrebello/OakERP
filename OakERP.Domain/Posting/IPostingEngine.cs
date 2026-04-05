@@ -10,4 +10,6 @@ public interface IPostingEngine
     PostingEngineResult PostArReceipt(ArReceiptPostingContext context);
 
     PostingEngineResult PostApInvoice(ApInvoicePostingContext context);
+
+    PostingEngineResult PostApPayment(ApPaymentPostingContext context);
 }

@@ -628,7 +628,7 @@ public sealed class PostingServiceTests
         var service = _factory.CreateService();
 
         await Should.ThrowAsync<NotSupportedException>(() =>
-            service.PostAsync(new PostCommand(DocKind.ApPayment, Guid.NewGuid(), "unit-tester"))
+            service.PostAsync(new PostCommand(DocKind.ApCreditNote, Guid.NewGuid(), "unit-tester"))
         );
 
         _factory.UnitOfWork.Verify(x => x.BeginTransactionAsync(), Times.Never);

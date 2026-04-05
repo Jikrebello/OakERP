@@ -12,6 +12,8 @@ public interface IApPaymentRepository
 
     Task<ApPayment?> GetTrackedForAllocationAsync(Guid id, CancellationToken ct = default);
 
+    Task<ApPayment?> GetTrackedForPostingAsync(Guid id, CancellationToken ct = default);
+
     IQueryable<ApPayment> QueryNoTracking();
 
     Task AddAsync(ApPayment entity);

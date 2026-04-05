@@ -325,6 +325,58 @@ public sealed class PostingEngine : IPostingEngine
         return new PostingEngineResult(glEntries, []);
     }
 
+    public PostingEngineResult PostApPayment(ApPaymentPostingContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var rule = context.Rule ?? throw new InvalidOperationException("Posting rule is required.");
+        var payment = context.Payment;
+
+        var bankRule = FindRuleLine(
+            rule,
+            scope: PostingRuleScopes.Header,
+            side: RuleSide.Debit,
+            accountKey: AccountKey.Bank,
+            amountSource: AmountSource.HeaderDocTotal
+        );
+
+        var apRule = FindRuleLine(
+            rule,
+            scope: PostingRuleScopes.Header,
+            side: RuleSide.Credit,
+            accountKey: AccountKey.AccountsPayable,
+            amountSource: AmountSource.HeaderDocTotal
+        );
+
+        IReadOnlyList<GlEntryModel> glEntries =
+        [
+            new GlEntryModel(
+                context.PostingDate,
+                context.Period.Id,
+                ResolveApPaymentHeaderAccountNo(bankRule.AccountKey, context),
+                payment.Amount,
+                0m,
+                PostingSourceTypes.ApPayment,
+                payment.Id,
+                payment.DocNo,
+                $"AP payment {payment.DocNo} bank"
+            ),
+            new GlEntryModel(
+                context.PostingDate,
+                context.Period.Id,
+                ResolveApPaymentHeaderAccountNo(apRule.AccountKey, context),
+                0m,
+                payment.Amount,
+                PostingSourceTypes.ApPayment,
+                payment.Id,
+                payment.DocNo,
+                $"AP payment {payment.DocNo} AP control"
+            ),
+        ];
+
+        return new PostingEngineResult(glEntries, []);
+    }
+
     private static PostingRuleLine FindRuleLine(
         PostingRule rule,
         string scope,
@@ -378,6 +430,19 @@ public sealed class PostingEngine : IPostingEngine
             AccountKey.TaxInput => context.Settings.DefaultTaxInputAccountNo,
             _ => throw new InvalidOperationException(
                 $"Header account key '{accountKey}' is not supported for AP invoice posting."
+            ),
+        };
+
+    private static string ResolveApPaymentHeaderAccountNo(
+        AccountKey accountKey,
+        ApPaymentPostingContext context
+    ) =>
+        accountKey switch
+        {
+            AccountKey.Bank => context.BankAccountNo,
+            AccountKey.AccountsPayable => context.Settings.ApControlAccountNo,
+            _ => throw new InvalidOperationException(
+                $"Header account key '{accountKey}' is not supported for AP payment posting."
             ),
         };
 }

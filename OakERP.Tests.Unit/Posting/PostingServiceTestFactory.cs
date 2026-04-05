@@ -2,6 +2,7 @@ using Moq;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Application.Posting;
 using OakERP.Common.Enums;
+using OakERP.Domain.Accounts_Payable;
 using OakERP.Domain.Entities.Accounts_Payable;
 using OakERP.Domain.Entities.Accounts_Receivable;
 using OakERP.Domain.Entities.Bank;
@@ -21,6 +22,7 @@ namespace OakERP.Tests.Unit.Posting;
 
 public sealed class PostingServiceTestFactory
 {
+    public Mock<IApPaymentRepository> ApPaymentRepository { get; } = new(MockBehavior.Strict);
     public Mock<IApInvoiceRepository> ApInvoiceRepository { get; } = new(MockBehavior.Strict);
     public Mock<IArInvoiceRepository> ArInvoiceRepository { get; } = new(MockBehavior.Strict);
     public Mock<IArReceiptRepository> ArReceiptRepository { get; } = new(MockBehavior.Strict);
@@ -31,6 +33,8 @@ public sealed class PostingServiceTestFactory
         new(MockBehavior.Strict);
     public Mock<IGlSettingsProvider> GlSettingsProvider { get; } = new(MockBehavior.Strict);
     public Mock<IPostingRuleProvider> PostingRuleProvider { get; } = new(MockBehavior.Strict);
+    public Mock<IApPaymentPostingContextBuilder> ApPaymentPostingContextBuilder { get; } =
+        new(MockBehavior.Strict);
     public Mock<IApInvoicePostingContextBuilder> ApInvoicePostingContextBuilder { get; } =
         new(MockBehavior.Strict);
     public Mock<IArInvoicePostingContextBuilder> PostingContextBuilder { get; } =
@@ -49,6 +53,7 @@ public sealed class PostingServiceTestFactory
 
     public PostingService CreateService() =>
         new(
+            ApPaymentRepository.Object,
             ApInvoiceRepository.Object,
             ArInvoiceRepository.Object,
             ArReceiptRepository.Object,
@@ -58,6 +63,7 @@ public sealed class PostingServiceTestFactory
             InventoryLedgerRepository.Object,
             GlSettingsProvider.Object,
             PostingRuleProvider.Object,
+            ApPaymentPostingContextBuilder.Object,
             ApInvoicePostingContextBuilder.Object,
             PostingContextBuilder.Object,
             ReceiptPostingContextBuilder.Object,
@@ -182,6 +188,29 @@ public sealed class PostingServiceTestFactory
                     AmountSource = AmountSource.HeaderTaxTotal,
                     Scope = PostingRuleScopes.Tax,
                     Side = RuleSide.Debit,
+                },
+            ],
+        };
+
+    public static PostingRule CreateApPaymentRule() =>
+        new()
+        {
+            Name = "AP Payment Runtime Rule",
+            Lines =
+            [
+                new PostingRuleLine
+                {
+                    AccountKey = AccountKey.Bank,
+                    AmountSource = AmountSource.HeaderDocTotal,
+                    Scope = PostingRuleScopes.Header,
+                    Side = RuleSide.Debit,
+                },
+                new PostingRuleLine
+                {
+                    AccountKey = AccountKey.AccountsPayable,
+                    AmountSource = AmountSource.HeaderDocTotal,
+                    Scope = PostingRuleScopes.Header,
+                    Side = RuleSide.Credit,
                 },
             ],
         };
@@ -339,6 +368,48 @@ public sealed class PostingServiceTestFactory
         };
     }
 
+    public static ApPayment CreateApPayment(
+        decimal amount = 100m,
+        decimal allocatedAmount = 0m,
+        string bankCurrencyCode = "ZAR",
+        bool bankAccountActive = true
+    )
+    {
+        var payment = new ApPayment
+        {
+            Id = Guid.NewGuid(),
+            DocNo = "APPAY-1001",
+            VendorId = Guid.NewGuid(),
+            BankAccountId = Guid.NewGuid(),
+            PaymentDate = new DateOnly(2026, 4, 20),
+            Amount = amount,
+            DocStatus = DocStatus.Draft,
+            BankAccount = new BankAccount
+            {
+                Id = Guid.NewGuid(),
+                Name = "Main Bank",
+                GlAccountNo = "1000",
+                CurrencyCode = bankCurrencyCode,
+                IsActive = bankAccountActive,
+            },
+        };
+
+        if (allocatedAmount > 0m)
+        {
+            payment.Allocations.Add(
+                new ApPaymentAllocation
+                {
+                    ApPaymentId = payment.Id,
+                    ApInvoiceId = Guid.NewGuid(),
+                    AllocationDate = payment.PaymentDate,
+                    AmountApplied = allocatedAmount,
+                }
+            );
+        }
+
+        return payment;
+    }
+
     public static ArInvoicePostingContext CreatePostingContext(
         ArInvoice invoice,
         PostingRule? rule = null
@@ -423,6 +494,26 @@ public sealed class PostingServiceTestFactory
             period,
             settings,
             rule ?? CreateApInvoiceRule()
+        );
+    }
+
+    public static ApPaymentPostingContext CreateApPaymentPostingContext(
+        ApPayment payment,
+        PostingRule? rule = null
+    )
+    {
+        var settings = CreateSettings();
+        var period = CreateOpenPeriod();
+
+        return new ApPaymentPostingContext(
+            payment,
+            payment.PaymentDate,
+            period,
+            settings,
+            rule ?? CreateApPaymentRule(),
+            payment.BankAccount.GlAccountNo,
+            ApSettlementCalculator.GetPaymentAllocatedAmount(payment),
+            ApSettlementCalculator.GetPaymentUnappliedAmount(payment)
         );
     }
 }

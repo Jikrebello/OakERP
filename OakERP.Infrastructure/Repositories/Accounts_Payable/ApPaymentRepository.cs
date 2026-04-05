@@ -16,9 +16,10 @@ public class ApPaymentRepository(ApplicationDbContext db) : IApPaymentRepository
         Set.AsNoTracking().AnyAsync(x => x.DocNo == docNo, ct);
 
     public Task<ApPayment?> GetTrackedForAllocationAsync(Guid id, CancellationToken ct = default) =>
-        Set.Include(x => x.BankAccount)
-            .Include(x => x.Allocations)
-            .SingleOrDefaultAsync(x => x.Id == id, ct);
+        GetPostingQuery().SingleOrDefaultAsync(x => x.Id == id, ct);
+
+    public Task<ApPayment?> GetTrackedForPostingAsync(Guid id, CancellationToken ct = default) =>
+        GetPostingQuery().SingleOrDefaultAsync(x => x.Id == id, ct);
 
     public ValueTask<ApPayment?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
         Set.FindAsync([id], ct);
@@ -32,4 +33,7 @@ public class ApPaymentRepository(ApplicationDbContext db) : IApPaymentRepository
         Set.Remove(entity);
         return Task.CompletedTask;
     }
+
+    private IQueryable<ApPayment> GetPostingQuery() =>
+        Set.Include(x => x.BankAccount).Include(x => x.Allocations);
 }

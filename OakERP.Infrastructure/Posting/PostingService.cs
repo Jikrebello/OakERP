@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Application.Posting;
 using OakERP.Common.Enums;
+using OakERP.Domain.Accounts_Payable;
 using OakERP.Domain.Accounts_Receivable;
 using OakERP.Domain.Entities.Accounts_Payable;
 using OakERP.Domain.Entities.Accounts_Receivable;
@@ -18,6 +19,7 @@ using OakERP.Domain.Repository_Interfaces.Inventory;
 namespace OakERP.Infrastructure.Posting;
 
 public sealed class PostingService(
+    IApPaymentRepository apPaymentRepository,
     IApInvoiceRepository apInvoiceRepository,
     IArInvoiceRepository arInvoiceRepository,
     IArReceiptRepository arReceiptRepository,
@@ -27,6 +29,7 @@ public sealed class PostingService(
     IInventoryLedgerRepository inventoryLedgerRepository,
     IGlSettingsProvider glSettingsProvider,
     IPostingRuleProvider postingRuleProvider,
+    IApPaymentPostingContextBuilder apPaymentPostingContextBuilder,
     IApInvoicePostingContextBuilder apInvoicePostingContextBuilder,
     IArInvoicePostingContextBuilder arInvoicePostingContextBuilder,
     IArReceiptPostingContextBuilder arReceiptPostingContextBuilder,
@@ -40,6 +43,7 @@ public sealed class PostingService(
     ) =>
         command.DocKind switch
         {
+            DocKind.ApPayment => PostApPaymentAsync(command, cancellationToken),
             DocKind.ApInvoice => PostApInvoiceAsync(command, cancellationToken),
             DocKind.ArInvoice => PostArInvoiceAsync(command, cancellationToken),
             DocKind.ArReceipt => PostArReceiptAsync(command, cancellationToken),
@@ -52,6 +56,133 @@ public sealed class PostingService(
         UnpostCommand command,
         CancellationToken cancellationToken = default
     ) => throw new NotSupportedException("Unposting is not supported for posting.");
+
+    private async Task<PostResult> PostApPaymentAsync(
+        PostCommand command,
+        CancellationToken cancellationToken
+    )
+    {
+        if (command.Force)
+        {
+            throw new InvalidOperationException(
+                "Force posting is not supported for AP payment posting."
+            );
+        }
+
+        await unitOfWork.BeginTransactionAsync();
+
+        try
+        {
+            ApPayment payment =
+                await apPaymentRepository.GetTrackedForPostingAsync(
+                    command.SourceId,
+                    cancellationToken
+                ) ?? throw new InvalidOperationException("AP payment was not found.");
+
+            if (payment.DocStatus != DocStatus.Draft)
+            {
+                throw new InvalidOperationException("Only draft AP payments can be posted.");
+            }
+
+            GlPostingSettings settings = await glSettingsProvider.GetSettingsAsync(
+                cancellationToken
+            );
+            DateOnly postingDate = command.PostingDate ?? payment.PaymentDate;
+
+            if (payment.BankAccount is null)
+            {
+                throw new InvalidOperationException("AP payment bank account was not found.");
+            }
+
+            if (!payment.BankAccount.IsActive)
+            {
+                throw new InvalidOperationException(
+                    "AP payment posting requires an active bank account."
+                );
+            }
+
+            if (
+                !ApSettlementCalculator.MatchesCurrency(
+                    payment.BankAccount.CurrencyCode,
+                    settings.BaseCurrencyCode
+                )
+            )
+            {
+                throw new InvalidOperationException(
+                    "AP payment posting currently supports only payments in the base currency."
+                );
+            }
+
+            decimal allocatedAmount = ApSettlementCalculator.GetPaymentAllocatedAmount(payment);
+            if (allocatedAmount > payment.Amount)
+            {
+                throw new InvalidOperationException(
+                    "AP payment allocations exceed the payment amount and cannot be posted."
+                );
+            }
+
+            FiscalPeriod period =
+                await fiscalPeriodRepository.GetOpenForDateAsync(postingDate, cancellationToken)
+                ?? throw new InvalidOperationException(
+                    $"No open fiscal period exists for posting date {postingDate:yyyy-MM-dd}."
+                );
+
+            PostingRule rule = await postingRuleProvider.GetActiveRuleAsync(
+                DocKind.ApPayment,
+                cancellationToken
+            );
+
+            ApPaymentPostingContext context = await apPaymentPostingContextBuilder.BuildAsync(
+                payment,
+                postingDate,
+                period,
+                settings,
+                rule,
+                cancellationToken
+            );
+
+            PostingEngineResult postingResult = postingEngine.PostApPayment(context);
+
+            ValidatePostingResult(
+                postingResult,
+                PostingSourceTypes.ApPayment,
+                inventoryRowsAllowed: false
+            );
+            await ValidateAccountsAsync(postingResult.GlEntries, cancellationToken);
+            await PersistPostingRowsAsync(postingResult, command.PerformedBy);
+
+            payment.DocStatus = DocStatus.Posted;
+            payment.PostingDate = postingDate;
+            payment.UpdatedBy = command.PerformedBy;
+            payment.UpdatedAt = DateTimeOffset.UtcNow;
+
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.CommitAsync();
+
+            return new PostResult(
+                command.DocKind,
+                payment.Id,
+                payment.DocNo,
+                postingDate,
+                period.Id,
+                postingResult.GlEntries.Count,
+                postingResult.InventoryMovements.Count
+            );
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            await unitOfWork.RollbackAsync();
+            throw new InvalidOperationException(
+                "The AP payment was modified during posting. It may already be posted.",
+                ex
+            );
+        }
+        catch
+        {
+            await unitOfWork.RollbackAsync();
+            throw;
+        }
+    }
 
     private async Task<PostResult> PostApInvoiceAsync(
         PostCommand command,
