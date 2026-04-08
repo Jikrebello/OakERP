@@ -99,6 +99,10 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- local-dev-https-certificates
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- oakerp-skill-pack
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
@@ -491,6 +495,7 @@ OakERP
 +-- OakERP.Docs
 |   +-- db-setup.md
 |   +-- ef-core.md
+|   +-- local-https-dev-cert.md
 |   +-- Oak_ERP_Solution_Structure.txt
 |   +-- oakERP-testing-guide.md
 |   +-- OakERP.Docs.csproj
