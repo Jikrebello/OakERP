@@ -2,6 +2,7 @@ using System.Net;
 using Microsoft.Extensions.Logging;
 using OakERP.Application.AccountsPayable;
 using OakERP.Application.Interfaces.Persistence;
+using OakERP.Application.Settlements;
 using OakERP.Common.Enums;
 using OakERP.Domain.Accounts_Payable;
 using OakERP.Domain.Entities.Accounts_Payable;
@@ -125,12 +126,16 @@ public sealed class ApPaymentService(
 
                 await apPaymentRepository.AddAsync(payment);
 
-                var (invoiceLoadInvoices, invoiceLoadFailure) = await LoadTrackedInvoicesAsync(
-                    [.. validatedCommand.Allocations.Select(x => x.ApInvoiceId)],
-                    payment.VendorId,
-                    settings.BaseCurrencyCode,
-                    cancellationToken
-                );
+                var (invoiceLoadInvoices, invoiceLoadFailure) =
+                    await SettlementInvoiceLoader.LoadAsync(
+                        [.. validatedCommand.Allocations.Select(x => x.ApInvoiceId)],
+                        ApPaymentSettlementAdapters.CreateInvoiceLoadSpec(
+                            apInvoiceRepository,
+                            payment.VendorId,
+                            settings.BaseCurrencyCode
+                        ),
+                        cancellationToken
+                    );
                 if (invoiceLoadFailure is not null)
                 {
                     await dependencies.UnitOfWork.RollbackAsync();
@@ -141,12 +146,15 @@ public sealed class ApPaymentService(
                     allocationFailure,
                     settledAmounts,
                     paymentAllocations
-                ) = await ApplyAllocationsAsync(
+                ) = await SettlementAllocationApplicator.ApplyAsync(
                     payment,
                     invoiceLoadInvoices!,
                     validatedCommand.Allocations,
                     command.AllocationDate ?? command.PaymentDate,
-                    validatedCommand.PerformedBy
+                    validatedCommand.PerformedBy,
+                    ApPaymentSettlementAdapters.CreateAllocationApplySpec(
+                        apPaymentAllocationRepository
+                    )
                 );
                 if (allocationFailure is not null)
                 {
@@ -272,12 +280,16 @@ public sealed class ApPaymentService(
                     );
                 }
 
-                var (invoiceLoadInvoices, invoiceLoadFailure) = await LoadTrackedInvoicesAsync(
-                    [.. validatedCommand.Allocations.Select(x => x.ApInvoiceId)],
-                    payment.VendorId,
-                    settings.BaseCurrencyCode,
-                    cancellationToken
-                );
+                var (invoiceLoadInvoices, invoiceLoadFailure) =
+                    await SettlementInvoiceLoader.LoadAsync(
+                        [.. validatedCommand.Allocations.Select(x => x.ApInvoiceId)],
+                        ApPaymentSettlementAdapters.CreateInvoiceLoadSpec(
+                            apInvoiceRepository,
+                            payment.VendorId,
+                            settings.BaseCurrencyCode
+                        ),
+                        cancellationToken
+                    );
                 if (invoiceLoadFailure is not null)
                 {
                     await dependencies.UnitOfWork.RollbackAsync();
@@ -288,12 +300,15 @@ public sealed class ApPaymentService(
                     allocationFailure,
                     settledAmounts,
                     paymentAllocations
-                ) = await ApplyAllocationsAsync(
+                ) = await SettlementAllocationApplicator.ApplyAsync(
                     payment,
                     invoiceLoadInvoices!,
                     validatedCommand.Allocations,
                     command.AllocationDate ?? payment.PaymentDate,
-                    validatedCommand.PerformedBy
+                    validatedCommand.PerformedBy,
+                    ApPaymentSettlementAdapters.CreateAllocationApplySpec(
+                        apPaymentAllocationRepository
+                    )
                 );
                 if (allocationFailure is not null)
                 {
@@ -351,182 +366,6 @@ public sealed class ApPaymentService(
                 HttpStatusCode.InternalServerError
             );
         }
-    }
-
-    private async Task<(
-        Dictionary<Guid, ApInvoice>? invoices,
-        ApPaymentCommandResultDto? failure
-    )> LoadTrackedInvoicesAsync(
-        IReadOnlyCollection<Guid> invoiceIds,
-        Guid vendorId,
-        string baseCurrencyCode,
-        CancellationToken cancellationToken
-    )
-    {
-        if (invoiceIds.Count == 0)
-        {
-            return ([], null);
-        }
-
-        IReadOnlyList<ApInvoice> invoices = await apInvoiceRepository.GetTrackedForSettlementAsync(
-            invoiceIds,
-            cancellationToken
-        );
-
-        if (invoices.Count != invoiceIds.Count)
-        {
-            return (
-                null,
-                ApPaymentCommandResultDto.Fail(
-                    "One or more AP invoices were not found.",
-                    HttpStatusCode.NotFound
-                )
-            );
-        }
-
-        foreach (ApInvoice invoice in invoices)
-        {
-            if (invoice.DocStatus != DocStatus.Posted)
-            {
-                return (
-                    null,
-                    ApPaymentCommandResultDto.Fail(
-                        "Only posted AP invoices can be allocated in this slice.",
-                        HttpStatusCode.BadRequest
-                    )
-                );
-            }
-
-            if (invoice.VendorId != vendorId)
-            {
-                return (
-                    null,
-                    ApPaymentCommandResultDto.Fail(
-                        "AP payment allocations must reference invoices for the same vendor.",
-                        HttpStatusCode.BadRequest
-                    )
-                );
-            }
-
-            if (!ApSettlementCalculator.MatchesCurrency(invoice.CurrencyCode, baseCurrencyCode))
-            {
-                return (
-                    null,
-                    ApPaymentCommandResultDto.Fail(
-                        "AP payment allocation currently supports only invoices in the base currency.",
-                        HttpStatusCode.BadRequest
-                    )
-                );
-            }
-
-            if (ApSettlementCalculator.GetInvoiceRemainingAmount(invoice) <= 0m)
-            {
-                return (
-                    null,
-                    ApPaymentCommandResultDto.Fail(
-                        $"AP invoice {invoice.DocNo} has no remaining balance to allocate.",
-                        HttpStatusCode.BadRequest
-                    )
-                );
-            }
-        }
-
-        return (invoices.ToDictionary(x => x.Id), null);
-    }
-
-    private async Task<(
-        ApPaymentCommandResultDto? failure,
-        IReadOnlyDictionary<Guid, decimal> settledAmounts,
-        IReadOnlyList<ApPaymentAllocation> paymentAllocations
-    )> ApplyAllocationsAsync(
-        ApPayment payment,
-        Dictionary<Guid, ApInvoice> invoices,
-        IReadOnlyList<ApPaymentAllocationInputDto> allocations,
-        DateOnly allocationDate,
-        string performedBy
-    )
-    {
-        DateTimeOffset updatedAt = DateTimeOffset.UtcNow;
-        List<ApPaymentAllocation> paymentAllocations = [.. payment.Allocations];
-        Dictionary<Guid, decimal> settledAmounts = invoices.ToDictionary(
-            x => x.Key,
-            x => ApSettlementCalculator.GetInvoiceSettledAmount(x.Value)
-        );
-
-        if (allocations.Count == 0)
-        {
-            return (null, settledAmounts, paymentAllocations);
-        }
-
-        decimal requesteDtotal = allocations.Sum(x => x.AmountApplied);
-        decimal paymentUnappliedAmount = ApSettlementCalculator.GetPaymentUnappliedAmount(payment);
-
-        if (requesteDtotal > paymentUnappliedAmount)
-        {
-            return (
-                ApPaymentCommandResultDto.Fail(
-                    "Allocation total exceeds the payment's unapplied amount.",
-                    HttpStatusCode.BadRequest
-                ),
-                settledAmounts,
-                paymentAllocations
-            );
-        }
-
-        payment.UpdatedAt = updatedAt;
-        payment.UpdatedBy = performedBy;
-
-        foreach (ApPaymentAllocationInputDto input in allocations)
-        {
-            if (!invoices.TryGetValue(input.ApInvoiceId, out ApInvoice? invoice))
-            {
-                return (
-                    ApPaymentCommandResultDto.Fail(
-                        "AP invoice was not found.",
-                        HttpStatusCode.NotFound
-                    ),
-                    settledAmounts,
-                    paymentAllocations
-                );
-            }
-
-            decimal currentSettledAmount = settledAmounts[invoice.Id];
-            decimal invoiceRemainingAmount = invoice.DocTotal - currentSettledAmount;
-            if (input.AmountApplied > invoiceRemainingAmount)
-            {
-                return (
-                    ApPaymentCommandResultDto.Fail(
-                        $"Allocation amount exceeds the remaining balance for invoice {invoice.DocNo}.",
-                        HttpStatusCode.BadRequest
-                    ),
-                    settledAmounts,
-                    paymentAllocations
-                );
-            }
-
-            var allocation = new ApPaymentAllocation
-            {
-                ApPaymentId = payment.Id,
-                ApInvoiceId = invoice.Id,
-                AllocationDate = allocationDate,
-                AmountApplied = input.AmountApplied,
-            };
-
-            await apPaymentAllocationRepository.AddAsync(allocation);
-            paymentAllocations.Add(allocation);
-
-            decimal remainingAfterAllocation = invoiceRemainingAmount - input.AmountApplied;
-            settledAmounts[invoice.Id] = currentSettledAmount + input.AmountApplied;
-            invoice.UpdatedAt = updatedAt;
-            invoice.UpdatedBy = performedBy;
-
-            if (remainingAfterAllocation == 0m)
-            {
-                invoice.DocStatus = DocStatus.Closed;
-            }
-        }
-
-        return (null, settledAmounts, paymentAllocations);
     }
 
 }
