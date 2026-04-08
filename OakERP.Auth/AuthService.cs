@@ -50,15 +50,10 @@ public class AuthService(
         var email = Dto.Email.Trim();
         var normalizedEmail = email.ToUpperInvariant();
 
-        if (Dto.Password != Dto.ConfirmPassword)
+        AuthResultDto? validationFailure = ValidateRegistrationInput(Dto, email);
+        if (validationFailure is not null)
         {
-            LogAuditWarning(
-                AuditActionRegistration,
-                email,
-                AuditReasonPasswordsDoNotMatch,
-                tenantName: Dto.TenantName
-            );
-            return AuthResultDto.Fail("Passwords do not match.", HttpStatusCode.BadRequest);
+            return validationFailure;
         }
 
         var existingUser = await identityGateway.FindByEmailAsync(email);
@@ -76,86 +71,32 @@ public class AuthService(
         await unitOfWork.BeginTransactionAsync();
         try
         {
-            // Create Tenant
-            var tenant = new Tenant
-            {
-                Name = Dto.TenantName,
-                License = new License
-                {
-                    Key = Guid.NewGuid().ToString("N"),
-                    CreatedAt = DateTime.UtcNow,
-                    ExpiryDate = DateTime.UtcNow.AddYears(1),
-                },
-            };
+            Tenant tenant = CreateTenant(Dto.TenantName);
             await tenantRepository.AddAsync(tenant);
-
-            // Persist Tenant to get Id
             await unitOfWork.SaveChangesAsync();
 
-            // Create User
-            var user = new ApplicationUser
+            ApplicationUser user = CreateUser(Dto, email, normalizedEmail, tenant.Id);
+            AuthResultDto? createUserFailure = await TryCreateIdentityUserAsync(
+                user,
+                Dto.Password,
+                email,
+                tenant
+            );
+            if (createUserFailure is not null)
             {
-                UserName = email,
-                NormalizedUserName = normalizedEmail,
-                Email = email,
-                NormalizedEmail = normalizedEmail,
-                FirstName = Dto.FirstName,
-                LastName = Dto.LastName,
-                PhoneNumber = Dto.PhoneNumber,
-                EmailConfirmed = true,
-                TenantId = tenant.Id,
-            };
-
-            var createUserResult = await identityGateway.CreateAsync(user, Dto.Password);
-            if (!createUserResult.Succeeded)
-            {
-                await unitOfWork.RollbackAsync();
-                LogAuditWarning(
-                    AuditActionRegistration,
-                    email,
-                    AuditReasonIdentityCreateFailed,
-                    tenantId: tenant.Id,
-                    tenantName: tenant.Name
-                );
-                return AuthResultDto.Fail(
-                    createUserResult.Errors.First().Description,
-                    HttpStatusCode.BadRequest
-                );
+                return createUserFailure;
             }
 
-            var addToRoleResult = await identityGateway.AddToRoleAsync(user, UserRoles.Admin);
-            if (!addToRoleResult.Succeeded)
+            AuthResultDto? roleFailure = await TryAssignAdminRoleAsync(user, email, tenant);
+            if (roleFailure is not null)
             {
-                await unitOfWork.RollbackAsync();
-                LogAuditWarning(
-                    AuditActionRegistration,
-                    email,
-                    AuditReasonRoleAssignmentFailed,
-                    userId: user.Id,
-                    tenantId: tenant.Id,
-                    tenantName: tenant.Name
-                );
-                return AuthResultDto.Fail(
-                    "User created but failed to assign role.",
-                    HttpStatusCode.InternalServerError
-                );
+                return roleFailure;
             }
 
-            // Commit Transaction
             await unitOfWork.SaveChangesAsync();
             await unitOfWork.CommitAsync();
 
-            LogAuditInformation(
-                AuditActionRegistration,
-                email,
-                userId: user.Id,
-                tenantId: tenant.Id,
-                tenantName: tenant.Name
-            );
-
-            var token = jwtGenerator.Generate(MapToJwtTokenInput(user));
-
-            return AuthResultDto.SuccessWith(token, $"{user.FirstName} {user.LastName}");
+            return BuildRegistrationSuccess(user, email, tenant);
         }
         catch (Exception ex)
         {
@@ -177,7 +118,7 @@ public class AuthService(
     public async Task<AuthResultDto> LoginAsync(LoginDto Dto)
     {
         var email = Dto.Email.Trim();
-        var user = await identityGateway.FindByEmailAsync(email);
+        ApplicationUser? user = await identityGateway.FindByEmailAsync(email);
 
         if (user is null)
         {
@@ -185,27 +126,173 @@ public class AuthService(
             return AuthResultDto.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
         }
 
-        // Check password WITHOUT signing in
+        AuthResultDto? credentialFailure = await ValidateLoginCredentialsAsync(user, Dto, email);
+        if (credentialFailure is not null)
+        {
+            return credentialFailure;
+        }
+
+        var (tenant, tenantFailure) = await GetValidatedTenantAsync(user, email);
+        if (tenantFailure is not null)
+        {
+            return tenantFailure;
+        }
+
+        return await BuildLoginSuccessAsync(user, tenant!, email);
+    }
+
+    private AuthResultDto? ValidateRegistrationInput(RegisterDto Dto, string email)
+    {
+        if (Dto.Password == Dto.ConfirmPassword)
+        {
+            return null;
+        }
+
+        LogAuditWarning(
+            AuditActionRegistration,
+            email,
+            AuditReasonPasswordsDoNotMatch,
+            tenantName: Dto.TenantName
+        );
+        return AuthResultDto.Fail("Passwords do not match.", HttpStatusCode.BadRequest);
+    }
+
+    private static Tenant CreateTenant(string tenantName) =>
+        new()
+        {
+            Name = tenantName,
+            License = new License
+            {
+                Key = Guid.NewGuid().ToString("N"),
+                CreatedAt = DateTime.UtcNow,
+                ExpiryDate = DateTime.UtcNow.AddYears(1),
+            },
+        };
+
+    private static ApplicationUser CreateUser(
+        RegisterDto Dto,
+        string email,
+        string normalizedEmail,
+        Guid tenantId
+    ) =>
+        new()
+        {
+            UserName = email,
+            NormalizedUserName = normalizedEmail,
+            Email = email,
+            NormalizedEmail = normalizedEmail,
+            FirstName = Dto.FirstName,
+            LastName = Dto.LastName,
+            PhoneNumber = Dto.PhoneNumber,
+            EmailConfirmed = true,
+            TenantId = tenantId,
+        };
+
+    private async Task<AuthResultDto?> TryCreateIdentityUserAsync(
+        ApplicationUser user,
+        string password,
+        string email,
+        Tenant tenant
+    )
+    {
+        var createUserResult = await identityGateway.CreateAsync(user, password);
+        if (createUserResult.Succeeded)
+        {
+            return null;
+        }
+
+        await unitOfWork.RollbackAsync();
+        LogAuditWarning(
+            AuditActionRegistration,
+            email,
+            AuditReasonIdentityCreateFailed,
+            tenantId: tenant.Id,
+            tenantName: tenant.Name
+        );
+        return AuthResultDto.Fail(
+            createUserResult.Errors.First().Description,
+            HttpStatusCode.BadRequest
+        );
+    }
+
+    private async Task<AuthResultDto?> TryAssignAdminRoleAsync(
+        ApplicationUser user,
+        string email,
+        Tenant tenant
+    )
+    {
+        var addToRoleResult = await identityGateway.AddToRoleAsync(user, UserRoles.Admin);
+        if (addToRoleResult.Succeeded)
+        {
+            return null;
+        }
+
+        await unitOfWork.RollbackAsync();
+        LogAuditWarning(
+            AuditActionRegistration,
+            email,
+            AuditReasonRoleAssignmentFailed,
+            userId: user.Id,
+            tenantId: tenant.Id,
+            tenantName: tenant.Name
+        );
+        return AuthResultDto.Fail(
+            "User created but failed to assign role.",
+            HttpStatusCode.InternalServerError
+        );
+    }
+
+    private AuthResultDto BuildRegistrationSuccess(
+        ApplicationUser user,
+        string email,
+        Tenant tenant
+    )
+    {
+        LogAuditInformation(
+            AuditActionRegistration,
+            email,
+            userId: user.Id,
+            tenantId: tenant.Id,
+            tenantName: tenant.Name
+        );
+
+        string token = jwtGenerator.Generate(MapToJwtTokenInput(user));
+        return AuthResultDto.SuccessWith(token, $"{user.FirstName} {user.LastName}");
+    }
+
+    private async Task<AuthResultDto?> ValidateLoginCredentialsAsync(
+        ApplicationUser user,
+        LoginDto Dto,
+        string email
+    )
+    {
         var pwdCheck = await identityGateway.CheckPasswordSignInAsync(
             user,
             Dto.Password,
-            lockoutOnFailure: false // enable lockout if you want
+            lockoutOnFailure: false
         );
 
-        if (!pwdCheck.Succeeded)
+        if (pwdCheck.Succeeded)
         {
-            LogAuditWarning(
-                AuditActionLogin,
-                email,
-                AuditReasonInvalidCredentials,
-                userId: user.Id,
-                tenantId: user.TenantId
-            );
-            return AuthResultDto.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
+            return null;
         }
 
-        // Load tenant (ideally include License in one query)
-        var tenant = await tenantRepository.FindWithLicenseAsync(user.TenantId);
+        LogAuditWarning(
+            AuditActionLogin,
+            email,
+            AuditReasonInvalidCredentials,
+            userId: user.Id,
+            tenantId: user.TenantId
+        );
+        return AuthResultDto.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
+    }
+
+    private async Task<(Tenant? tenant, AuthResultDto? failure)> GetValidatedTenantAsync(
+        ApplicationUser user,
+        string email
+    )
+    {
+        Tenant? tenant = await tenantRepository.FindWithLicenseAsync(user.TenantId);
 
         if (tenant is null)
         {
@@ -216,7 +303,7 @@ public class AuthService(
                 userId: user.Id,
                 tenantId: user.TenantId
             );
-            return AuthResultDto.Fail("Tenant not found.", HttpStatusCode.NotFound);
+            return (null, AuthResultDto.Fail("Tenant not found.", HttpStatusCode.NotFound));
         }
 
         if (tenant.License is null)
@@ -229,7 +316,10 @@ public class AuthService(
                 tenantId: tenant.Id,
                 tenantName: tenant.Name
             );
-            return AuthResultDto.Fail("License not found for tenant.", HttpStatusCode.Forbidden);
+            return (
+                null,
+                AuthResultDto.Fail("License not found for tenant.", HttpStatusCode.Forbidden)
+            );
         }
 
         if (tenant.License.ExpiryDate is not null && tenant.License.ExpiryDate <= DateTime.UtcNow)
@@ -242,10 +332,20 @@ public class AuthService(
                 tenantId: tenant.Id,
                 tenantName: tenant.Name
             );
-            return AuthResultDto.Fail("License has expired.", HttpStatusCode.Forbidden);
+            return (null, AuthResultDto.Fail("License has expired.", HttpStatusCode.Forbidden));
         }
-        var primaryRole = (await identityGateway.GetRolesAsync(user)).FirstOrDefault() ?? "User";
-        var token = jwtGenerator.Generate(MapToJwtTokenInput(user));
+
+        return (tenant, null);
+    }
+
+    private async Task<AuthResultDto> BuildLoginSuccessAsync(
+        ApplicationUser user,
+        Tenant tenant,
+        string email
+    )
+    {
+        string primaryRole = (await identityGateway.GetRolesAsync(user)).FirstOrDefault() ?? "User";
+        string token = jwtGenerator.Generate(MapToJwtTokenInput(user));
 
         LogAuditInformation(
             AuditActionLogin,

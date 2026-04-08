@@ -11,12 +11,10 @@ public sealed class SettlementAllocationApplicatorTests
     {
         var document = CreateDocument(unappliedAmount: 10m);
         Dictionary<Guid, FakeInvoice> invoices = CreateInvoices([CreateInvoiceEntry(docTotal: 50m)]);
-        var spec = CreateSpec();
+        var spec = CreateSpec(document, invoices);
 
         var (failure, _, _) = await SettlementAllocationApplicator.ApplyAsync(
-            document,
-            invoices,
-            [new FakeAllocationInput { InvoiceId = invoices.Keys.Single(), AmountApplied = 15m }],
+            [new SettlementAllocationInput(invoices.Keys.Single(), 15m)],
             new DateOnly(2026, 4, 8),
             "unit-user",
             spec
@@ -32,12 +30,10 @@ public sealed class SettlementAllocationApplicatorTests
         Dictionary<Guid, FakeInvoice> invoices = CreateInvoices(
             [CreateInvoiceEntry(docTotal: 10m, settledAmount: 5m)]
         );
-        var spec = CreateSpec();
+        var spec = CreateSpec(document, invoices);
 
         var (failure, _, _) = await SettlementAllocationApplicator.ApplyAsync(
-            document,
-            invoices,
-            [new FakeAllocationInput { InvoiceId = invoices.Keys.Single(), AmountApplied = 6m }],
+            [new SettlementAllocationInput(invoices.Keys.Single(), 6m)],
             new DateOnly(2026, 4, 8),
             "unit-user",
             spec
@@ -51,12 +47,10 @@ public sealed class SettlementAllocationApplicatorTests
     {
         var document = CreateDocument(unappliedAmount: 50m);
         Dictionary<Guid, FakeInvoice> invoices = CreateInvoices([CreateInvoiceEntry(docTotal: 100m)]);
-        var spec = CreateSpec();
+        var spec = CreateSpec(document, invoices);
 
         var (failure, settledAmounts, allocations) = await SettlementAllocationApplicator.ApplyAsync(
-            document,
-            invoices,
-            [new FakeAllocationInput { InvoiceId = invoices.Keys.Single(), AmountApplied = 40m }],
+            [new SettlementAllocationInput(invoices.Keys.Single(), 40m)],
             new DateOnly(2026, 4, 8),
             "unit-user",
             spec
@@ -73,12 +67,10 @@ public sealed class SettlementAllocationApplicatorTests
     {
         var document = CreateDocument(unappliedAmount: 50m);
         Dictionary<Guid, FakeInvoice> invoices = CreateInvoices([CreateInvoiceEntry(docTotal: 40m)]);
-        var spec = CreateSpec();
+        var spec = CreateSpec(document, invoices);
 
         var (failure, settledAmounts, allocations) = await SettlementAllocationApplicator.ApplyAsync(
-            document,
-            invoices,
-            [new FakeAllocationInput { InvoiceId = invoices.Keys.Single(), AmountApplied = 40m }],
+            [new SettlementAllocationInput(invoices.Keys.Single(), 40m)],
             new DateOnly(2026, 4, 8),
             "unit-user",
             spec
@@ -101,14 +93,12 @@ public sealed class SettlementAllocationApplicatorTests
             ]
         );
         Guid[] invoiceIds = [.. invoices.Keys];
-        var spec = CreateSpec();
+        var spec = CreateSpec(document, invoices);
 
         var (failure, settledAmounts, allocations) = await SettlementAllocationApplicator.ApplyAsync(
-            document,
-            invoices,
             [
-                new FakeAllocationInput { InvoiceId = invoiceIds[0], AmountApplied = 20m },
-                new FakeAllocationInput { InvoiceId = invoiceIds[1], AmountApplied = 15m },
+                new SettlementAllocationInput(invoiceIds[0], 20m),
+                new SettlementAllocationInput(invoiceIds[1], 15m),
             ],
             new DateOnly(2026, 4, 8),
             "unit-user",
@@ -121,52 +111,58 @@ public sealed class SettlementAllocationApplicatorTests
         settledAmounts[invoiceIds[1]].ShouldBe(15m);
     }
 
-    private static SettlementAllocationApplySpec<
-        FakeDocument,
-        FakeInvoice,
-        FakeAllocation,
-        FakeAllocationInput,
-        string
-    > CreateSpec() =>
+    private static SettlementAllocationApplySpec<FakeAllocation, string> CreateSpec(
+        FakeDocument document,
+        IReadOnlyDictionary<Guid, FakeInvoice> invoices
+    ) =>
         new(
-            document => document.Id,
-            document => document.Allocations,
-            document => document.UnappliedAmount,
-            (document, performedBy, updatedAt) =>
+            () => document.Allocations,
+            () => document.UnappliedAmount,
+            (performedBy, updatedAt) =>
             {
                 document.UpdatedBy = performedBy;
                 document.UpdatedAt = updatedAt;
             },
-            invoice => invoice.Id,
-            invoice => invoice.DocNo,
-            invoice => invoice.SettledAmount,
-            (invoice, currentSettledAmount) => invoice.DocTotal - currentSettledAmount,
-            (invoice, performedBy, updatedAt) =>
+            invoiceId =>
             {
-                invoice.UpdatedBy = performedBy;
-                invoice.UpdatedAt = updatedAt;
-            },
-            (invoice, remainingAfterAllocation) =>
-            {
-                if (remainingAfterAllocation == 0m)
+                if (!invoices.TryGetValue(invoiceId, out FakeInvoice? invoice))
                 {
-                    invoice.DocStatus = DocStatus.Closed;
+                    return null;
                 }
+
+                return new SettlementAllocationInvoiceAdapter(
+                    invoice.Id,
+                    invoice.DocNo,
+                    () => invoice.SettledAmount,
+                    currentSettledAmount => invoice.DocTotal - currentSettledAmount,
+                    (performedBy, updatedAt) =>
+                    {
+                        invoice.UpdatedBy = performedBy;
+                        invoice.UpdatedAt = updatedAt;
+                    },
+                    remainingAfterAllocation =>
+                    {
+                        if (remainingAfterAllocation == 0m)
+                        {
+                            invoice.DocStatus = DocStatus.Closed;
+                        }
+                    }
+                );
             },
-            input => input.InvoiceId,
-            input => input.AmountApplied,
-            (documentId, invoiceId, allocationDate, amountApplied) =>
+            (input, allocationDate) =>
                 new FakeAllocation
                 {
-                    DocumentId = documentId,
-                    InvoiceId = invoiceId,
+                    DocumentId = document.Id,
+                    InvoiceId = input.InvoiceId,
                     AllocationDate = allocationDate,
-                    AmountApplied = amountApplied,
+                    AmountApplied = input.AmountApplied,
                 },
-            allocation => Task.CompletedTask,
-            "doc-unapplied",
-            "invoice-missing",
-            docNo => $"invoice-remaining:{docNo}"
+            _ => Task.CompletedTask,
+            new SettlementAllocationFailures<string>(
+                "doc-unapplied",
+                "invoice-missing",
+                docNo => $"invoice-remaining:{docNo}"
+            )
         );
 
     private static FakeDocument CreateDocument(decimal unappliedAmount) =>
@@ -231,13 +227,6 @@ public sealed class SettlementAllocationApplicatorTests
         public Guid InvoiceId { get; init; }
 
         public DateOnly AllocationDate { get; init; }
-
-        public decimal AmountApplied { get; init; }
-    }
-
-    private sealed class FakeAllocationInput
-    {
-        public Guid InvoiceId { get; init; }
 
         public decimal AmountApplied { get; init; }
     }

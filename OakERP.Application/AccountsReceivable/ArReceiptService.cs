@@ -141,12 +141,12 @@ public sealed class ArReceiptService(
 
                 var (allocationFailure, settledAmounts, receiptAllocations) =
                     await SettlementAllocationApplicator.ApplyAsync(
-                        receipt,
-                        invoiceLoadInvoices!,
-                        validatedCommand.Allocations,
+                        ArReceiptSettlementAdapters.CreateAllocationInputs(validatedCommand.Allocations),
                         command.AllocationDate ?? command.ReceiptDate,
                         validatedCommand.PerformedBy,
                         ArReceiptSettlementAdapters.CreateAllocationApplySpec(
+                            receipt,
+                            invoiceLoadInvoices!,
                             arReceiptAllocationRepository
                         )
                     );
@@ -292,12 +292,12 @@ public sealed class ArReceiptService(
 
                 var (allocationFailure, settledAmounts, receiptAllocations) =
                     await SettlementAllocationApplicator.ApplyAsync(
-                        receipt,
-                        invoiceLoadInvoices!,
-                        validatedCommand.Allocations,
+                        ArReceiptSettlementAdapters.CreateAllocationInputs(validatedCommand.Allocations),
                         command.AllocationDate ?? receipt.ReceiptDate,
                         validatedCommand.PerformedBy,
                         ArReceiptSettlementAdapters.CreateAllocationApplySpec(
+                            receipt,
+                            invoiceLoadInvoices!,
                             arReceiptAllocationRepository
                         )
                     );

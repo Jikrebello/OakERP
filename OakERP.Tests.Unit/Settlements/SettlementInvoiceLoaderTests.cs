@@ -18,19 +18,9 @@ public sealed class SettlementInvoiceLoaderTests
                 called = true;
                 return Task.FromResult<IReadOnlyList<FakeInvoice>>([]);
             },
-            invoice => invoice.Id,
-            invoice => invoice.DocNo,
-            invoice => invoice.DocStatus,
-            invoice => invoice.PartyId,
-            invoice => invoice.CurrencyCode,
-            invoice => invoice.RemainingAmount,
-            ExpectedPartyId,
-            "ZAR",
-            "missing",
-            "status",
-            "party",
-            "currency",
-            docNo => $"remaining:{docNo}"
+            DescribeInvoice,
+            new SettlementInvoiceLoadExpectations(ExpectedPartyId, "ZAR"),
+            CreateFailures()
         );
 
         var (invoices, failure) = await SettlementInvoiceLoader.LoadAsync([], spec, default);
@@ -138,20 +128,23 @@ public sealed class SettlementInvoiceLoaderTests
     ) =>
         new(
             (_, _) => Task.FromResult(invoices),
-            invoice => invoice.Id,
-            invoice => invoice.DocNo,
-            invoice => invoice.DocStatus,
-            invoice => invoice.PartyId,
-            invoice => invoice.CurrencyCode,
-            invoice => invoice.RemainingAmount,
-            ExpectedPartyId,
-            "ZAR",
-            "missing",
-            "status",
-            "party",
-            "currency",
-            docNo => $"remaining:{docNo}"
+            DescribeInvoice,
+            new SettlementInvoiceLoadExpectations(ExpectedPartyId, "ZAR"),
+            CreateFailures()
         );
+
+    private static SettlementInvoiceSnapshot DescribeInvoice(FakeInvoice invoice) =>
+        new(
+            invoice.Id,
+            invoice.DocNo,
+            invoice.DocStatus,
+            invoice.PartyId,
+            invoice.CurrencyCode,
+            invoice.RemainingAmount
+        );
+
+    private static SettlementInvoiceLoadFailures<string> CreateFailures() =>
+        new("missing", "status", "party", "currency", docNo => $"remaining:{docNo}");
 
     private sealed class FakeInvoice
     {

@@ -1,67 +1,59 @@
 namespace OakERP.Application.Settlements;
 
-internal sealed class SettlementAllocationApplySpec<
-    TDocument,
-    TInvoice,
-    TAllocation,
-    TAllocationInput,
-    TFailure
->(
-    Func<TDocument, Guid> getDocumentId,
-    Func<TDocument, IReadOnlyCollection<TAllocation>> getExistingAllocations,
-    Func<TDocument, decimal> getDocumentUnappliedAmount,
-    Action<TDocument, string, DateTimeOffset> touchDocument,
-    Func<TInvoice, Guid> getInvoiceId,
-    Func<TInvoice, string> getDocNo,
-    Func<TInvoice, decimal> getSettledAmount,
-    Func<TInvoice, decimal, decimal> getRemainingAmount,
-    Action<TInvoice, string, DateTimeOffset> touchInvoice,
-    Action<TInvoice, decimal> updateInvoiceStatusForRemainingAmount,
-    Func<TAllocationInput, Guid> getInputInvoiceId,
-    Func<TAllocationInput, decimal> getInputAmountApplied,
-    Func<Guid, Guid, DateOnly, decimal, TAllocation> createAllocation,
-    Func<TAllocation, Task> persistAllocationAsync,
-    TFailure documentUnappliedAmountExceededFailure,
-    TFailure invoiceNotFoundFailure,
-    Func<string, TFailure> invoiceRemainingAmountExceededFailureFactory
+internal sealed record SettlementAllocationInput(Guid InvoiceId, decimal AmountApplied);
+
+internal sealed record SettlementAllocationFailures<TFailure>(
+    TFailure DocumentUnappliedAmountExceededFailure,
+    TFailure InvoiceNotFoundFailure,
+    Func<string, TFailure> InvoiceRemainingAmountExceededFailureFactory
+);
+
+internal sealed class SettlementAllocationInvoiceAdapter(
+    Guid invoiceId,
+    string docNo,
+    Func<decimal> getSettledAmount,
+    Func<decimal, decimal> getRemainingAmount,
+    Action<string, DateTimeOffset> touchInvoice,
+    Action<decimal> updateInvoiceStatusForRemainingAmount
 )
 {
-    public Func<TDocument, Guid> GetDocumentId { get; } = getDocumentId;
+    public Guid InvoiceId { get; } = invoiceId;
 
-    public Func<TDocument, IReadOnlyCollection<TAllocation>> GetExistingAllocations { get; } =
+    public string DocNo { get; } = docNo;
+
+    public Func<decimal> GetSettledAmount { get; } = getSettledAmount;
+
+    public Func<decimal, decimal> GetRemainingAmount { get; } = getRemainingAmount;
+
+    public Action<string, DateTimeOffset> TouchInvoice { get; } = touchInvoice;
+
+    public Action<decimal> UpdateInvoiceStatusForRemainingAmount { get; } =
+        updateInvoiceStatusForRemainingAmount;
+}
+
+internal sealed class SettlementAllocationApplySpec<TAllocation, TFailure>(
+    Func<IReadOnlyCollection<TAllocation>> getExistingAllocations,
+    Func<decimal> getDocumentUnappliedAmount,
+    Action<string, DateTimeOffset> touchDocument,
+    Func<Guid, SettlementAllocationInvoiceAdapter?> findInvoice,
+    Func<SettlementAllocationInput, DateOnly, TAllocation> createAllocation,
+    Func<TAllocation, Task> persistAllocationAsync,
+    SettlementAllocationFailures<TFailure> failures
+)
+{
+    public Func<IReadOnlyCollection<TAllocation>> GetExistingAllocations { get; } =
         getExistingAllocations;
 
-    public Func<TDocument, decimal> GetDocumentUnappliedAmount { get; } = getDocumentUnappliedAmount;
+    public Func<decimal> GetDocumentUnappliedAmount { get; } = getDocumentUnappliedAmount;
 
-    public Action<TDocument, string, DateTimeOffset> TouchDocument { get; } = touchDocument;
+    public Action<string, DateTimeOffset> TouchDocument { get; } = touchDocument;
 
-    public Func<TInvoice, Guid> GetInvoiceId { get; } = getInvoiceId;
+    public Func<Guid, SettlementAllocationInvoiceAdapter?> FindInvoice { get; } = findInvoice;
 
-    public Func<TInvoice, string> GetDocNo { get; } = getDocNo;
-
-    public Func<TInvoice, decimal> GetSettledAmount { get; } = getSettledAmount;
-
-    public Func<TInvoice, decimal, decimal> GetRemainingAmount { get; } = getRemainingAmount;
-
-    public Action<TInvoice, string, DateTimeOffset> TouchInvoice { get; } = touchInvoice;
-
-    public Action<TInvoice, decimal> UpdateInvoiceStatusForRemainingAmount { get; } =
-        updateInvoiceStatusForRemainingAmount;
-
-    public Func<TAllocationInput, Guid> GetInputInvoiceId { get; } = getInputInvoiceId;
-
-    public Func<TAllocationInput, decimal> GetInputAmountApplied { get; } = getInputAmountApplied;
-
-    public Func<Guid, Guid, DateOnly, decimal, TAllocation> CreateAllocation { get; } =
+    public Func<SettlementAllocationInput, DateOnly, TAllocation> CreateAllocation { get; } =
         createAllocation;
 
     public Func<TAllocation, Task> PersistAllocationAsync { get; } = persistAllocationAsync;
 
-    public TFailure DocumentUnappliedAmountExceededFailure { get; } =
-        documentUnappliedAmountExceededFailure;
-
-    public TFailure InvoiceNotFoundFailure { get; } = invoiceNotFoundFailure;
-
-    public Func<string, TFailure> InvoiceRemainingAmountExceededFailureFactory { get; } =
-        invoiceRemainingAmountExceededFailureFactory;
+    public SettlementAllocationFailures<TFailure> Failures { get; } = failures;
 }

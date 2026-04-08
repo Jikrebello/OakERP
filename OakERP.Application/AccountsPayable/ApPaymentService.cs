@@ -142,12 +142,12 @@ public sealed class ApPaymentService(
 
                 var (allocationFailure, settledAmounts, paymentAllocations) =
                     await SettlementAllocationApplicator.ApplyAsync(
-                        payment,
-                        invoiceLoadInvoices!,
-                        validatedCommand.Allocations,
+                        ApPaymentSettlementAdapters.CreateAllocationInputs(validatedCommand.Allocations),
                         command.AllocationDate ?? command.PaymentDate,
                         validatedCommand.PerformedBy,
                         ApPaymentSettlementAdapters.CreateAllocationApplySpec(
+                            payment,
+                            invoiceLoadInvoices!,
                             apPaymentAllocationRepository
                         )
                     );
@@ -293,12 +293,12 @@ public sealed class ApPaymentService(
 
                 var (allocationFailure, settledAmounts, paymentAllocations) =
                     await SettlementAllocationApplicator.ApplyAsync(
-                        payment,
-                        invoiceLoadInvoices!,
-                        validatedCommand.Allocations,
+                        ApPaymentSettlementAdapters.CreateAllocationInputs(validatedCommand.Allocations),
                         command.AllocationDate ?? payment.PaymentDate,
                         validatedCommand.PerformedBy,
                         ApPaymentSettlementAdapters.CreateAllocationApplySpec(
+                            payment,
+                            invoiceLoadInvoices!,
                             apPaymentAllocationRepository
                         )
                     );

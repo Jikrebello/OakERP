@@ -23,38 +23,40 @@ internal static class SettlementInvoiceLoader
 
         if (invoices.Count != invoiceIds.Count)
         {
-            return (null, spec.InvoicesNotFoundFailure);
+            return (null, spec.Failures.InvoicesNotFoundFailure);
         }
 
         foreach (TInvoice invoice in invoices)
         {
-            if (spec.GetDocStatus(invoice) != Common.Enums.DocStatus.Posted)
+            SettlementInvoiceSnapshot snapshot = spec.DescribeInvoice(invoice);
+
+            if (snapshot.DocStatus != Common.Enums.DocStatus.Posted)
             {
-                return (null, spec.InvoiceNotPostedFailure);
+                return (null, spec.Failures.InvoiceNotPostedFailure);
             }
 
-            if (spec.GetPartyId(invoice) != spec.ExpectedPartyId)
+            if (snapshot.PartyId != spec.Expectations.ExpectedPartyId)
             {
-                return (null, spec.PartyMismatchFailure);
+                return (null, spec.Failures.PartyMismatchFailure);
             }
 
             if (
                 !string.Equals(
-                    spec.GetCurrencyCode(invoice),
-                    spec.ExpectedCurrencyCode,
+                    snapshot.CurrencyCode,
+                    spec.Expectations.ExpectedCurrencyCode,
                     StringComparison.OrdinalIgnoreCase
                 )
             )
             {
-                return (null, spec.CurrencyMismatchFailure);
+                return (null, spec.Failures.CurrencyMismatchFailure);
             }
 
-            if (spec.GetRemainingAmount(invoice) <= 0m)
+            if (snapshot.RemainingAmount <= 0m)
             {
-                return (null, spec.NoRemainingBalanceFailureFactory(spec.GetDocNo(invoice)));
+                return (null, spec.Failures.NoRemainingBalanceFailureFactory(snapshot.DocNo));
             }
         }
 
-        return (invoices.ToDictionary(spec.GetInvoiceId), default);
+        return (invoices.ToDictionary(invoice => spec.DescribeInvoice(invoice).Id), default);
     }
 }
