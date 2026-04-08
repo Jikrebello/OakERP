@@ -95,6 +95,10 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- documentation-refresh
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- dto-to-dto-casing
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
@@ -493,6 +497,8 @@ OakERP
 |   +-- MauiProgram.cs
 |   \-- OakERP.Desktop.csproj
 +-- OakERP.Docs
+|   +-- api-conventions.md
+|   +-- architecture-overview.md
 |   +-- db-setup.md
 |   +-- ef-core.md
 |   +-- local-https-dev-cert.md
