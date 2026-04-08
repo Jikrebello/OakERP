@@ -14,6 +14,9 @@ This section will grow over time to include detailed notes on setting up your en
 - [🧰 EF Core Migration Helper](ef-core.md)  
   Use the provided PowerShell script to manage migrations cleanly.
 
+- [🔐 Local HTTPS Dev Certificate](local-https-dev-cert.md)  
+  Fix localhost certificate trust for the API HTTPS profile and keep HTTP as fallback.
+
 - [🧪 Testing Guide](oakERP-testing-guide.md)  
   Understand the testing strategy and how to write effective tests.
 ---
