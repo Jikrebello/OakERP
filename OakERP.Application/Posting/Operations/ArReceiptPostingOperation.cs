@@ -28,7 +28,10 @@ internal sealed class ArReceiptPostingOperation(
             {
                 ArReceipt receipt =
                     await arReceiptRepository.GetTrackedForPostingAsync(command.SourceId, ct)
-                    ?? throw new ResourceNotFoundException("AR receipt", command.SourceId.ToString());
+                    ?? throw new ResourceNotFoundException(
+                        "AR receipt",
+                        command.SourceId.ToString()
+                    );
 
                 PostingOperationSupport.EnsureDraftStatus(
                     receipt.DocStatus,

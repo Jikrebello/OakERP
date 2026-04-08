@@ -1,11 +1,11 @@
 using OakERP.Common.Enums;
 using OakERP.Domain.AccountsPayable;
 using OakERP.Domain.Entities.AccountsPayable;
+using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.AccountsPayable;
 using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Domain.RepositoryInterfaces.AccountsPayable;
-using OakERP.Domain.Entities.GeneralLedger;
 
 namespace OakERP.Application.Posting.Operations;
 
@@ -28,7 +28,10 @@ internal sealed class ApPaymentPostingOperation(
             {
                 ApPayment payment =
                     await apPaymentRepository.GetTrackedForPostingAsync(command.SourceId, ct)
-                    ?? throw new ResourceNotFoundException("AP payment", command.SourceId.ToString());
+                    ?? throw new ResourceNotFoundException(
+                        "AP payment",
+                        command.SourceId.ToString()
+                    );
 
                 PostingOperationSupport.EnsureDraftStatus(
                     payment.DocStatus,

@@ -63,9 +63,7 @@ public static class ApInvoiceCommandValidator
             return Fail(ApInvoiceErrors.VendorInvoiceNumberRequired);
         }
 
-        return invoiceNo.Length > 40
-            ? Fail(ApInvoiceErrors.VendorInvoiceNumberTooLong)
-            : null;
+        return invoiceNo.Length > 40 ? Fail(ApInvoiceErrors.VendorInvoiceNumberTooLong) : null;
     }
 
     private static ApInvoiceCommandResultDto? ValidateInvoiceDates(
@@ -84,9 +82,7 @@ public static class ApInvoiceCommandValidator
     }
 
     private static ApInvoiceCommandResultDto? ValidateMemo(string? memo) =>
-        memo is not null && memo.Length > 512
-            ? Fail(ApInvoiceErrors.MemoTooLong)
-            : null;
+        memo is not null && memo.Length > 512 ? Fail(ApInvoiceErrors.MemoTooLong) : null;
 
     private static ApInvoiceCommandResultDto? ValidateCurrencyCode(string currencyCode) =>
         currencyCode.Length != 3 ? Fail(ApInvoiceErrors.CurrencyCodeInvalid) : null;
@@ -113,9 +109,7 @@ public static class ApInvoiceCommandValidator
         }
 
         decimal computedDocTotal = lines.Sum(x => x.LineTotal) + taxTotal;
-        return computedDocTotal != docTotal
-            ? Fail(ApInvoiceErrors.DocumentTotalMismatch)
-            : null;
+        return computedDocTotal != docTotal ? Fail(ApInvoiceErrors.DocumentTotalMismatch) : null;
     }
 
     private static ApInvoiceCommandResultDto? ValidateLines(

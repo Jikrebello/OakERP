@@ -2,7 +2,9 @@ using OakERP.Application.Interfaces.Persistence;
 
 namespace OakERP.Application.Posting.Support;
 
-internal sealed class PostingTransactionExecutor(PostingPersistenceDependencies persistenceDependencies)
+internal sealed class PostingTransactionExecutor(
+    PostingPersistenceDependencies persistenceDependencies
+)
 {
     private IUnitOfWork UnitOfWork => persistenceDependencies.UnitOfWork;
     private IPersistenceFailureClassifier PersistenceFailureClassifier =>

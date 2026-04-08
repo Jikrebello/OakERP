@@ -27,7 +27,11 @@ internal static class SettlementAllocationApplicator
 
         if (requestedTotal > documentUnappliedAmount)
         {
-            return (spec.Failures.DocumentUnappliedAmountExceededFailure, settledAmounts, allocations);
+            return (
+                spec.Failures.DocumentUnappliedAmountExceededFailure,
+                settledAmounts,
+                allocations
+            );
         }
 
         spec.TouchDocument(performedBy, updatedAt);

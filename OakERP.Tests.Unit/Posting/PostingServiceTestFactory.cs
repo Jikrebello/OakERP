@@ -68,7 +68,9 @@ public sealed class PostingServiceTestFactory
         PersistenceFailureClassifier
             .Setup(x => x.IsConcurrencyConflict(It.IsAny<Exception>()))
             .Returns(false);
-        Clock.SetupGet(x => x.UtcNow).Returns(new DateTimeOffset(2026, 4, 8, 12, 0, 0, TimeSpan.Zero));
+        Clock
+            .SetupGet(x => x.UtcNow)
+            .Returns(new DateTimeOffset(2026, 4, 8, 12, 0, 0, TimeSpan.Zero));
     }
 
     public PostingService CreateService() =>

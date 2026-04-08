@@ -19,8 +19,8 @@ public sealed class AuthTransactionRunnerTests
 
         var runner = new AuthTransactionRunner(unitOfWork.Object);
 
-        AuthResultDto result = await runner.ExecuteAsync(
-            () => Task.FromResult(AuthResultDto.SuccessWith("token"))
+        AuthResultDto result = await runner.ExecuteAsync(() =>
+            Task.FromResult(AuthResultDto.SuccessWith("token"))
         );
 
         result.Success.ShouldBeTrue();
@@ -37,8 +37,8 @@ public sealed class AuthTransactionRunnerTests
 
         var runner = new AuthTransactionRunner(unitOfWork.Object);
 
-        AuthResultDto result = await runner.ExecuteAsync(
-            () => Task.FromResult(AuthResultDto.Fail("code", "failure", FailureKind.Validation))
+        AuthResultDto result = await runner.ExecuteAsync(() =>
+            Task.FromResult(AuthResultDto.Fail("code", "failure", FailureKind.Validation))
         );
 
         result.Success.ShouldBeFalse();

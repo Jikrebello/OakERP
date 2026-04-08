@@ -97,7 +97,10 @@ internal sealed class AuthLoginWorkflow(
             return (null, AuthResultDto.Fail(AuthErrors.LicenseNotFound));
         }
 
-        if (tenant.License.ExpiryDate is not null && tenant.License.ExpiryDate <= clock.UtcNow.UtcDateTime)
+        if (
+            tenant.License.ExpiryDate is not null
+            && tenant.License.ExpiryDate <= clock.UtcNow.UtcDateTime
+        )
         {
             auditLogger.LogLoginWarning(
                 email,
@@ -119,7 +122,9 @@ internal sealed class AuthLoginWorkflow(
     )
     {
         string primaryRole = (await identityGateway.GetRolesAsync(user)).FirstOrDefault() ?? "User";
-        string token = jwtGenerator.Generate(new JwtTokenInput(user.Id, user.Email!, user.TenantId));
+        string token = jwtGenerator.Generate(
+            new JwtTokenInput(user.Id, user.Email!, user.TenantId)
+        );
 
         auditLogger.LogLoginSuccess(
             email,

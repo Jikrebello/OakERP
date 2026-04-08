@@ -83,7 +83,10 @@ internal sealed class PostingResultProcessor(PostingPersistenceDependencies pers
             string accountNo in entries.Select(x => x.AccountNo).Distinct(StringComparer.Ordinal)
         )
         {
-            var account = await GlAccountRepository.FindNoTrackingAsync(accountNo, cancellationToken);
+            var account = await GlAccountRepository.FindNoTrackingAsync(
+                accountNo,
+                cancellationToken
+            );
             if (account is null || !account.IsActive)
             {
                 throw new PostingInvariantViolationException(
@@ -139,9 +142,7 @@ internal sealed class PostingResultProcessor(PostingPersistenceDependencies pers
 
         if (debit != credit)
         {
-            throw new PostingInvariantViolationException(
-                "Posting produced unbalanced GL entries."
-            );
+            throw new PostingInvariantViolationException("Posting produced unbalanced GL entries.");
         }
     }
 
@@ -153,8 +154,7 @@ internal sealed class PostingResultProcessor(PostingPersistenceDependencies pers
         }
 
         bool validOneSided =
-            (entry.Debit > 0m && entry.Credit == 0m)
-            || (entry.Credit > 0m && entry.Debit == 0m);
+            (entry.Debit > 0m && entry.Credit == 0m) || (entry.Credit > 0m && entry.Debit == 0m);
         if (!validOneSided)
         {
             throw new PostingInvariantViolationException(

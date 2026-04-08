@@ -11,6 +11,7 @@ namespace OakERP.Tests.Unit.Posting;
 public sealed class ApInvoicePostingServiceTests
 {
     private readonly PostingServiceTestFactory _factory = new();
+
     [Fact]
     public async Task PostAsync_Should_Post_ApInvoice_And_Persist_Gl_Entries_Only()
     {
@@ -333,5 +334,4 @@ public sealed class ApInvoicePostingServiceTests
         );
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
     }
-
 }

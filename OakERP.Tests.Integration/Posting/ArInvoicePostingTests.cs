@@ -203,7 +203,9 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
 
         await PostInvoiceAsync(invoiceId);
 
-        await Should.ThrowAsync<PostingInvariantViolationException>(() => PostInvoiceAsync(invoiceId));
+        await Should.ThrowAsync<PostingInvariantViolationException>(() =>
+            PostInvoiceAsync(invoiceId)
+        );
 
         await WithDbAsync(async db =>
         {
@@ -263,7 +265,9 @@ public sealed class ArInvoicePostingTests : WebApiIntegrationTestBase
     {
         var invoiceId = await SeedInvoiceScenarioAsync(includeOpenPeriod: false);
 
-        await Should.ThrowAsync<PostingInvariantViolationException>(() => PostInvoiceAsync(invoiceId));
+        await Should.ThrowAsync<PostingInvariantViolationException>(() =>
+            PostInvoiceAsync(invoiceId)
+        );
 
         await AssertNoPostingWrittenAsync(invoiceId);
     }

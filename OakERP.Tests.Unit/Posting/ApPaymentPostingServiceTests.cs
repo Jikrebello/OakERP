@@ -8,7 +8,6 @@ using Shouldly;
 
 namespace OakERP.Tests.Unit.Posting;
 
-
 public sealed class ApPaymentPostingServiceTests
 {
     private readonly PostingServiceTestFactory _factory = new();

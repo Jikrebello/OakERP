@@ -12,10 +12,10 @@ internal sealed record SettlementDocumentBankAccountSnapshot(
 
 internal static class SettlementDocumentPreconditions
 {
-    public static async Task<(SettlementDocumentPartySnapshot? party, TResult? failure)> LoadActivePartyAsync<
-        TParty,
-        TResult
-    >(
+    public static async Task<(
+        SettlementDocumentPartySnapshot? party,
+        TResult? failure
+    )> LoadActivePartyAsync<TParty, TResult>(
         Func<CancellationToken, Task<TParty?>> loadPartyAsync,
         Func<TParty, SettlementDocumentPartySnapshot> describeParty,
         TResult notFoundFailure,
@@ -61,8 +61,7 @@ internal static class SettlementDocumentPreconditions
         string expectedCurrencyCode,
         Func<string, string, bool> matchesCurrency,
         TResult failure
-    ) =>
-        matchesCurrency(actualCurrencyCode, expectedCurrencyCode) ? default : failure;
+    ) => matchesCurrency(actualCurrencyCode, expectedCurrencyCode) ? default : failure;
 
     public static TResult? EnsureDraftStatus<TResult>(DocStatus docStatus, TResult failure) =>
         docStatus == DocStatus.Draft ? default : failure;

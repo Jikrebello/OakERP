@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using OakERP.Common.Exceptions;
 using OakERP.Common.Enums;
+using OakERP.Common.Exceptions;
 
 namespace OakERP.Infrastructure.Persistence
 {

@@ -31,7 +31,11 @@ public sealed class GlobalExceptionHandler(
 
         ProblemDetails problemDetails = CreateProblemDetails(exception);
 
-        LogException(exception, httpContext, problemDetails.Status ?? StatusCodes.Status500InternalServerError);
+        LogException(
+            exception,
+            httpContext,
+            problemDetails.Status ?? StatusCodes.Status500InternalServerError
+        );
 
         return await problemDetailsService.TryWriteAsync(
             new ProblemDetailsContext
@@ -73,7 +77,12 @@ public sealed class GlobalExceptionHandler(
 
         if (statusCode >= StatusCodes.Status500InternalServerError)
         {
-            logger.LogError(exception, "Unhandled exception for HTTP {Method} {Path}", method, path);
+            logger.LogError(
+                exception,
+                "Unhandled exception for HTTP {Method} {Path}",
+                method,
+                path
+            );
             return;
         }
 

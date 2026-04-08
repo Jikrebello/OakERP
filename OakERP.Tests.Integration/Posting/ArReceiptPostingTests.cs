@@ -82,7 +82,9 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
 
         await PostReceiptAsync(receiptId);
 
-        await Should.ThrowAsync<PostingInvariantViolationException>(() => PostReceiptAsync(receiptId));
+        await Should.ThrowAsync<PostingInvariantViolationException>(() =>
+            PostReceiptAsync(receiptId)
+        );
 
         await WithDbAsync(async db =>
         {
@@ -137,7 +139,9 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
     {
         var receiptId = await SeedReceiptScenarioAsync(includeOpenPeriod: false);
 
-        await Should.ThrowAsync<PostingInvariantViolationException>(() => PostReceiptAsync(receiptId));
+        await Should.ThrowAsync<PostingInvariantViolationException>(() =>
+            PostReceiptAsync(receiptId)
+        );
 
         await AssertNoPostingWrittenAsync(receiptId);
     }

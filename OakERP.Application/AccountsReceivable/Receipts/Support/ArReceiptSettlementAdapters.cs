@@ -7,7 +7,10 @@ namespace OakERP.Application.AccountsReceivable.Receipts.Support;
 
 internal static class ArReceiptSettlementAdapters
 {
-    public static SettlementInvoiceLoadSpec<ArInvoice, ArReceiptCommandResultDto> CreateInvoiceLoadSpec(
+    public static SettlementInvoiceLoadSpec<
+        ArInvoice,
+        ArReceiptCommandResultDto
+    > CreateInvoiceLoadSpec(
         IArInvoiceRepository arInvoiceRepository,
         Guid customerId,
         string currencyCode
@@ -15,30 +18,41 @@ internal static class ArReceiptSettlementAdapters
         new(
             (invoiceIds, cancellationToken) =>
                 arInvoiceRepository.GetTrackedForAllocationAsync(invoiceIds, cancellationToken),
-            invoice =>
-                new SettlementInvoiceSnapshot(
-                    invoice.Id,
-                    invoice.DocNo,
-                    invoice.DocStatus,
-                    invoice.CustomerId,
-                    invoice.CurrencyCode,
-                    ArSettlementCalculator.GetInvoiceRemainingAmount(invoice)
-                ),
+            invoice => new SettlementInvoiceSnapshot(
+                invoice.Id,
+                invoice.DocNo,
+                invoice.DocStatus,
+                invoice.CustomerId,
+                invoice.CurrencyCode,
+                ArSettlementCalculator.GetInvoiceRemainingAmount(invoice)
+            ),
             new SettlementInvoiceLoadExpectations(customerId, currencyCode),
             new SettlementInvoiceLoadFailures<ArReceiptCommandResultDto>(
                 ArReceiptCommandResultDto.Fail(ArReceiptErrors.InvoicesNotFound),
                 ArReceiptCommandResultDto.Fail(ArReceiptErrors.OnlyPostedInvoicesAllowed),
                 ArReceiptCommandResultDto.Fail(ArReceiptErrors.SameCustomerRequired),
                 ArReceiptCommandResultDto.Fail(ArReceiptErrors.SameCurrencyRequired),
-                docNo => ArReceiptCommandResultDto.Fail(ArReceiptErrors.InvoiceWithoutRemainingBalance(docNo))
+                docNo =>
+                    ArReceiptCommandResultDto.Fail(
+                        ArReceiptErrors.InvoiceWithoutRemainingBalance(docNo)
+                    )
             )
         );
 
     public static IReadOnlyList<SettlementAllocationInput> CreateAllocationInputs(
         IReadOnlyList<ArReceiptAllocationInputDto> allocations
-    ) => [.. allocations.Select(input => new SettlementAllocationInput(input.ArInvoiceId, input.AmountApplied))];
+    ) =>
+        [
+            .. allocations.Select(input => new SettlementAllocationInput(
+                input.ArInvoiceId,
+                input.AmountApplied
+            )),
+        ];
 
-    public static SettlementAllocationApplySpec<ArReceiptAllocation, ArReceiptCommandResultDto> CreateAllocationApplySpec(
+    public static SettlementAllocationApplySpec<
+        ArReceiptAllocation,
+        ArReceiptCommandResultDto
+    > CreateAllocationApplySpec(
         ArReceipt receipt,
         IReadOnlyDictionary<Guid, ArInvoice> invoices,
         IArReceiptAllocationRepository arReceiptAllocationRepository

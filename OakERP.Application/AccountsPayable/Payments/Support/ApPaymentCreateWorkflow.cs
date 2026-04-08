@@ -58,12 +58,11 @@ internal sealed class ApPaymentCreateWorkflow(
                             command.BankAccountId,
                             innerCancellationToken
                         ),
-                    entity =>
-                        new SettlementDocumentBankAccountSnapshot(
-                            entity.Id,
-                            entity.IsActive,
-                            entity.CurrencyCode
-                        ),
+                    entity => new SettlementDocumentBankAccountSnapshot(
+                        entity.Id,
+                        entity.IsActive,
+                        entity.CurrencyCode
+                    ),
                     ApPaymentCommandResultDto.Fail(ApPaymentErrors.BankAccountNotFound),
                     ApPaymentCommandResultDto.Fail(ApPaymentErrors.BankAccountInactive),
                     cancellationToken
@@ -201,7 +200,11 @@ internal sealed class ApPaymentCreateWorkflow(
                 return translatedFailure;
             }
 
-            logger.LogError(ex, "Unexpected failure before creating AP payment {DocNo}", command.DocNo);
+            logger.LogError(
+                ex,
+                "Unexpected failure before creating AP payment {DocNo}",
+                command.DocNo
+            );
             return ApPaymentCommandResultDto.Fail(ApPaymentErrors.UnexpectedCreateFailure);
         }
     }

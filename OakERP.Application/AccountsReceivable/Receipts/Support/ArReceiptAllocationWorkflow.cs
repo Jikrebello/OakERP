@@ -145,7 +145,11 @@ internal sealed class ArReceiptAllocationWorkflow(
                 return translatedFailure;
             }
 
-            logger.LogError(ex, "Unexpected failure while allocating AR receipt {ReceiptId}", command.ReceiptId);
+            logger.LogError(
+                ex,
+                "Unexpected failure while allocating AR receipt {ReceiptId}",
+                command.ReceiptId
+            );
             return ArReceiptCommandResultDto.Fail(ArReceiptErrors.UnexpectedAllocateFailure);
         }
     }

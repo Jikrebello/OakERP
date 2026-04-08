@@ -30,12 +30,7 @@ public sealed class WorkflowFailureTranslatorTests
 
         string? translated = WorkflowFailureTranslator.TryTranslate(
             exception,
-            [
-                new WorkflowExceptionRule<string>(
-                    ex => ex is NotSupportedException,
-                    _ => "matched"
-                ),
-            ]
+            [new WorkflowExceptionRule<string>(ex => ex is NotSupportedException, _ => "matched")]
         );
 
         translated.ShouldBeNull();

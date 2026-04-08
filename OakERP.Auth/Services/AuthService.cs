@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using OakERP.Application.Interfaces.Persistence;
-using OakERP.Auth.Internal.Support;
 using OakERP.Auth.Identity;
+using OakERP.Auth.Internal.Support;
 using OakERP.Auth.Jwt;
 using OakERP.Common.Dtos.Auth;
 using OakERP.Common.Time;
@@ -46,7 +46,8 @@ public sealed class AuthService : IAuthService
         );
     }
 
-    public Task<AuthResultDto> RegisterAsync(RegisterDto Dto) => registrationWorkflow.RegisterAsync(Dto);
+    public Task<AuthResultDto> RegisterAsync(RegisterDto Dto) =>
+        registrationWorkflow.RegisterAsync(Dto);
 
     public Task<AuthResultDto> LoginAsync(LoginDto Dto) => loginWorkflow.LoginAsync(Dto);
 }

@@ -7,7 +7,10 @@ namespace OakERP.Application.AccountsPayable.Payments.Support;
 
 internal static class ApPaymentSettlementAdapters
 {
-    public static SettlementInvoiceLoadSpec<ApInvoice, ApPaymentCommandResultDto> CreateInvoiceLoadSpec(
+    public static SettlementInvoiceLoadSpec<
+        ApInvoice,
+        ApPaymentCommandResultDto
+    > CreateInvoiceLoadSpec(
         IApInvoiceRepository apInvoiceRepository,
         Guid vendorId,
         string baseCurrencyCode
@@ -15,30 +18,41 @@ internal static class ApPaymentSettlementAdapters
         new(
             (invoiceIds, cancellationToken) =>
                 apInvoiceRepository.GetTrackedForSettlementAsync(invoiceIds, cancellationToken),
-            invoice =>
-                new SettlementInvoiceSnapshot(
-                    invoice.Id,
-                    invoice.DocNo,
-                    invoice.DocStatus,
-                    invoice.VendorId,
-                    invoice.CurrencyCode,
-                    ApSettlementCalculator.GetInvoiceRemainingAmount(invoice)
-                ),
+            invoice => new SettlementInvoiceSnapshot(
+                invoice.Id,
+                invoice.DocNo,
+                invoice.DocStatus,
+                invoice.VendorId,
+                invoice.CurrencyCode,
+                ApSettlementCalculator.GetInvoiceRemainingAmount(invoice)
+            ),
             new SettlementInvoiceLoadExpectations(vendorId, baseCurrencyCode),
             new SettlementInvoiceLoadFailures<ApPaymentCommandResultDto>(
                 ApPaymentCommandResultDto.Fail(ApPaymentErrors.InvoicesNotFound),
                 ApPaymentCommandResultDto.Fail(ApPaymentErrors.OnlyPostedInvoicesAllowed),
                 ApPaymentCommandResultDto.Fail(ApPaymentErrors.SameVendorRequired),
                 ApPaymentCommandResultDto.Fail(ApPaymentErrors.BaseCurrencyInvoicesOnly),
-                docNo => ApPaymentCommandResultDto.Fail(ApPaymentErrors.InvoiceWithoutRemainingBalance(docNo))
+                docNo =>
+                    ApPaymentCommandResultDto.Fail(
+                        ApPaymentErrors.InvoiceWithoutRemainingBalance(docNo)
+                    )
             )
         );
 
     public static IReadOnlyList<SettlementAllocationInput> CreateAllocationInputs(
         IReadOnlyList<ApPaymentAllocationInputDto> allocations
-    ) => [.. allocations.Select(input => new SettlementAllocationInput(input.ApInvoiceId, input.AmountApplied))];
+    ) =>
+        [
+            .. allocations.Select(input => new SettlementAllocationInput(
+                input.ApInvoiceId,
+                input.AmountApplied
+            )),
+        ];
 
-    public static SettlementAllocationApplySpec<ApPaymentAllocation, ApPaymentCommandResultDto> CreateAllocationApplySpec(
+    public static SettlementAllocationApplySpec<
+        ApPaymentAllocation,
+        ApPaymentCommandResultDto
+    > CreateAllocationApplySpec(
         ApPayment payment,
         IReadOnlyDictionary<Guid, ApInvoice> invoices,
         IApPaymentAllocationRepository apPaymentAllocationRepository

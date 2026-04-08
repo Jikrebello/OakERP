@@ -21,7 +21,10 @@ public sealed class ApInvoicesController(IApInvoiceService apInvoiceService) : B
     [ProducesResponseType(typeof(ApInvoiceCommandResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApInvoiceCommandResultDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApInvoiceCommandResultDto), StatusCodes.Status409Conflict)]
-    [ProducesResponseType(typeof(ApInvoiceCommandResultDto), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(
+        typeof(ApInvoiceCommandResultDto),
+        StatusCodes.Status500InternalServerError
+    )]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create(
         CreateApInvoiceCommand command,

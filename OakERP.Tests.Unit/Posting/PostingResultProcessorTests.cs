@@ -62,18 +62,22 @@ public sealed class PostingResultProcessorTests
         var capturedEntries = new List<GlEntry>();
         var capturedMovements = new List<InventoryLedger>();
 
-        _factory.GlAccountRepository
-            .Setup(x => x.FindNoTrackingAsync("1100", It.IsAny<CancellationToken>()))
+        _factory
+            .GlAccountRepository.Setup(x =>
+                x.FindNoTrackingAsync("1100", It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new GlAccount { AccountNo = "1100", IsActive = true });
-        _factory.GlAccountRepository
-            .Setup(x => x.FindNoTrackingAsync("4000", It.IsAny<CancellationToken>()))
+        _factory
+            .GlAccountRepository.Setup(x =>
+                x.FindNoTrackingAsync("4000", It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new GlAccount { AccountNo = "4000", IsActive = true });
-        _factory.GlEntryRepository
-            .Setup(x => x.AddAsync(It.IsAny<GlEntry>()))
+        _factory
+            .GlEntryRepository.Setup(x => x.AddAsync(It.IsAny<GlEntry>()))
             .Callback<GlEntry>(capturedEntries.Add)
             .Returns(Task.CompletedTask);
-        _factory.InventoryLedgerRepository
-            .Setup(x => x.AddAsync(It.IsAny<InventoryLedger>()))
+        _factory
+            .InventoryLedgerRepository.Setup(x => x.AddAsync(It.IsAny<InventoryLedger>()))
             .Callback<InventoryLedger>(capturedMovements.Add)
             .Returns(Task.CompletedTask);
 

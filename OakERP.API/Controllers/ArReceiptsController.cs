@@ -21,7 +21,10 @@ public sealed class ArReceiptsController(IArReceiptService arReceiptService) : B
     [ProducesResponseType(typeof(ArReceiptCommandResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ArReceiptCommandResultDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ArReceiptCommandResultDto), StatusCodes.Status409Conflict)]
-    [ProducesResponseType(typeof(ArReceiptCommandResultDto), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(
+        typeof(ArReceiptCommandResultDto),
+        StatusCodes.Status500InternalServerError
+    )]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create(
         CreateArReceiptCommand command,
@@ -43,7 +46,10 @@ public sealed class ArReceiptsController(IArReceiptService arReceiptService) : B
     [ProducesResponseType(typeof(ArReceiptCommandResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ArReceiptCommandResultDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ArReceiptCommandResultDto), StatusCodes.Status409Conflict)]
-    [ProducesResponseType(typeof(ArReceiptCommandResultDto), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(
+        typeof(ArReceiptCommandResultDto),
+        StatusCodes.Status500InternalServerError
+    )]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Allocate(
         Guid receiptId,

@@ -16,7 +16,9 @@ public sealed class PostingEngine : IPostingEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var rule = context.Rule ?? throw new PostingInvariantViolationException(PostingRuleRequiredMessage);
+        var rule =
+            context.Rule
+            ?? throw new PostingInvariantViolationException(PostingRuleRequiredMessage);
         var invoice = context.Invoice;
 
         var glEntries = new List<GlEntryModel>();
@@ -197,7 +199,9 @@ public sealed class PostingEngine : IPostingEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var rule = context.Rule ?? throw new PostingInvariantViolationException(PostingRuleRequiredMessage);
+        var rule =
+            context.Rule
+            ?? throw new PostingInvariantViolationException(PostingRuleRequiredMessage);
         var receipt = context.Receipt;
 
         var bankRule = FindRuleLine(
@@ -249,7 +253,9 @@ public sealed class PostingEngine : IPostingEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var rule = context.Rule ?? throw new PostingInvariantViolationException(PostingRuleRequiredMessage);
+        var rule =
+            context.Rule
+            ?? throw new PostingInvariantViolationException(PostingRuleRequiredMessage);
         var invoice = context.Invoice;
 
         var apRule = FindRuleLine(
@@ -332,7 +338,9 @@ public sealed class PostingEngine : IPostingEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var rule = context.Rule ?? throw new PostingInvariantViolationException(PostingRuleRequiredMessage);
+        var rule =
+            context.Rule
+            ?? throw new PostingInvariantViolationException(PostingRuleRequiredMessage);
         var payment = context.Payment;
 
         var bankRule = FindRuleLine(

@@ -9,9 +9,11 @@ using OakERP.Domain.Posting.Inventory;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.Posting;
+
 public sealed class ArInvoicePostingServiceTests
 {
     private readonly PostingServiceTestFactory _factory = new();
+
     [Fact]
     public async Task PostAsync_Should_Post_ArInvoice_And_Persist_Gl_And_Inventory_Entries()
     {
@@ -632,5 +634,4 @@ public sealed class ArInvoicePostingServiceTests
 
         _factory.UnitOfWork.Verify(x => x.BeginTransactionAsync(), Times.Never);
     }
-
 }

@@ -60,12 +60,11 @@ internal sealed class ArReceiptCreateWorkflow(
                             command.BankAccountId,
                             innerCancellationToken
                         ),
-                    entity =>
-                        new SettlementDocumentBankAccountSnapshot(
-                            entity.Id,
-                            entity.IsActive,
-                            entity.CurrencyCode
-                        ),
+                    entity => new SettlementDocumentBankAccountSnapshot(
+                        entity.Id,
+                        entity.IsActive,
+                        entity.CurrencyCode
+                    ),
                     ArReceiptCommandResultDto.Fail(ArReceiptErrors.BankAccountNotFound),
                     ArReceiptCommandResultDto.Fail(ArReceiptErrors.BankAccountInactive),
                     cancellationToken
@@ -203,7 +202,11 @@ internal sealed class ArReceiptCreateWorkflow(
                 return translatedFailure;
             }
 
-            logger.LogError(ex, "Unexpected failure before creating AR receipt {DocNo}", command.DocNo);
+            logger.LogError(
+                ex,
+                "Unexpected failure before creating AR receipt {DocNo}",
+                command.DocNo
+            );
             return ArReceiptCommandResultDto.Fail(ArReceiptErrors.UnexpectedCreateFailure);
         }
     }

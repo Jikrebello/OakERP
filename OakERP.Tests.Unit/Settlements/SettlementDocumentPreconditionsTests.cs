@@ -9,7 +9,10 @@ public sealed class SettlementDocumentPreconditionsTests
     [Fact]
     public async Task LoadActivePartyAsync_Should_Return_NotFound_Failure_When_Party_Is_Missing()
     {
-        var (_, failure) = await SettlementDocumentPreconditions.LoadActivePartyAsync<object, string>(
+        var (_, failure) = await SettlementDocumentPreconditions.LoadActivePartyAsync<
+            object,
+            string
+        >(
             _ => Task.FromResult<object?>(null),
             _ => new SettlementDocumentPartySnapshot(Guid.NewGuid(), true),
             "missing",
@@ -23,14 +26,16 @@ public sealed class SettlementDocumentPreconditionsTests
     [Fact]
     public async Task LoadActiveBankAccountAsync_Should_Return_Inactive_Failure_When_Bank_Account_Is_Inactive()
     {
-        var (_, failure) =
-            await SettlementDocumentPreconditions.LoadActiveBankAccountAsync<object, string>(
-                _ => Task.FromResult<object?>(new object()),
-                _ => new SettlementDocumentBankAccountSnapshot(Guid.NewGuid(), false, "ZAR"),
-                "missing",
-                "inactive",
-                CancellationToken.None
-            );
+        var (_, failure) = await SettlementDocumentPreconditions.LoadActiveBankAccountAsync<
+            object,
+            string
+        >(
+            _ => Task.FromResult<object?>(new object()),
+            _ => new SettlementDocumentBankAccountSnapshot(Guid.NewGuid(), false, "ZAR"),
+            "missing",
+            "inactive",
+            CancellationToken.None
+        );
 
         failure.ShouldBe("inactive");
     }

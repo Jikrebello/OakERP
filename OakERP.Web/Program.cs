@@ -22,16 +22,10 @@ var apiBaseUrl =
 
 if (string.IsNullOrWhiteSpace(apiBaseUrl))
 {
-    throw new ConfigurationValidationException(
-        "Api:BaseUrl",
-        "Api:BaseUrl is not configured."
-    );
+    throw new ConfigurationValidationException("Api:BaseUrl", "Api:BaseUrl is not configured.");
 }
 
-var apiOptions = new ApiClientOptions
-{
-    BaseUrl = apiBaseUrl,
-};
+var apiOptions = new ApiClientOptions { BaseUrl = apiBaseUrl };
 
 apiOptions.GetBaseUri();
 

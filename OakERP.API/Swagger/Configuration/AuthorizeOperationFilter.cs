@@ -54,9 +54,8 @@ internal sealed class AuthorizeOperationFilter : IOperationFilter
 
     private static IEnumerable<object> GetAttributes(OperationFilterContext context)
     {
-        return context.MethodInfo
-            .DeclaringType!
-            .GetCustomAttributes(inherit: true)
+        return context
+            .MethodInfo.DeclaringType!.GetCustomAttributes(inherit: true)
             .Concat(context.MethodInfo.GetCustomAttributes(inherit: true));
     }
 }

@@ -41,13 +41,14 @@ internal sealed class PostingOperationSupport(
         bool inventoryRowsAllowed,
         string performedBy,
         CancellationToken cancellationToken
-    ) => resultProcessor.ProcessAsync(
-        postingResult,
-        expectedSourceType,
-        inventoryRowsAllowed,
-        performedBy,
-        cancellationToken
-    );
+    ) =>
+        resultProcessor.ProcessAsync(
+            postingResult,
+            expectedSourceType,
+            inventoryRowsAllowed,
+            performedBy,
+            cancellationToken
+        );
 
     public static void EnsureForceDisabled(bool force, string message)
     {

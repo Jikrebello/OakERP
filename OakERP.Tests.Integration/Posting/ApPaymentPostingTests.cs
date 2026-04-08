@@ -91,7 +91,9 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
 
         await PostPaymentAsync(paymentId);
 
-        await Should.ThrowAsync<PostingInvariantViolationException>(() => PostPaymentAsync(paymentId));
+        await Should.ThrowAsync<PostingInvariantViolationException>(() =>
+            PostPaymentAsync(paymentId)
+        );
 
         await WithDbAsync(async db =>
         {
@@ -152,7 +154,9 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
             includeOpenPeriod: false
         );
 
-        await Should.ThrowAsync<PostingInvariantViolationException>(() => PostPaymentAsync(paymentId));
+        await Should.ThrowAsync<PostingInvariantViolationException>(() =>
+            PostPaymentAsync(paymentId)
+        );
 
         await AssertNoPostingWrittenAsync(paymentId);
     }

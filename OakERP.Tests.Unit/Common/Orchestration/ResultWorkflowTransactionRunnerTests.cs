@@ -57,12 +57,11 @@ public sealed class ResultWorkflowTransactionRunnerTests
 
         var runner = new ResultWorkflowTransactionRunner(unitOfWork.Object);
 
-        await Should.ThrowAsync<InvalidOperationException>(
-            () =>
-                runner.ExecuteAsync<TestResultDto>(
-                    _ => throw new InvalidOperationException("boom"),
-                    CancellationToken.None
-                )
+        await Should.ThrowAsync<InvalidOperationException>(() =>
+            runner.ExecuteAsync<TestResultDto>(
+                _ => throw new InvalidOperationException("boom"),
+                CancellationToken.None
+            )
         );
 
         unitOfWork.Verify(x => x.CommitAsync(), Times.Never);
@@ -73,6 +72,7 @@ public sealed class ResultWorkflowTransactionRunnerTests
     {
         public static TestResultDto Ok() => new() { Success = true };
 
-        public static TestResultDto Fail(string message) => new() { Success = false, Message = message };
+        public static TestResultDto Fail(string message) =>
+            new() { Success = false, Message = message };
     }
 }

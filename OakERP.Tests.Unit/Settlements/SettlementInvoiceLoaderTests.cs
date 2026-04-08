@@ -33,19 +33,17 @@ public sealed class SettlementInvoiceLoaderTests
     [Fact]
     public async Task LoadAsync_Should_Return_Failure_When_Invoice_Is_Missing()
     {
-        var spec = CreateSpec(
-            [
-                new FakeInvoice
-                {
-                    Id = Guid.NewGuid(),
-                    DocNo = "INV-1",
-                    DocStatus = DocStatus.Posted,
-                    PartyId = ExpectedPartyId,
-                    CurrencyCode = "ZAR",
-                    RemainingAmount = 10m,
-                },
-            ]
-        );
+        var spec = CreateSpec([
+            new FakeInvoice
+            {
+                Id = Guid.NewGuid(),
+                DocNo = "INV-1",
+                DocStatus = DocStatus.Posted,
+                PartyId = ExpectedPartyId,
+                CurrencyCode = "ZAR",
+                RemainingAmount = 10m,
+            },
+        ]);
 
         var (_, failure) = await SettlementInvoiceLoader.LoadAsync(
             [Guid.NewGuid(), Guid.NewGuid()],
@@ -59,19 +57,17 @@ public sealed class SettlementInvoiceLoaderTests
     [Fact]
     public async Task LoadAsync_Should_Return_Failure_For_Wrong_Party()
     {
-        var spec = CreateSpec(
-            [
-                new FakeInvoice
-                {
-                    Id = Guid.NewGuid(),
-                    DocNo = "INV-1",
-                    DocStatus = DocStatus.Posted,
-                    PartyId = Guid.NewGuid(),
-                    CurrencyCode = "ZAR",
-                    RemainingAmount = 10m,
-                },
-            ]
-        );
+        var spec = CreateSpec([
+            new FakeInvoice
+            {
+                Id = Guid.NewGuid(),
+                DocNo = "INV-1",
+                DocStatus = DocStatus.Posted,
+                PartyId = Guid.NewGuid(),
+                CurrencyCode = "ZAR",
+                RemainingAmount = 10m,
+            },
+        ]);
 
         var (_, failure) = await SettlementInvoiceLoader.LoadAsync([Guid.NewGuid()], spec, default);
 
@@ -81,19 +77,17 @@ public sealed class SettlementInvoiceLoaderTests
     [Fact]
     public async Task LoadAsync_Should_Return_Failure_For_Wrong_Currency()
     {
-        var spec = CreateSpec(
-            [
-                new FakeInvoice
-                {
-                    Id = Guid.NewGuid(),
-                    DocNo = "INV-1",
-                    DocStatus = DocStatus.Posted,
-                    PartyId = ExpectedPartyId,
-                    CurrencyCode = "USD",
-                    RemainingAmount = 10m,
-                },
-            ]
-        );
+        var spec = CreateSpec([
+            new FakeInvoice
+            {
+                Id = Guid.NewGuid(),
+                DocNo = "INV-1",
+                DocStatus = DocStatus.Posted,
+                PartyId = ExpectedPartyId,
+                CurrencyCode = "USD",
+                RemainingAmount = 10m,
+            },
+        ]);
 
         var (_, failure) = await SettlementInvoiceLoader.LoadAsync([Guid.NewGuid()], spec, default);
 
@@ -103,19 +97,17 @@ public sealed class SettlementInvoiceLoaderTests
     [Fact]
     public async Task LoadAsync_Should_Return_Failure_For_No_Remaining_Balance()
     {
-        var spec = CreateSpec(
-            [
-                new FakeInvoice
-                {
-                    Id = Guid.NewGuid(),
-                    DocNo = "INV-1",
-                    DocStatus = DocStatus.Posted,
-                    PartyId = ExpectedPartyId,
-                    CurrencyCode = "ZAR",
-                    RemainingAmount = 0m,
-                },
-            ]
-        );
+        var spec = CreateSpec([
+            new FakeInvoice
+            {
+                Id = Guid.NewGuid(),
+                DocNo = "INV-1",
+                DocStatus = DocStatus.Posted,
+                PartyId = ExpectedPartyId,
+                CurrencyCode = "ZAR",
+                RemainingAmount = 0m,
+            },
+        ]);
 
         var (_, failure) = await SettlementInvoiceLoader.LoadAsync([Guid.NewGuid()], spec, default);
 

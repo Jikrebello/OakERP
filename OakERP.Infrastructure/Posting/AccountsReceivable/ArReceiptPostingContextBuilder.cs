@@ -1,9 +1,9 @@
+using OakERP.Common.Exceptions;
 using OakERP.Domain.Entities.AccountsReceivable;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.AccountsReceivable;
 using OakERP.Domain.Posting.GeneralLedger;
-using OakERP.Common.Exceptions;
 
 namespace OakERP.Infrastructure.Posting.AccountsReceivable;
 

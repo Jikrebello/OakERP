@@ -145,7 +145,11 @@ internal sealed class ApPaymentAllocationWorkflow(
                 return translatedFailure;
             }
 
-            logger.LogError(ex, "Unexpected failure while allocating AP payment {PaymentId}", command.PaymentId);
+            logger.LogError(
+                ex,
+                "Unexpected failure while allocating AP payment {PaymentId}",
+                command.PaymentId
+            );
             return ApPaymentCommandResultDto.Fail(ApPaymentErrors.UnexpectedAllocateFailure);
         }
     }

@@ -49,12 +49,22 @@ public sealed class SwaggerDocumentTests
         AssertRoute(document, "/api/users/user-only", "get", requiresBearer: true);
         AssertRoute(document, "/api/ap-invoices", "post", requiresBearer: true);
         AssertRoute(document, "/api/ap-payments", "post", requiresBearer: true);
-        AssertRoute(document, "/api/ap-payments/{paymentId}/allocations", "post", requiresBearer: true);
+        AssertRoute(
+            document,
+            "/api/ap-payments/{paymentId}/allocations",
+            "post",
+            requiresBearer: true
+        );
         AssertRoute(document, "/api/ar-receipts", "post", requiresBearer: true);
-        AssertRoute(document, "/api/ar-receipts/{receiptId}/allocations", "post", requiresBearer: true);
+        AssertRoute(
+            document,
+            "/api/ar-receipts/{receiptId}/allocations",
+            "post",
+            requiresBearer: true
+        );
 
-        var bearerScheme = document.RootElement
-            .GetProperty("components")
+        var bearerScheme = document
+            .RootElement.GetProperty("components")
             .GetProperty("securitySchemes")
             .GetProperty("Bearer");
 
@@ -158,7 +168,11 @@ public sealed class SwaggerDocumentTests
         var route = GetPath(document, path);
         var operation = route.GetProperty(method);
 
-        Assert.That(operation.TryGetProperty("summary", out _), Is.True, $"{path} summary missing.");
+        Assert.That(
+            operation.TryGetProperty("summary", out _),
+            Is.True,
+            $"{path} summary missing."
+        );
         Assert.That(
             operation.TryGetProperty("description", out _),
             Is.True,
@@ -223,8 +237,8 @@ public sealed class SwaggerDocumentTests
 
     private static void AssertSchemaExample(JsonDocument document, string schemaName)
     {
-        var schema = document.RootElement
-            .GetProperty("components")
+        var schema = document
+            .RootElement.GetProperty("components")
             .GetProperty("schemas")
             .GetProperty(schemaName);
 

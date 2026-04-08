@@ -11,7 +11,9 @@ public sealed class SettlementAllocationApplicatorTests
     public async Task ApplyAsync_Should_Reject_When_Request_Exceeds_Document_Unapplied_Amount()
     {
         var document = CreateDocument(unappliedAmount: 10m);
-        Dictionary<Guid, FakeInvoice> invoices = CreateInvoices([CreateInvoiceEntry(docTotal: 50m)]);
+        Dictionary<Guid, FakeInvoice> invoices = CreateInvoices([
+            CreateInvoiceEntry(docTotal: 50m),
+        ]);
         var spec = CreateSpec(document, invoices);
 
         var (failure, _, _) = await SettlementAllocationApplicator.ApplyAsync(
@@ -29,9 +31,9 @@ public sealed class SettlementAllocationApplicatorTests
     public async Task ApplyAsync_Should_Reject_When_Request_Exceeds_Invoice_Remaining_Amount()
     {
         var document = CreateDocument(unappliedAmount: 20m);
-        Dictionary<Guid, FakeInvoice> invoices = CreateInvoices(
-            [CreateInvoiceEntry(docTotal: 10m, settledAmount: 5m)]
-        );
+        Dictionary<Guid, FakeInvoice> invoices = CreateInvoices([
+            CreateInvoiceEntry(docTotal: 10m, settledAmount: 5m),
+        ]);
         var spec = CreateSpec(document, invoices);
 
         var (failure, _, _) = await SettlementAllocationApplicator.ApplyAsync(
@@ -49,16 +51,19 @@ public sealed class SettlementAllocationApplicatorTests
     public async Task ApplyAsync_Should_Keep_Invoice_Posted_On_Partial_Allocation()
     {
         var document = CreateDocument(unappliedAmount: 50m);
-        Dictionary<Guid, FakeInvoice> invoices = CreateInvoices([CreateInvoiceEntry(docTotal: 100m)]);
+        Dictionary<Guid, FakeInvoice> invoices = CreateInvoices([
+            CreateInvoiceEntry(docTotal: 100m),
+        ]);
         var spec = CreateSpec(document, invoices);
 
-        var (failure, settledAmounts, allocations) = await SettlementAllocationApplicator.ApplyAsync(
-            [new SettlementAllocationInput(invoices.Keys.Single(), 40m)],
-            new DateOnly(2026, 4, 8),
-            "unit-user",
-            UpdatedAt,
-            spec
-        );
+        var (failure, settledAmounts, allocations) =
+            await SettlementAllocationApplicator.ApplyAsync(
+                [new SettlementAllocationInput(invoices.Keys.Single(), 40m)],
+                new DateOnly(2026, 4, 8),
+                "unit-user",
+                UpdatedAt,
+                spec
+            );
 
         failure.ShouldBeNull();
         allocations.Count.ShouldBe(1);
@@ -70,16 +75,19 @@ public sealed class SettlementAllocationApplicatorTests
     public async Task ApplyAsync_Should_Close_Invoice_On_Full_Allocation()
     {
         var document = CreateDocument(unappliedAmount: 50m);
-        Dictionary<Guid, FakeInvoice> invoices = CreateInvoices([CreateInvoiceEntry(docTotal: 40m)]);
+        Dictionary<Guid, FakeInvoice> invoices = CreateInvoices([
+            CreateInvoiceEntry(docTotal: 40m),
+        ]);
         var spec = CreateSpec(document, invoices);
 
-        var (failure, settledAmounts, allocations) = await SettlementAllocationApplicator.ApplyAsync(
-            [new SettlementAllocationInput(invoices.Keys.Single(), 40m)],
-            new DateOnly(2026, 4, 8),
-            "unit-user",
-            UpdatedAt,
-            spec
-        );
+        var (failure, settledAmounts, allocations) =
+            await SettlementAllocationApplicator.ApplyAsync(
+                [new SettlementAllocationInput(invoices.Keys.Single(), 40m)],
+                new DateOnly(2026, 4, 8),
+                "unit-user",
+                UpdatedAt,
+                spec
+            );
 
         failure.ShouldBeNull();
         allocations.Count.ShouldBe(1);
@@ -91,25 +99,24 @@ public sealed class SettlementAllocationApplicatorTests
     public async Task ApplyAsync_Should_Track_Settled_Amounts_Across_Multiple_Allocations()
     {
         var document = CreateDocument(unappliedAmount: 100m);
-        Dictionary<Guid, FakeInvoice> invoices = CreateInvoices(
-            [
-                CreateInvoiceEntry(docNo: "INV-1", docTotal: 60m, settledAmount: 10m),
-                CreateInvoiceEntry(docNo: "INV-2", docTotal: 40m),
-            ]
-        );
+        Dictionary<Guid, FakeInvoice> invoices = CreateInvoices([
+            CreateInvoiceEntry(docNo: "INV-1", docTotal: 60m, settledAmount: 10m),
+            CreateInvoiceEntry(docNo: "INV-2", docTotal: 40m),
+        ]);
         Guid[] invoiceIds = [.. invoices.Keys];
         var spec = CreateSpec(document, invoices);
 
-        var (failure, settledAmounts, allocations) = await SettlementAllocationApplicator.ApplyAsync(
-            [
-                new SettlementAllocationInput(invoiceIds[0], 20m),
-                new SettlementAllocationInput(invoiceIds[1], 15m),
-            ],
-            new DateOnly(2026, 4, 8),
-            "unit-user",
-            UpdatedAt,
-            spec
-        );
+        var (failure, settledAmounts, allocations) =
+            await SettlementAllocationApplicator.ApplyAsync(
+                [
+                    new SettlementAllocationInput(invoiceIds[0], 20m),
+                    new SettlementAllocationInput(invoiceIds[1], 15m),
+                ],
+                new DateOnly(2026, 4, 8),
+                "unit-user",
+                UpdatedAt,
+                spec
+            );
 
         failure.ShouldBeNull();
         allocations.Count.ShouldBe(2);

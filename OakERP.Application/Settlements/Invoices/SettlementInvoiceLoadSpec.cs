@@ -11,7 +11,10 @@ internal sealed record SettlementInvoiceSnapshot(
     decimal RemainingAmount
 );
 
-internal sealed record SettlementInvoiceLoadExpectations(Guid ExpectedPartyId, string ExpectedCurrencyCode);
+internal sealed record SettlementInvoiceLoadExpectations(
+    Guid ExpectedPartyId,
+    string ExpectedCurrencyCode
+);
 
 internal sealed record SettlementInvoiceLoadFailures<TFailure>(
     TFailure InvoicesNotFoundFailure,
@@ -22,14 +25,21 @@ internal sealed record SettlementInvoiceLoadFailures<TFailure>(
 );
 
 internal sealed class SettlementInvoiceLoadSpec<TInvoice, TFailure>(
-    Func<IReadOnlyCollection<Guid>, CancellationToken, Task<IReadOnlyList<TInvoice>>> loadInvoicesAsync,
+    Func<
+        IReadOnlyCollection<Guid>,
+        CancellationToken,
+        Task<IReadOnlyList<TInvoice>>
+    > loadInvoicesAsync,
     Func<TInvoice, SettlementInvoiceSnapshot> describeInvoice,
     SettlementInvoiceLoadExpectations expectations,
     SettlementInvoiceLoadFailures<TFailure> failures
 )
 {
-    public Func<IReadOnlyCollection<Guid>, CancellationToken, Task<IReadOnlyList<TInvoice>>> LoadInvoicesAsync { get; } =
-        loadInvoicesAsync;
+    public Func<
+        IReadOnlyCollection<Guid>,
+        CancellationToken,
+        Task<IReadOnlyList<TInvoice>>
+    > LoadInvoicesAsync { get; } = loadInvoicesAsync;
 
     public Func<TInvoice, SettlementInvoiceSnapshot> DescribeInvoice { get; } = describeInvoice;
 

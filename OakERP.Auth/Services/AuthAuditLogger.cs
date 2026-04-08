@@ -51,7 +51,16 @@ internal sealed class AuthAuditLogger(ILogger<AuthService> logger)
         string? userId = null,
         Guid? tenantId = null,
         string? tenantName = null
-    ) => LogError(exception, AuditActionRegistration, email, auditReason, userId, tenantId, tenantName);
+    ) =>
+        LogError(
+            exception,
+            AuditActionRegistration,
+            email,
+            auditReason,
+            userId,
+            tenantId,
+            tenantName
+        );
 
     public void LogLoginSuccess(
         string email,

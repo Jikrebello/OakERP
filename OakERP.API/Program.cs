@@ -43,8 +43,8 @@ builder.Host.UseSerilog(
 
 var allowedOrigins = builder
     .Configuration.GetSection("Cors:AllowedOrigins")
-    .Get<string[]>()?
-    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .Get<string[]>()
+    ?.Where(origin => !string.IsNullOrWhiteSpace(origin))
     .ToArray();
 
 if (allowedOrigins is not { Length: > 0 })

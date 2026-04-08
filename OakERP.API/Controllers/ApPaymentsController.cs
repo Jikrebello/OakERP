@@ -21,7 +21,10 @@ public sealed class ApPaymentsController(IApPaymentService apPaymentService) : B
     [ProducesResponseType(typeof(ApPaymentCommandResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApPaymentCommandResultDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApPaymentCommandResultDto), StatusCodes.Status409Conflict)]
-    [ProducesResponseType(typeof(ApPaymentCommandResultDto), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(
+        typeof(ApPaymentCommandResultDto),
+        StatusCodes.Status500InternalServerError
+    )]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create(
         CreateApPaymentCommand command,
@@ -43,7 +46,10 @@ public sealed class ApPaymentsController(IApPaymentService apPaymentService) : B
     [ProducesResponseType(typeof(ApPaymentCommandResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApPaymentCommandResultDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApPaymentCommandResultDto), StatusCodes.Status409Conflict)]
-    [ProducesResponseType(typeof(ApPaymentCommandResultDto), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(
+        typeof(ApPaymentCommandResultDto),
+        StatusCodes.Status500InternalServerError
+    )]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Allocate(
         Guid paymentId,

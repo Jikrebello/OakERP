@@ -10,8 +10,8 @@ public sealed class PostingTransactionExecutorTests
     [Fact]
     public async Task ExecuteAsync_Should_Begin_Save_And_Commit_On_Success()
     {
-        _factory.UnitOfWork
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        _factory
+            .UnitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
         var executor = CreateExecutor();
@@ -37,11 +37,11 @@ public sealed class PostingTransactionExecutorTests
     {
         var original = new Exception("save failed");
 
-        _factory.UnitOfWork
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        _factory
+            .UnitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(original);
-        _factory.PersistenceFailureClassifier
-            .Setup(x => x.IsConcurrencyConflict(original))
+        _factory
+            .PersistenceFailureClassifier.Setup(x => x.IsConcurrencyConflict(original))
             .Returns(true);
 
         var executor = CreateExecutor();
@@ -65,8 +65,8 @@ public sealed class PostingTransactionExecutorTests
     {
         var original = new Exception("save failed");
 
-        _factory.UnitOfWork
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        _factory
+            .UnitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(original);
 
         var executor = CreateExecutor();

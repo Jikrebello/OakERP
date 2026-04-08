@@ -45,34 +45,32 @@ internal sealed class AuthRegistrationWorkflow(
 
         try
         {
-            return await transactionRunner.ExecuteAsync(
-                async () =>
+            return await transactionRunner.ExecuteAsync(async () =>
+            {
+                Tenant tenant = CreateTenant(Dto.TenantName);
+                await tenantRepository.AddAsync(tenant);
+                await unitOfWork.SaveChangesAsync();
+
+                ApplicationUser user = CreateUser(Dto, email, normalizedEmail, tenant.Id);
+                AuthResultDto? createUserFailure = await TryCreateIdentityUserAsync(
+                    user,
+                    Dto.Password,
+                    email,
+                    tenant
+                );
+                if (createUserFailure is not null)
                 {
-                    Tenant tenant = CreateTenant(Dto.TenantName);
-                    await tenantRepository.AddAsync(tenant);
-                    await unitOfWork.SaveChangesAsync();
-
-                    ApplicationUser user = CreateUser(Dto, email, normalizedEmail, tenant.Id);
-                    AuthResultDto? createUserFailure = await TryCreateIdentityUserAsync(
-                        user,
-                        Dto.Password,
-                        email,
-                        tenant
-                    );
-                    if (createUserFailure is not null)
-                    {
-                        return createUserFailure;
-                    }
-
-                    AuthResultDto? roleFailure = await TryAssignAdminRoleAsync(user, email, tenant);
-                    if (roleFailure is not null)
-                    {
-                        return roleFailure;
-                    }
-
-                    return BuildRegistrationSuccess(user, email, tenant);
+                    return createUserFailure;
                 }
-            );
+
+                AuthResultDto? roleFailure = await TryAssignAdminRoleAsync(user, email, tenant);
+                if (roleFailure is not null)
+                {
+                    return roleFailure;
+                }
+
+                return BuildRegistrationSuccess(user, email, tenant);
+            });
         }
         catch (Exception ex)
         {
@@ -192,7 +190,9 @@ internal sealed class AuthRegistrationWorkflow(
             tenantName: tenant.Name
         );
 
-        string token = jwtGenerator.Generate(new JwtTokenInput(user.Id, user.Email!, user.TenantId));
+        string token = jwtGenerator.Generate(
+            new JwtTokenInput(user.Id, user.Email!, user.TenantId)
+        );
         return AuthResultDto.SuccessWith(token, $"{user.FirstName} {user.LastName}");
     }
 }

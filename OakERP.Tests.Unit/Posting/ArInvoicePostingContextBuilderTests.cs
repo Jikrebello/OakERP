@@ -45,9 +45,7 @@ public sealed class ArInvoicePostingContextBuilderTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ThrowsAsync(
-                new PostingInvariantViolationException("No prior cost basis exists.")
-            );
+            .ThrowsAsync(new PostingInvariantViolationException("No prior cost basis exists."));
 
         var builder = new ArInvoicePostingContextBuilder(_inventoryCostService.Object);
 

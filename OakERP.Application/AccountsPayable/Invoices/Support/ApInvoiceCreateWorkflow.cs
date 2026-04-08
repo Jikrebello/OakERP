@@ -89,13 +89,19 @@ internal sealed class ApInvoiceCreateWorkflow(
         }
     }
 
-    private async Task<(CreatePreconditions? preconditions, ApInvoiceCommandResultDto? failure)> ValidatePreconditionsAsync(
+    private async Task<(
+        CreatePreconditions? preconditions,
+        ApInvoiceCommandResultDto? failure
+    )> ValidatePreconditionsAsync(
         CreateApInvoiceCommand command,
         ApInvoiceCreateValidationResult validatedCommand,
         CancellationToken cancellationToken
     )
     {
-        Vendor? vendor = await vendorRepository.FindNoTrackingAsync(command.VendorId, cancellationToken);
+        Vendor? vendor = await vendorRepository.FindNoTrackingAsync(
+            command.VendorId,
+            cancellationToken
+        );
         if (vendor is null)
         {
             return (null, ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.VendorNotFound));
@@ -141,7 +147,10 @@ internal sealed class ApInvoiceCreateWorkflow(
         CancellationToken cancellationToken
     )
     {
-        var currency = await currencyRepository.FindNoTrackingAsync(currencyCode, cancellationToken);
+        var currency = await currencyRepository.FindNoTrackingAsync(
+            currencyCode,
+            cancellationToken
+        );
         return currency is not null && currency.IsActive;
     }
 
@@ -182,7 +191,10 @@ internal sealed class ApInvoiceCreateWorkflow(
 
         foreach (string accountNo in accountNumbers)
         {
-            var account = await glAccountRepository.FindNoTrackingAsync(accountNo, cancellationToken);
+            var account = await glAccountRepository.FindNoTrackingAsync(
+                accountNo,
+                cancellationToken
+            );
             if (account is null || !account.IsActive)
             {
                 return ApInvoiceCommandResultDto.Fail(

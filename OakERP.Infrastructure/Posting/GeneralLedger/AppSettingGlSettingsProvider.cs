@@ -34,7 +34,10 @@ public sealed class AppSettingGlSettingsProvider(ApplicationDbContext db) : IGlS
         GlPostingSettings? result;
         try
         {
-            result = JsonSerializer.Deserialize<GlPostingSettings>(setting.ValueJson, SerializerOptions);
+            result = JsonSerializer.Deserialize<GlPostingSettings>(
+                setting.ValueJson,
+                SerializerOptions
+            );
         }
         catch (JsonException exception)
         {
