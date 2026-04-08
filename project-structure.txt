@@ -119,7 +119,11 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
-|   |   |   |   \-- solution-folder-reorg-wave6
+|   |   |   |   +-- solution-folder-reorg-wave6
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   \-- solution-hygiene-wave7
 |   |   |   |       +-- findings.md
 |   |   |   |       +-- progress.md
 |   |   |   |       \-- task_plan.md
@@ -564,6 +568,7 @@ OakERP
 |   \-- OakERP.Domain.csproj
 +-- OakERP.Infrastructure
 |   +-- Exceptions
+|   |   +-- EmbeddedResourceNotFoundException.cs
 |   |   \-- SeedingFailureException.cs
 |   +-- Extensions
 |   |   \-- ServiceCollectionExtensions.cs
