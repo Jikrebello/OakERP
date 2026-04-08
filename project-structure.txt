@@ -322,13 +322,13 @@ OakERP
 |   |   +-- ICurrentUserService.cs
 |   |   +-- IPlatformService.cs
 |   |   \-- ITokenStore.cs
-|   +-- DTOs
+|   +-- Dto's
 |   |   +-- Auth
-|   |   |   +-- AuthResultDTO.cs
-|   |   |   +-- LoginDTO.cs
-|   |   |   \-- RegisterDTO.cs
+|   |   |   +-- AuthResultDto.cs
+|   |   |   +-- LoginDto.cs
+|   |   |   \-- RegisterDto.cs
 |   |   \-- Base
-|   |       \-- BaseResultDTO.cs
+|   |       \-- BaseResultDto.cs
 |   +-- Enums
 |   |   +-- AccountKey.cs
 |   |   +-- AmountSource.cs
