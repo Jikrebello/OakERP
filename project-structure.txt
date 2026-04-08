@@ -71,6 +71,10 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- api-swagger-hardening
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- ar-architecture-cleanup
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
@@ -229,10 +233,22 @@ OakERP
 |   |   +-- RequestTimeoutSettings.cs
 |   |   \-- SeqLoggingSettings.cs
 |   +-- Swagger
-|   |   \-- Filters
-|   |       \-- Auth
-|   |           +-- LoginDtoExampleFilter.cs
-|   |           \-- RegisterDtoExampleFilter.cs
+|   |   +-- Configuration
+|   |   |   +-- AuthorizeOperationFilter.cs
+|   |   |   \-- OpenApiExampleSchemaFilter.cs
+|   |   \-- Examples
+|   |       +-- AccountsPayable
+|   |       |   +-- AllocateApPaymentCommandExampleFilter.cs
+|   |       |   +-- CreateApInvoiceCommandExampleFilter.cs
+|   |       |   \-- CreateApPaymentCommandExampleFilter.cs
+|   |       +-- AccountsReceivable
+|   |       |   +-- AllocateArReceiptCommandExampleFilter.cs
+|   |       |   \-- CreateArReceiptCommandExampleFilter.cs
+|   |       +-- Auth
+|   |       |   +-- LoginDtoExampleFilter.cs
+|   |       |   \-- RegisterDtoExampleFilter.cs
+|   |       \-- Users
+|   |           \-- CurrentUserResponseExampleFilter.cs
 |   +-- appsettings.Development.json
 |   +-- appsettings.json
 |   +-- appsettings.Production.json
@@ -843,6 +859,8 @@ OakERP
 |   |   +-- OperationalRuntimeTests.cs
 |   |   +-- RateLimitingTests.cs
 |   |   \-- RuntimeSupportTests.cs
+|   +-- Swagger
+|   |   \-- SwaggerDocumentTests.cs
 |   +-- TestSetup
 |   |   +-- Helpers
 |   |   |   +-- ApiTestException.cs
