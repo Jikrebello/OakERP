@@ -115,7 +115,11 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
-|   |   |   |   \-- settlement-dedup-wave2
+|   |   |   |   +-- settlement-dedup-wave2
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   \-- solution-folder-reorg-wave6
 |   |   |   |       +-- findings.md
 |   |   |   |       +-- progress.md
 |   |   |   |       \-- task_plan.md
@@ -219,47 +223,63 @@ OakERP
 |   +-- appsettings.json
 |   +-- appsettings.Production.json
 |   +-- appsettings.Testing.json
+|   +-- GlobalUsings.cs
 |   +-- OakERP.API.csproj
 |   +-- OakERP.WebAPI.http
 |   \-- Program.cs
 +-- OakERP.Application
 |   +-- AccountsPayable
-|   |   +-- AllocateApPaymentCommand.cs
-|   |   +-- ApInvoiceCommandResultDTO.cs
-|   |   +-- ApInvoiceCommandValidator.cs
-|   |   +-- ApInvoiceLineInputDTO.cs
-|   |   +-- ApInvoiceLineSnapshotDTO.cs
-|   |   +-- ApInvoiceService.cs
-|   |   +-- ApInvoiceSettlementSnapshotDTO.cs
-|   |   +-- ApInvoiceSnapshotDTO.cs
-|   |   +-- ApInvoiceSnapshotFactory.cs
-|   |   +-- ApPaymentAllocationInputDTO.cs
-|   |   +-- ApPaymentAllocationSnapshotDTO.cs
-|   |   +-- ApPaymentCommandResultDTO.cs
-|   |   +-- ApPaymentCommandValidator.cs
-|   |   +-- ApPaymentService.cs
-|   |   +-- ApPaymentServiceDependencies.cs
-|   |   +-- ApPaymentSettlementAdapters.cs
-|   |   +-- ApPaymentSnapshotDTO.cs
-|   |   +-- ApPaymentSnapshotFactory.cs
-|   |   +-- CreateApInvoiceCommand.cs
-|   |   +-- CreateApPaymentCommand.cs
-|   |   +-- IApInvoiceService.cs
-|   |   \-- IApPaymentService.cs
+|   |   +-- Invoices
+|   |   |   +-- Commands
+|   |   |   |   \-- CreateApInvoiceCommand.cs
+|   |   |   +-- Contracts
+|   |   |   |   +-- ApInvoiceCommandResultDto.cs
+|   |   |   |   +-- ApInvoiceLineInputDto.cs
+|   |   |   |   +-- ApInvoiceLineSnapshotDto.cs
+|   |   |   |   +-- ApInvoiceSettlementSnapshotDto.cs
+|   |   |   |   \-- ApInvoiceSnapshotDto.cs
+|   |   |   +-- Services
+|   |   |   |   +-- ApInvoiceService.cs
+|   |   |   |   \-- IApInvoiceService.cs
+|   |   |   \-- Support
+|   |   |       +-- ApInvoiceCommandValidator.cs
+|   |   |       \-- ApInvoiceSnapshotFactory.cs
+|   |   \-- Payments
+|   |       +-- Commands
+|   |       |   +-- AllocateApPaymentCommand.cs
+|   |       |   \-- CreateApPaymentCommand.cs
+|   |       +-- Contracts
+|   |       |   +-- ApPaymentAllocationInputDto.cs
+|   |       |   +-- ApPaymentAllocationSnapshotDto.cs
+|   |       |   +-- ApPaymentCommandResultDto.cs
+|   |       |   \-- ApPaymentSnapshotDto.cs
+|   |       +-- Services
+|   |       |   +-- ApPaymentService.cs
+|   |       |   \-- IApPaymentService.cs
+|   |       \-- Support
+|   |           +-- ApPaymentCommandValidator.cs
+|   |           +-- ApPaymentServiceDependencies.cs
+|   |           +-- ApPaymentSettlementAdapters.cs
+|   |           \-- ApPaymentSnapshotFactory.cs
 |   +-- AccountsReceivable
-|   |   +-- AllocateArReceiptCommand.cs
-|   |   +-- ArInvoiceSettlementSnapshotDTO.cs
-|   |   +-- ArReceiptAllocationInputDTO.cs
-|   |   +-- ArReceiptAllocationSnapshotDTO.cs
-|   |   +-- ArReceiptCommandResultDTO.cs
-|   |   +-- ArReceiptCommandValidator.cs
-|   |   +-- ArReceiptService.cs
-|   |   +-- ArReceiptServiceDependencies.cs
-|   |   +-- ArReceiptSettlementAdapters.cs
-|   |   +-- ArReceiptSnapshotDTO.cs
-|   |   +-- ArReceiptSnapshotFactory.cs
-|   |   +-- CreateArReceiptCommand.cs
-|   |   \-- IArReceiptService.cs
+|   |   \-- Receipts
+|   |       +-- Commands
+|   |       |   +-- AllocateArReceiptCommand.cs
+|   |       |   \-- CreateArReceiptCommand.cs
+|   |       +-- Contracts
+|   |       |   +-- ArInvoiceSettlementSnapshotDto.cs
+|   |       |   +-- ArReceiptAllocationInputDto.cs
+|   |       |   +-- ArReceiptAllocationSnapshotDto.cs
+|   |       |   +-- ArReceiptCommandResultDto.cs
+|   |       |   \-- ArReceiptSnapshotDto.cs
+|   |       +-- Services
+|   |       |   +-- ArReceiptService.cs
+|   |       |   \-- IArReceiptService.cs
+|   |       \-- Support
+|   |           +-- ArReceiptCommandValidator.cs
+|   |           +-- ArReceiptServiceDependencies.cs
+|   |           +-- ArReceiptSettlementAdapters.cs
+|   |           \-- ArReceiptSnapshotFactory.cs
 |   +-- Extensions
 |   |   \-- ServiceCollectionExtensions.cs
 |   +-- Interfaces
@@ -267,46 +287,58 @@ OakERP
 |   |       +-- IPersistenceFailureClassifier.cs
 |   |       \-- IUnitOfWork.cs
 |   +-- Posting
-|   |   +-- ApInvoicePostingOperation.cs
-|   |   +-- ApPaymentPostingOperation.cs
-|   |   +-- ArInvoicePostingOperation.cs
-|   |   +-- ArReceiptPostingOperation.cs
-|   |   +-- IPostingService.cs
-|   |   +-- PostCommand.cs
-|   |   +-- PostingOperationSupport.cs
-|   |   +-- PostingResultProcessor.cs
-|   |   +-- PostingService.cs
-|   |   +-- PostingServiceDependencies.cs
-|   |   +-- PostingTransactionExecutor.cs
-|   |   +-- PostResult.cs
-|   |   +-- UnpostCommand.cs
-|   |   \-- UnpostResult.cs
+|   |   +-- Contracts
+|   |   |   +-- IPostingService.cs
+|   |   |   +-- PostCommand.cs
+|   |   |   +-- PostResult.cs
+|   |   |   +-- UnpostCommand.cs
+|   |   |   \-- UnpostResult.cs
+|   |   +-- Operations
+|   |   |   +-- ApInvoicePostingOperation.cs
+|   |   |   +-- ApPaymentPostingOperation.cs
+|   |   |   +-- ArInvoicePostingOperation.cs
+|   |   |   \-- ArReceiptPostingOperation.cs
+|   |   +-- Services
+|   |   |   \-- PostingService.cs
+|   |   \-- Support
+|   |       +-- PostingOperationSupport.cs
+|   |       +-- PostingResultProcessor.cs
+|   |       +-- PostingServiceDependencies.cs
+|   |       \-- PostingTransactionExecutor.cs
 |   +-- Properties
 |   |   \-- AssemblyInfo.cs
 |   +-- Settlements
-|   |   +-- SettlementAllocationApplicator.cs
-|   |   +-- SettlementAllocationApplySpec.cs
-|   |   +-- SettlementInvoiceLoader.cs
-|   |   \-- SettlementInvoiceLoadSpec.cs
+|   |   +-- Allocation
+|   |   |   +-- SettlementAllocationApplicator.cs
+|   |   |   \-- SettlementAllocationApplySpec.cs
+|   |   \-- Invoices
+|   |       +-- SettlementInvoiceLoader.cs
+|   |       \-- SettlementInvoiceLoadSpec.cs
+|   +-- GlobalUsings.cs
 |   \-- OakERP.Application.csproj
 +-- OakERP.Auth
 |   +-- Extensions
 |   |   \-- ServiceCollectionExtensions.cs
-|   +-- ApplicationUser.cs
-|   +-- AuthService.cs
-|   +-- IAuthService.cs
-|   +-- IdentityGateway.cs
-|   +-- IIdentityGateway.cs
-|   +-- IJwtGenerator.cs
-|   +-- JwtGenerator.cs
-|   +-- JwtOptions.cs
-|   +-- JwtTokenInput.cs
+|   +-- Identity
+|   |   +-- ApplicationUser.cs
+|   |   +-- IdentityGateway.cs
+|   |   \-- IIdentityGateway.cs
+|   +-- Jwt
+|   |   +-- IJwtGenerator.cs
+|   |   +-- JwtGenerator.cs
+|   |   +-- JwtOptions.cs
+|   |   \-- JwtTokenInput.cs
+|   +-- Services
+|   |   +-- AuthService.cs
+|   |   \-- IAuthService.cs
 |   \-- OakERP.Auth.csproj
 +-- OakERP.Client
-|   +-- ApiRoutes
-|   |   \-- AuthRoutes.cs
+|   +-- Configuration
+|   |   \-- ApiClientOptions.cs
 |   +-- Extensions
 |   |   \-- ServiceCollectionExtensions.cs
+|   +-- Routes
+|   |   \-- AuthRoutes.cs
 |   +-- Services
 |   |   +-- Api
 |   |   |   +-- ApiClient.cs
@@ -319,14 +351,13 @@ OakERP
 |   |       +-- CurrentUserService.cs
 |   |       +-- IAuthService.cs
 |   |       \-- IAuthSessionManager.cs
-|   +-- ApiClientOptions.cs
 |   \-- OakERP.Client.csproj
 +-- OakERP.Common
 |   +-- Abstractions
 |   |   +-- ICurrentUserService.cs
 |   |   +-- IPlatformService.cs
 |   |   \-- ITokenStore.cs
-|   +-- Dto's
+|   +-- Dtos
 |   |   +-- Auth
 |   |   |   +-- AuthResultDto.cs
 |   |   |   +-- LoginDto.cs
@@ -399,18 +430,18 @@ OakERP
 |   +-- OakERP.Docs.csproj
 |   \-- README-dev.md
 +-- OakERP.Domain
-|   +-- Accounts_Payable
+|   +-- AccountsPayable
 |   |   \-- ApSettlementCalculator.cs
-|   +-- Accounts_Receivable
+|   +-- AccountsReceivable
 |   |   \-- ArSettlementCalculator.cs
 |   +-- Entities
-|   |   +-- Accounts_Payable
+|   |   +-- AccountsPayable
 |   |   |   +-- ApInvoice.cs
 |   |   |   +-- ApInvoiceLine.cs
 |   |   |   +-- ApPayment.cs
 |   |   |   +-- ApPaymentAllocation.cs
 |   |   |   \-- Vendor.cs
-|   |   +-- Accounts_Receivable
+|   |   +-- AccountsReceivable
 |   |   |   +-- ArInvoice.cs
 |   |   |   +-- ArInvoiceLine.cs
 |   |   |   +-- ArReceipt.cs
@@ -427,7 +458,7 @@ OakERP
 |   |   |   +-- AppSetting.cs
 |   |   |   +-- Currency.cs
 |   |   |   \-- TaxRate.cs
-|   |   +-- General_Ledger
+|   |   +-- GeneralLedger
 |   |   |   +-- FiscalPeriod.cs
 |   |   |   +-- FiscalPeriodStatuses.cs
 |   |   |   +-- GlAccount.cs
@@ -448,19 +479,19 @@ OakERP
 |   |       +-- License.cs
 |   |       \-- Tenant.cs
 |   +-- Posting
-|   |   +-- Accounts_Payable
+|   |   +-- AccountsPayable
 |   |   |   +-- ApInvoicePostingContext.cs
 |   |   |   +-- ApInvoicePostingLineContext.cs
 |   |   |   +-- ApPaymentPostingContext.cs
 |   |   |   +-- IApInvoicePostingContextBuilder.cs
 |   |   |   \-- IApPaymentPostingContextBuilder.cs
-|   |   +-- Accounts_Receivable
+|   |   +-- AccountsReceivable
 |   |   |   +-- ArInvoicePostingContext.cs
 |   |   |   +-- ArInvoicePostingLineContext.cs
 |   |   |   +-- ArReceiptPostingContext.cs
 |   |   |   +-- IArInvoicePostingContextBuilder.cs
 |   |   |   \-- IArReceiptPostingContextBuilder.cs
-|   |   +-- General_Ledger
+|   |   +-- GeneralLedger
 |   |   |   +-- GlEntryModel.cs
 |   |   |   +-- GlPostingSettings.cs
 |   |   |   +-- GlPostingSettingsKeys.cs
@@ -477,14 +508,14 @@ OakERP
 |   |   +-- PostingRuleLine.cs
 |   |   +-- PostingRuleScopes.cs
 |   |   \-- PostingSourceTypes.cs
-|   +-- Repository_Interfaces
-|   |   +-- Accounts_Payable
+|   +-- RepositoryInterfaces
+|   |   +-- AccountsPayable
 |   |   |   +-- IApInvoiceLineRepository.cs
 |   |   |   +-- IApInvoiceRepository.cs
 |   |   |   +-- IApPaymentAllocationRepository.cs
 |   |   |   +-- IApPaymentRepository.cs
 |   |   |   \-- IVendorRepository.cs
-|   |   +-- Accounts_Receivable
+|   |   +-- AccountsReceivable
 |   |   |   +-- IArInvoiceLineRepository.cs
 |   |   |   +-- IArInvoiceRepository.cs
 |   |   |   +-- IArReceiptAllocationRepository.cs
@@ -497,7 +528,7 @@ OakERP
 |   |   +-- Common
 |   |   |   +-- ICurrencyRepository.cs
 |   |   |   \-- ITaxRateRepository.cs
-|   |   +-- General_Ledger
+|   |   +-- GeneralLedger
 |   |   |   +-- IFiscalPeriodRepository.cs
 |   |   |   +-- IGlAccountRepository.cs
 |   |   |   +-- IGlEntryRepository.cs
@@ -525,13 +556,13 @@ OakERP
 |   |   \-- ApplicationDbContextModelSnapshot.cs
 |   +-- Persistence
 |   |   +-- Configurations
-|   |   |   +-- Accounts_Payable
+|   |   |   +-- AccountsPayable
 |   |   |   |   +-- ApInvoiceConfiguration.cs
 |   |   |   |   +-- ApInvoiceLineConfiguration.cs
 |   |   |   |   +-- ApPaymentAllocationConfiguration.cs
 |   |   |   |   +-- ApPaymentConfiguration.cs
 |   |   |   |   \-- VendorConfiguration.cs
-|   |   |   +-- Accounts_Recievable
+|   |   |   +-- AccountsReceivable
 |   |   |   |   +-- ArInvoiceConfiguration.cs
 |   |   |   |   +-- ArInvoiceLineConfiguration.cs
 |   |   |   |   +-- ArReceiptAllocationConfiguration.cs
@@ -547,7 +578,7 @@ OakERP
 |   |   |   |   +-- AppSettingConfiguration.cs
 |   |   |   |   +-- CurrencyConfiguration.cs
 |   |   |   |   \-- TaxRateConfiguration.cs
-|   |   |   +-- General_Ledger
+|   |   |   +-- GeneralLedger
 |   |   |   |   +-- FiscalPeriodConfiguration.cs
 |   |   |   |   +-- GlAccountConfiguration.cs
 |   |   |   |   +-- GlEntryConfiguration.cs
@@ -570,9 +601,9 @@ OakERP
 |   |   |   |   +-- BaseSeeder.cs
 |   |   |   |   \-- ISeeder.cs
 |   |   |   +-- Views
-|   |   |   |   +-- Accounts_Payable
+|   |   |   |   +-- AccountsPayable
 |   |   |   |   |   \-- APOpenItemView.cs
-|   |   |   |   +-- Accounts_Recievable
+|   |   |   |   +-- AccountsReceivable
 |   |   |   |   |   \-- AROpenItemView.cs
 |   |   |   |   +-- Inventory
 |   |   |   |   |   \-- ItemBalanceView.cs
@@ -589,26 +620,26 @@ OakERP
 |   |   +-- PersistenceFailureClassifier.cs
 |   |   \-- UnitOfWork.cs
 |   +-- Posting
-|   |   +-- Accounts_Payable
+|   |   +-- AccountsPayable
 |   |   |   +-- ApInvoicePostingContextBuilder.cs
 |   |   |   \-- ApPaymentPostingContextBuilder.cs
-|   |   +-- Accounts_Receivable
+|   |   +-- AccountsReceivable
 |   |   |   +-- ArInvoicePostingContextBuilder.cs
 |   |   |   \-- ArReceiptPostingContextBuilder.cs
-|   |   +-- General_Ledger
+|   |   +-- GeneralLedger
 |   |   |   \-- AppSettingGlSettingsProvider.cs
 |   |   +-- Inventory
 |   |   |   \-- MovingAverageInventoryCostService.cs
 |   |   +-- PostingEngine.cs
 |   |   \-- PostingRuleProvider.cs
 |   +-- Repositories
-|   |   +-- Accounts_Payable
+|   |   +-- AccountsPayable
 |   |   |   +-- ApInvoiceLineRepository.cs
 |   |   |   +-- ApInvoiceRepository.cs
 |   |   |   +-- ApPaymentAllocationRepository.cs
 |   |   |   +-- ApPaymentRepository.cs
 |   |   |   \-- VendorRepository.cs
-|   |   +-- Accounts_Receivable
+|   |   +-- AccountsReceivable
 |   |   |   +-- ArInvoiceLineRepository.cs
 |   |   |   +-- ArInvoiceRepository.cs
 |   |   |   +-- ArReceiptAllocationRepository.cs
@@ -620,7 +651,7 @@ OakERP
 |   |   |   \-- BankTransactionRepository.cs
 |   |   +-- Common
 |   |   |   \-- CurrencyRepository.cs
-|   |   +-- General_Ledger
+|   |   +-- GeneralLedger
 |   |   |   +-- FiscalPeriodRepository.cs
 |   |   |   +-- GlAccountRepository.cs
 |   |   |   +-- GlEntryRepository.cs
@@ -752,12 +783,13 @@ OakERP
 |   |   +-- Helpers
 |   |   |   +-- ApiTestException.cs
 |   |   |   \-- HttpClientExtensions.cs
+|   |   +-- ApiRoutes.cs
 |   |   +-- OakErpTestDatabaseOptions.cs
 |   |   +-- OakErpWebFactory.cs
 |   |   +-- TestConfiguration.cs
 |   |   +-- TestDatabaseReset.cs
 |   |   \-- WebApiIntegrationTestBase.cs
-|   +-- ApiRoutes.cs
+|   +-- GlobalUsings.cs
 |   \-- OakERP.Tests.Integration.csproj
 +-- OakERP.Tests.Unit
 |   +-- AccountsPayable
@@ -797,6 +829,7 @@ OakERP
 |   +-- Settlements
 |   |   +-- SettlementAllocationApplicatorTests.cs
 |   |   \-- SettlementInvoiceLoaderTests.cs
+|   +-- GlobalUsings.cs
 |   \-- OakERP.Tests.Unit.csproj
 +-- OakERP.UI
 |   +-- Extensions
