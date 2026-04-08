@@ -92,9 +92,13 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // ----- HTTP pipeline -----
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 {
     app.UseSwagger();
+}
+
+if (app.Environment.IsDevelopment())
+{
     app.UseSwaggerUI();
 }
 

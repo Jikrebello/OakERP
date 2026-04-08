@@ -7,7 +7,11 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using OakERP.API.Runtime;
-using OakERP.API.Swagger.Filters.Auth;
+using OakERP.API.Swagger.Configuration;
+using OakERP.API.Swagger.Examples.AccountsPayable;
+using OakERP.API.Swagger.Examples.AccountsReceivable;
+using OakERP.API.Swagger.Examples.Auth;
+using OakERP.API.Swagger.Examples.Users;
 
 namespace OakERP.API.Extensions;
 
@@ -140,40 +144,31 @@ public static class ServiceCollectionExtensions
         services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new OpenApiInfo { Title = "OakERP API", Version = "v1" });
+            options.EnableAnnotations();
 
-            // Dto Example Filters
+            // Request/response examples
             options.SchemaFilter<RegisterDtoExampleFilter>();
-
             options.SchemaFilter<LoginDtoExampleFilter>();
+            options.SchemaFilter<CreateApInvoiceCommandExampleFilter>();
+            options.SchemaFilter<CreateApPaymentCommandExampleFilter>();
+            options.SchemaFilter<AllocateApPaymentCommandExampleFilter>();
+            options.SchemaFilter<CreateArReceiptCommandExampleFilter>();
+            options.SchemaFilter<AllocateArReceiptCommandExampleFilter>();
+            options.SchemaFilter<CurrentUserResponseExampleFilter>();
 
-            // Jwt Support
+            options.OperationFilter<AuthorizeOperationFilter>();
+
+            // Jwt support
             options.AddSecurityDefinition(
                 "Bearer",
                 new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
                     Type = SecuritySchemeType.Http,
-                    Scheme = "Bearer",
+                    Scheme = "bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
                     Description = "Enter your token like this: Bearer {your JWT token}",
-                }
-            );
-
-            options.AddSecurityRequirement(
-                new OpenApiSecurityRequirement
-                {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer",
-                            },
-                        },
-                        Array.Empty<string>()
-                    },
                 }
             );
         });
