@@ -107,6 +107,10 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- refactor-waves-8-11
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- serilog-seq-logging
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
@@ -204,6 +208,8 @@ OakERP
 |   |   +-- AuthController.cs
 |   |   +-- BaseController.cs
 |   |   \-- UsersController.cs
+|   +-- Errors
+|   |   \-- ResultStatusCodeResolver.cs
 |   +-- Extensions
 |   |   +-- AppBuilderExtensions.cs
 |   |   +-- CorrelationIdMiddleware.cs
@@ -247,6 +253,7 @@ OakERP
 |   |   |   |   \-- IApInvoiceService.cs
 |   |   |   \-- Support
 |   |   |       +-- ApInvoiceCommandValidator.cs
+|   |   |       +-- ApInvoiceCreateWorkflow.cs
 |   |   |       +-- ApInvoiceErrors.cs
 |   |   |       \-- ApInvoiceSnapshotFactory.cs
 |   |   \-- Payments
@@ -262,7 +269,9 @@ OakERP
 |   |       |   +-- ApPaymentService.cs
 |   |       |   \-- IApPaymentService.cs
 |   |       \-- Support
+|   |           +-- ApPaymentAllocationWorkflow.cs
 |   |           +-- ApPaymentCommandValidator.cs
+|   |           +-- ApPaymentCreateWorkflow.cs
 |   |           +-- ApPaymentErrors.cs
 |   |           +-- ApPaymentServiceDependencies.cs
 |   |           +-- ApPaymentSettlementAdapters.cs
@@ -282,7 +291,9 @@ OakERP
 |   |       |   +-- ArReceiptService.cs
 |   |       |   \-- IArReceiptService.cs
 |   |       \-- Support
+|   |           +-- ArReceiptAllocationWorkflow.cs
 |   |           +-- ArReceiptCommandValidator.cs
+|   |           +-- ArReceiptCreateWorkflow.cs
 |   |           +-- ArReceiptErrors.cs
 |   |           +-- ArReceiptServiceDependencies.cs
 |   |           +-- ArReceiptSettlementAdapters.cs
@@ -290,10 +301,9 @@ OakERP
 |   +-- Extensions
 |   |   \-- ServiceCollectionExtensions.cs
 |   +-- Interfaces
-|   |   +-- Persistence
-|   |   |   +-- IPersistenceFailureClassifier.cs
-|   |   |   \-- IUnitOfWork.cs
-|   |   \-- IClock.cs
+|   |   \-- Persistence
+|   |       +-- IPersistenceFailureClassifier.cs
+|   |       \-- IUnitOfWork.cs
 |   +-- Posting
 |   |   +-- Contracts
 |   |   |   +-- IPostingService.cs
@@ -323,8 +333,6 @@ OakERP
 |   |   \-- Invoices
 |   |       +-- SettlementInvoiceLoader.cs
 |   |       \-- SettlementInvoiceLoadSpec.cs
-|   +-- Time
-|   |   \-- SystemClock.cs
 |   +-- GlobalUsings.cs
 |   \-- OakERP.Application.csproj
 +-- OakERP.Auth
@@ -340,9 +348,13 @@ OakERP
 |   |   +-- JwtOptions.cs
 |   |   \-- JwtTokenInput.cs
 |   +-- Services
+|   |   +-- AuthAuditLogger.cs
 |   |   +-- AuthErrors.cs
+|   |   +-- AuthLoginWorkflow.cs
+|   |   +-- AuthRegistrationWorkflow.cs
 |   |   +-- AuthService.cs
-|   |   \-- IAuthService.cs
+|   |   +-- IAuthService.cs
+|   |   \-- IdentityFailureMapper.cs
 |   \-- OakERP.Auth.csproj
 +-- OakERP.Client
 |   +-- Configuration
@@ -390,6 +402,7 @@ OakERP
 |   |   +-- RuleScope.cs
 |   |   \-- RuleSide.cs
 |   +-- Errors
+|   |   +-- FailureKind.cs
 |   |   \-- ResultError.cs
 |   +-- Exceptions
 |   |   +-- ConcurrencyConflictException.cs
@@ -400,6 +413,9 @@ OakERP
 |   |   \-- UnsupportedWorkflowOperationException.cs
 |   +-- Persistence
 |   |   \-- UserRoles.cs
+|   +-- Time
+|   |   +-- IClock.cs
+|   |   \-- SystemClock.cs
 |   +-- GlobalSuppressions.cs
 |   \-- OakERP.Common.csproj
 +-- OakERP.Desktop
@@ -736,6 +752,10 @@ OakERP
 |   |   |   \-- AboutAssets.txt
 |   |   \-- Splash
 |   |       \-- splash.svg
+|   +-- Services
+|   |   +-- FormFactor.cs
+|   |   +-- MauiPlatformService.cs
+|   |   \-- MauiTokenStore.cs
 |   +-- wwwroot
 |   |   +-- css
 |   |   |   +-- bootstrap
@@ -763,7 +783,8 @@ OakERP
 |   |   +-- ErrorToast.razor
 |   |   \-- OakToastProvider.razor
 |   +-- Extensions
-|   |   \-- NavigationExtensions.cs
+|   |   +-- NavigationExtensions.cs
+|   |   \-- ServiceCollectionExtensions.cs
 |   +-- Layout
 |   |   +-- MainLayout.razor
 |   |   \-- NavMenu.razor
@@ -802,6 +823,9 @@ OakERP
 |   |   +-- ArInvoicePostingTests.cs
 |   |   \-- ArReceiptPostingTests.cs
 |   +-- Runtime
+|   |   +-- HealthEndpointTests.cs
+|   |   +-- OperationalRuntimeTests.cs
+|   |   +-- RateLimitingTests.cs
 |   |   \-- RuntimeSupportTests.cs
 |   +-- TestSetup
 |   |   +-- Helpers
@@ -839,9 +863,12 @@ OakERP
 |   |   \-- OptionsBindingTests.cs
 |   +-- Posting
 |   |   +-- ApInvoicePostingContextBuilderTests.cs
+|   |   +-- ApInvoicePostingServiceTests.cs
 |   |   +-- ApPaymentPostingContextBuilderTests.cs
-|   |   +-- ApPostingServiceTests.cs
+|   |   +-- ApPaymentPostingServiceTests.cs
 |   |   +-- ArInvoicePostingContextBuilderTests.cs
+|   |   +-- ArInvoicePostingServiceTests.cs
+|   |   +-- ArReceiptPostingServiceTests.cs
 |   |   +-- MovingAverageInventoryCostServiceTests.cs
 |   |   +-- PostingEngineApInvoiceTests.cs
 |   |   +-- PostingEngineApPaymentTests.cs
@@ -849,7 +876,6 @@ OakERP
 |   |   +-- PostingEngineArReceiptTests.cs
 |   |   +-- PostingResultProcessorTests.cs
 |   |   +-- PostingServiceTestFactory.cs
-|   |   +-- PostingServiceTests.cs
 |   |   \-- PostingTransactionExecutorTests.cs
 |   +-- Runtime
 |   |   \-- GlobalExceptionHandlerTests.cs
