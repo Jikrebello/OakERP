@@ -50,6 +50,11 @@ OakERP
 |   |   \-- ADR-0001-architecture-principles.md
 |   +-- ai
 |   |   +-- tasks
+|   |   |   +-- active
+|   |   |   |   \-- ar-invoice-backend
+|   |   |   |       +-- findings.md
+|   |   |   |       +-- progress.md
+|   |   |   |       \-- task_plan.md
 |   |   |   +-- archive
 |   |   |   |   +-- analyzer-warning-cleanup
 |   |   |   |   |   +-- findings.md
@@ -219,6 +224,7 @@ OakERP
 |   +-- Controllers
 |   |   +-- ApInvoicesController.cs
 |   |   +-- ApPaymentsController.cs
+|   |   +-- ArInvoicesController.cs
 |   |   +-- ArReceiptsController.cs
 |   |   +-- AuthController.cs
 |   |   +-- BaseController.cs
@@ -250,6 +256,7 @@ OakERP
 |   |       |   \-- CreateApPaymentCommandExampleFilter.cs
 |   |       +-- AccountsReceivable
 |   |       |   +-- AllocateArReceiptCommandExampleFilter.cs
+|   |       |   +-- CreateArInvoiceCommandExampleFilter.cs
 |   |       |   \-- CreateArReceiptCommandExampleFilter.cs
 |   |       +-- Auth
 |   |       |   +-- LoginDtoExampleFilter.cs
@@ -303,6 +310,22 @@ OakERP
 |   |           +-- ApPaymentSettlementAdapters.cs
 |   |           \-- ApPaymentSnapshotFactory.cs
 |   +-- AccountsReceivable
+|   |   +-- Invoices
+|   |   |   +-- Commands
+|   |   |   |   \-- CreateArInvoiceCommand.cs
+|   |   |   +-- Contracts
+|   |   |   |   +-- ArInvoiceCommandResultDto.cs
+|   |   |   |   +-- ArInvoiceLineInputDto.cs
+|   |   |   |   +-- ArInvoiceLineSnapshotDto.cs
+|   |   |   |   \-- ArInvoiceSnapshotDto.cs
+|   |   |   +-- Services
+|   |   |   |   +-- ArInvoiceService.cs
+|   |   |   |   \-- IArInvoiceService.cs
+|   |   |   \-- Support
+|   |   |       +-- ArInvoiceCommandValidator.cs
+|   |   |       +-- ArInvoiceCreateWorkflow.cs
+|   |   |       +-- ArInvoiceErrors.cs
+|   |   |       \-- ArInvoiceSnapshotFactory.cs
 |   |   \-- Receipts
 |   |       +-- Commands
 |   |       |   +-- AllocateArReceiptCommand.cs
@@ -729,7 +752,8 @@ OakERP
 |   |   |   +-- BankReconciliationRepository.cs
 |   |   |   \-- BankTransactionRepository.cs
 |   |   +-- Common
-|   |   |   \-- CurrencyRepository.cs
+|   |   |   +-- CurrencyRepository.cs
+|   |   |   \-- TaxRateRepository.cs
 |   |   +-- GeneralLedger
 |   |   |   +-- FiscalPeriodRepository.cs
 |   |   |   +-- GlAccountRepository.cs
@@ -856,6 +880,7 @@ OakERP
 |   |   +-- ApInvoiceApiTests.cs
 |   |   \-- ApPaymentApiTests.cs
 |   +-- AccountsReceivable
+|   |   +-- ArInvoiceApiTests.cs
 |   |   \-- ArReceiptApiTests.cs
 |   +-- Auth
 |   |   \-- AuthApiTests.cs
@@ -883,7 +908,8 @@ OakERP
 |   |   +-- TestDatabaseReset.cs
 |   |   \-- WebApiIntegrationTestBase.cs
 |   +-- GlobalUsings.cs
-|   \-- OakERP.Tests.Integration.csproj
+|   +-- OakERP.Tests.Integration.csproj
+|   \-- TestDates.cs
 +-- OakERP.Tests.Unit
 |   +-- AccountsPayable
 |   |   +-- ApInvoiceCommandValidatorTests.cs
@@ -893,6 +919,10 @@ OakERP
 |   |   +-- ApPaymentServiceTests.cs
 |   |   \-- ApSettlementCalculatorTests.cs
 |   +-- AccountsReceivable
+|   |   +-- ArInvoiceCommandValidatorTests.cs
+|   |   +-- ArInvoiceServiceTestFactory.cs
+|   |   +-- ArInvoiceServiceTests.cs
+|   |   +-- ArInvoiceSnapshotFactoryTests.cs
 |   |   +-- ArReceiptCommandValidatorTests.cs
 |   |   +-- ArReceiptServiceTestFactory.cs
 |   |   +-- ArReceiptServiceTests.cs
@@ -934,7 +964,8 @@ OakERP
 |   |   +-- SettlementDocumentPreconditionsTests.cs
 |   |   \-- SettlementInvoiceLoaderTests.cs
 |   +-- GlobalUsings.cs
-|   \-- OakERP.Tests.Unit.csproj
+|   +-- OakERP.Tests.Unit.csproj
+|   \-- TestDates.cs
 +-- OakERP.UI
 |   +-- Extensions
 |   |   \-- ServiceCollectionExtensions.cs
