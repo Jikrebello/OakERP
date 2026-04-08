@@ -30,7 +30,7 @@ internal static class SettlementInvoiceLoader
         {
             SettlementInvoiceSnapshot snapshot = spec.DescribeInvoice(invoice);
 
-            if (snapshot.DocStatus != Common.Enums.DocStatus.Posted)
+            if (snapshot.DocStatus != OakERP.Common.Enums.DocStatus.Posted)
             {
                 return (null, spec.Failures.InvoiceNotPostedFailure);
             }

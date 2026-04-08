@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using OakERP.Application.Common.Orchestration;
+using OakERP.Application.Settlements.Documents;
 using OakERP.Common.Enums;
 using OakERP.Domain.AccountsPayable;
 using OakERP.Domain.Entities.AccountsPayable;
@@ -11,7 +13,7 @@ internal sealed class ApPaymentAllocationWorkflow(
     IApPaymentRepository apPaymentRepository,
     IApPaymentAllocationRepository apPaymentAllocationRepository,
     IApInvoiceRepository apInvoiceRepository,
-    ApPaymentServiceDependencies dependencies,
+    SettlementDocumentWorkflowDependencies dependencies,
     ILogger<Services.ApPaymentService> logger
 )
 {
@@ -29,113 +31,121 @@ internal sealed class ApPaymentAllocationWorkflow(
                 return validatedCommand.Failure;
             }
 
-            await dependencies.UnitOfWork.BeginTransactionAsync();
-
-            try
-            {
-                ApPayment? payment = await apPaymentRepository.GetTrackedForAllocationAsync(
-                    command.PaymentId,
-                    cancellationToken
-                );
-                if (payment is null)
+            return await dependencies.AllocateWorkflowRunner.ExecuteAsync(
+                async innerCancellationToken =>
                 {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return ApPaymentCommandResultDto.Fail(ApPaymentErrors.PaymentNotFound);
-                }
-
-                if (payment.DocStatus != DocStatus.Draft)
-                {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return ApPaymentCommandResultDto.Fail(ApPaymentErrors.OnlyDraftPaymentsAllowed);
-                }
-
-                GlPostingSettings settings = await dependencies.GlSettingsProvider.GetSettingsAsync(
-                    cancellationToken
-                );
-                if (
-                    !ApSettlementCalculator.MatchesCurrency(
-                        payment.BankAccount.CurrencyCode,
-                        settings.BaseCurrencyCode
-                    )
-                )
-                {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return ApPaymentCommandResultDto.Fail(ApPaymentErrors.AllocationBaseCurrencyOnly);
-                }
-
-                var (invoiceLoadInvoices, invoiceLoadFailure) =
-                    await SettlementInvoiceLoader.LoadAsync(
-                        [.. validatedCommand.Allocations.Select(x => x.ApInvoiceId)],
-                        ApPaymentSettlementAdapters.CreateInvoiceLoadSpec(
-                            apInvoiceRepository,
-                            payment.VendorId,
-                            settings.BaseCurrencyCode
-                        ),
-                        cancellationToken
+                    ApPayment? payment = await apPaymentRepository.GetTrackedForAllocationAsync(
+                        command.PaymentId,
+                        innerCancellationToken
                     );
-                if (invoiceLoadFailure is not null)
-                {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return invoiceLoadFailure;
-                }
+                    if (payment is null)
+                    {
+                        return ApPaymentCommandResultDto.Fail(ApPaymentErrors.PaymentNotFound);
+                    }
 
-                var (allocationFailure, settledAmounts, paymentAllocations) =
-                    await SettlementAllocationApplicator.ApplyAsync(
-                        ApPaymentSettlementAdapters.CreateAllocationInputs(validatedCommand.Allocations),
-                        command.AllocationDate ?? payment.PaymentDate,
-                        validatedCommand.PerformedBy,
-                        dependencies.Clock.UtcNow,
-                        ApPaymentSettlementAdapters.CreateAllocationApplySpec(
-                            payment,
-                            invoiceLoadInvoices!,
-                            apPaymentAllocationRepository
-                        )
+                    ApPaymentCommandResultDto? draftFailure =
+                        SettlementDocumentPreconditions.EnsureDraftStatus(
+                            payment.DocStatus,
+                            ApPaymentCommandResultDto.Fail(ApPaymentErrors.OnlyDraftPaymentsAllowed)
+                        );
+                    if (draftFailure is not null)
+                    {
+                        return draftFailure;
+                    }
+
+                    GlPostingSettings settings =
+                        await dependencies.GlSettingsProvider.GetSettingsAsync(
+                            innerCancellationToken
+                        );
+                    ApPaymentCommandResultDto? currencyFailure =
+                        SettlementDocumentPreconditions.EnsureCurrency(
+                            payment.BankAccount.CurrencyCode,
+                            settings.BaseCurrencyCode,
+                            ApSettlementCalculator.MatchesCurrency,
+                            ApPaymentCommandResultDto.Fail(
+                                ApPaymentErrors.AllocationBaseCurrencyOnly
+                            )
+                        );
+                    if (currencyFailure is not null)
+                    {
+                        return currencyFailure;
+                    }
+
+                    var (invoiceLoadInvoices, invoiceLoadFailure) =
+                        await SettlementInvoiceLoader.LoadAsync(
+                            [.. validatedCommand.Allocations.Select(x => x.ApInvoiceId)],
+                            ApPaymentSettlementAdapters.CreateInvoiceLoadSpec(
+                                apInvoiceRepository,
+                                payment.VendorId,
+                                settings.BaseCurrencyCode
+                            ),
+                            innerCancellationToken
+                        );
+                    if (invoiceLoadFailure is not null)
+                    {
+                        return invoiceLoadFailure;
+                    }
+
+                    var (allocationFailure, settledAmounts, paymentAllocations) =
+                        await SettlementAllocationApplicator.ApplyAsync(
+                            ApPaymentSettlementAdapters.CreateAllocationInputs(
+                                validatedCommand.Allocations
+                            ),
+                            command.AllocationDate ?? payment.PaymentDate,
+                            validatedCommand.PerformedBy,
+                            dependencies.Clock.UtcNow,
+                            ApPaymentSettlementAdapters.CreateAllocationApplySpec(
+                                payment,
+                                invoiceLoadInvoices!,
+                                apPaymentAllocationRepository
+                            )
+                        );
+                    if (allocationFailure is not null)
+                    {
+                        return allocationFailure;
+                    }
+
+                    return ApPaymentSnapshotFactory.BuildSuccess(
+                        payment,
+                        invoiceLoadInvoices!.Values,
+                        "AP payment allocations saved successfully.",
+                        settledAmounts,
+                        paymentAllocations
                     );
-                if (allocationFailure is not null)
-                {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return allocationFailure;
-                }
-
-                await dependencies.UnitOfWork.SaveChangesAsync(cancellationToken);
-                await dependencies.UnitOfWork.CommitAsync();
-
-                return ApPaymentSnapshotFactory.BuildSuccess(
-                    payment,
-                    invoiceLoadInvoices!.Values,
-                    "AP payment allocations saved successfully.",
-                    settledAmounts,
-                    paymentAllocations
-                );
-            }
-            catch (Exception ex)
-            {
-                await dependencies.UnitOfWork.RollbackAsync();
-                if (dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(ex))
-                {
-                    logger.LogWarning(
-                        ex,
-                        "Concurrency failure while allocating AP payment {PaymentId}",
-                        command.PaymentId
-                    );
-                    return ApPaymentCommandResultDto.Fail(ApPaymentErrors.AllocationConcurrencyConflict);
-                }
-
-                logger.LogError(
-                    ex,
-                    "Unexpected failure while allocating AP payment {PaymentId}",
-                    command.PaymentId
-                );
-                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.UnexpectedAllocateFailure);
-            }
+                },
+                cancellationToken
+            );
         }
         catch (Exception ex)
         {
-            logger.LogError(
+            ApPaymentCommandResultDto? translatedFailure = WorkflowFailureTranslator.TryTranslate(
                 ex,
-                "Unexpected failure before allocating AP payment {PaymentId}",
-                command.PaymentId
+                [
+                    new WorkflowExceptionRule<ApPaymentCommandResultDto>(
+                        innerException =>
+                            dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(
+                                innerException
+                            ),
+                        innerException =>
+                        {
+                            logger.LogWarning(
+                                innerException,
+                                "Concurrency failure while allocating AP payment {PaymentId}",
+                                command.PaymentId
+                            );
+                            return ApPaymentCommandResultDto.Fail(
+                                ApPaymentErrors.AllocationConcurrencyConflict
+                            );
+                        }
+                    ),
+                ]
             );
+            if (translatedFailure is not null)
+            {
+                return translatedFailure;
+            }
+
+            logger.LogError(ex, "Unexpected failure while allocating AP payment {PaymentId}", command.PaymentId);
             return ApPaymentCommandResultDto.Fail(ApPaymentErrors.UnexpectedAllocateFailure);
         }
     }

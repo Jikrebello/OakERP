@@ -1,5 +1,3 @@
-using OakERP.Common.Exceptions;
-
 namespace OakERP.Tests.Integration.TestSetup;
 
 internal sealed class OakErpTestDatabaseOptions

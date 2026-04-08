@@ -72,4 +72,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <ProjectReference Include="..\OakERP.Shared\OakERP.Shared.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\OakERP.Shared\Hosts\Maui\*.cs" LinkBase="Hosts\Maui" />
+  </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 using OakERP.Common.Errors;
+using OakERP.Application.Settlements.Documents;
 
 namespace OakERP.Application.AccountsPayable.Payments.Support;
 
@@ -21,7 +22,7 @@ public static class ApPaymentErrors
     public static readonly ResultError PaymentIdRequired =
         new("ap_payment.payment_id_required", "Payment id is required.", FailureKind.Validation);
     public static readonly ResultError AllocationRequired =
-        new("ap_payment.allocation_required", "At least one allocation is required.", FailureKind.Validation);
+        new("ap_payment.allocation_required", SettlementDocumentErrorMessages.AllocationRequired, FailureKind.Validation);
     public static readonly ResultError AllocationInvoiceIdRequired =
         new("ap_payment.allocation_invoice_id_required", "Allocation invoice id is required.", FailureKind.Validation);
     public static readonly ResultError AllocationDuplicateInvoice =
@@ -33,13 +34,13 @@ public static class ApPaymentErrors
     public static readonly ResultError VendorInactive =
         new("ap_payment.vendor_inactive", "AP payments can be created only for active vendors.", FailureKind.Validation);
     public static readonly ResultError BankAccountNotFound =
-        new("ap_payment.bank_account_not_found", "Bank account was not found.", FailureKind.NotFound);
+        new("ap_payment.bank_account_not_found", SettlementDocumentErrorMessages.BankAccountNotFound, FailureKind.NotFound);
     public static readonly ResultError BankAccountInactive =
         new("ap_payment.bank_account_inactive", "AP payments can be created only for active bank accounts.", FailureKind.Validation);
     public static readonly ResultError BaseCurrencyOnly =
         new("ap_payment.base_currency_only", "AP payments currently support only bank accounts in the base currency.", FailureKind.Validation);
     public static readonly ResultError DuplicateDocumentNumber =
-        new("ap_payment.duplicate_document_number", "Document number already exists.", FailureKind.Conflict);
+        new("ap_payment.duplicate_document_number", SettlementDocumentErrorMessages.DuplicateDocumentNumber, FailureKind.Conflict);
     public static readonly ResultError AllocationConcurrencyConflict =
         new("ap_payment.allocation_concurrency_conflict", "The AP payment was modified while allocations were being saved.", FailureKind.Conflict);
     public static readonly ResultError UnexpectedCreateFailure =

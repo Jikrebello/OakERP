@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using OakERP.Application.Common.Orchestration;
+using OakERP.Application.Settlements.Documents;
 using OakERP.Common.Enums;
 using OakERP.Domain.AccountsPayable;
 using OakERP.Domain.Entities.AccountsPayable;
@@ -14,7 +16,7 @@ internal sealed class ApPaymentCreateWorkflow(
     IApInvoiceRepository apInvoiceRepository,
     IVendorRepository vendorRepository,
     IBankAccountRepository bankAccountRepository,
-    ApPaymentServiceDependencies dependencies,
+    SettlementDocumentWorkflowDependencies dependencies,
     ILogger<Services.ApPaymentService> logger
 )
 {
@@ -36,148 +38,170 @@ internal sealed class ApPaymentCreateWorkflow(
                 cancellationToken
             );
 
-            var vendor = await vendorRepository.FindNoTrackingAsync(
-                command.VendorId,
+            var (_, vendorFailure) = await SettlementDocumentPreconditions.LoadActivePartyAsync(
+                innerCancellationToken =>
+                    vendorRepository.FindNoTrackingAsync(command.VendorId, innerCancellationToken),
+                vendor => new SettlementDocumentPartySnapshot(vendor.Id, vendor.IsActive),
+                ApPaymentCommandResultDto.Fail(ApPaymentErrors.VendorNotFound),
+                ApPaymentCommandResultDto.Fail(ApPaymentErrors.VendorInactive),
                 cancellationToken
             );
-            if (vendor is null)
+            if (vendorFailure is not null)
             {
-                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.VendorNotFound);
+                return vendorFailure;
             }
 
-            if (!vendor.IsActive)
-            {
-                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.VendorInactive);
-            }
-
-            var bankAccount = await bankAccountRepository.FindNoTrackingAsync(
-                command.BankAccountId,
-                cancellationToken
-            );
-            if (bankAccount is null)
-            {
-                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.BankAccountNotFound);
-            }
-
-            if (!bankAccount.IsActive)
-            {
-                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.BankAccountInactive);
-            }
-
-            if (
-                !ApSettlementCalculator.MatchesCurrency(
-                    bankAccount.CurrencyCode,
-                    settings.BaseCurrencyCode
-                )
-            )
-            {
-                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.BaseCurrencyOnly);
-            }
-
-            bool docNoExists = await apPaymentRepository.ExistsDocNoAsync(
-                validatedCommand.DocNo,
-                cancellationToken
-            );
-            if (docNoExists)
-            {
-                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.DuplicateDocumentNumber);
-            }
-
-            await dependencies.UnitOfWork.BeginTransactionAsync();
-
-            try
-            {
-                var payment = new ApPayment
-                {
-                    DocNo = validatedCommand.DocNo,
-                    VendorId = command.VendorId,
-                    BankAccountId = command.BankAccountId,
-                    PaymentDate = command.PaymentDate,
-                    Amount = command.Amount,
-                    DocStatus = DocStatus.Draft,
-                    PostingDate = null,
-                    Memo = validatedCommand.Memo,
-                    CreatedBy = validatedCommand.PerformedBy,
-                    UpdatedBy = validatedCommand.PerformedBy,
-                    UpdatedAt = dependencies.Clock.UtcNow,
-                };
-
-                await apPaymentRepository.AddAsync(payment);
-
-                var (invoiceLoadInvoices, invoiceLoadFailure) =
-                    await SettlementInvoiceLoader.LoadAsync(
-                        [.. validatedCommand.Allocations.Select(x => x.ApInvoiceId)],
-                        ApPaymentSettlementAdapters.CreateInvoiceLoadSpec(
-                            apInvoiceRepository,
-                            payment.VendorId,
-                            settings.BaseCurrencyCode
+            var (bankAccount, bankAccountFailure) =
+                await SettlementDocumentPreconditions.LoadActiveBankAccountAsync(
+                    innerCancellationToken =>
+                        bankAccountRepository.FindNoTrackingAsync(
+                            command.BankAccountId,
+                            innerCancellationToken
                         ),
-                        cancellationToken
-                    );
-                if (invoiceLoadFailure is not null)
-                {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return invoiceLoadFailure;
-                }
-
-                var (allocationFailure, settledAmounts, paymentAllocations) =
-                    await SettlementAllocationApplicator.ApplyAsync(
-                        ApPaymentSettlementAdapters.CreateAllocationInputs(validatedCommand.Allocations),
-                        command.AllocationDate ?? command.PaymentDate,
-                        validatedCommand.PerformedBy,
-                        dependencies.Clock.UtcNow,
-                        ApPaymentSettlementAdapters.CreateAllocationApplySpec(
-                            payment,
-                            invoiceLoadInvoices!,
-                            apPaymentAllocationRepository
-                        )
-                    );
-                if (allocationFailure is not null)
-                {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return allocationFailure;
-                }
-
-                await dependencies.UnitOfWork.SaveChangesAsync(cancellationToken);
-                await dependencies.UnitOfWork.CommitAsync();
-
-                return ApPaymentSnapshotFactory.BuildSuccess(
-                    payment,
-                    invoiceLoadInvoices!.Values,
-                    "AP payment created successfully.",
-                    settledAmounts,
-                    paymentAllocations
+                    entity =>
+                        new SettlementDocumentBankAccountSnapshot(
+                            entity.Id,
+                            entity.IsActive,
+                            entity.CurrencyCode
+                        ),
+                    ApPaymentCommandResultDto.Fail(ApPaymentErrors.BankAccountNotFound),
+                    ApPaymentCommandResultDto.Fail(ApPaymentErrors.BankAccountInactive),
+                    cancellationToken
                 );
-            }
-            catch (Exception ex)
+            if (bankAccountFailure is not null)
             {
-                await dependencies.UnitOfWork.RollbackAsync();
-                if (dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(ex))
-                {
-                    logger.LogWarning(
-                        ex,
-                        "Concurrency failure while creating AP payment {DocNo}",
-                        validatedCommand.DocNo
-                    );
-                    return ApPaymentCommandResultDto.Fail(ApPaymentErrors.AllocationConcurrencyConflict);
-                }
-
-                if (dependencies.PersistenceFailureClassifier.IsApPaymentDocNoConflict(ex))
-                {
-                    return ApPaymentCommandResultDto.Fail(ApPaymentErrors.DuplicateDocumentNumber);
-                }
-
-                logger.LogError(
-                    ex,
-                    "Unexpected failure while creating AP payment {DocNo}",
-                    validatedCommand.DocNo
-                );
-                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.UnexpectedCreateFailure);
+                return bankAccountFailure;
             }
+
+            ApPaymentCommandResultDto? currencyFailure =
+                SettlementDocumentPreconditions.EnsureCurrency(
+                    bankAccount!.CurrencyCode,
+                    settings.BaseCurrencyCode,
+                    ApSettlementCalculator.MatchesCurrency,
+                    ApPaymentCommandResultDto.Fail(ApPaymentErrors.BaseCurrencyOnly)
+                );
+            if (currencyFailure is not null)
+            {
+                return currencyFailure;
+            }
+
+            ApPaymentCommandResultDto? docNoFailure =
+                await SettlementDocumentPreconditions.EnsureDocumentNumberAvailableAsync(
+                    innerCancellationToken =>
+                        apPaymentRepository.ExistsDocNoAsync(
+                            validatedCommand.DocNo,
+                            innerCancellationToken
+                        ),
+                    ApPaymentCommandResultDto.Fail(ApPaymentErrors.DuplicateDocumentNumber),
+                    cancellationToken
+                );
+            if (docNoFailure is not null)
+            {
+                return docNoFailure;
+            }
+
+            return await dependencies.CreateWorkflowRunner.ExecuteAsync(
+                async innerCancellationToken =>
+                {
+                    var payment = new ApPayment
+                    {
+                        DocNo = validatedCommand.DocNo,
+                        VendorId = command.VendorId,
+                        BankAccountId = command.BankAccountId,
+                        PaymentDate = command.PaymentDate,
+                        Amount = command.Amount,
+                        DocStatus = DocStatus.Draft,
+                        PostingDate = null,
+                        Memo = validatedCommand.Memo,
+                        CreatedBy = validatedCommand.PerformedBy,
+                        UpdatedBy = validatedCommand.PerformedBy,
+                        UpdatedAt = dependencies.Clock.UtcNow,
+                    };
+
+                    await apPaymentRepository.AddAsync(payment);
+
+                    var (invoiceLoadInvoices, invoiceLoadFailure) =
+                        await SettlementInvoiceLoader.LoadAsync(
+                            [.. validatedCommand.Allocations.Select(x => x.ApInvoiceId)],
+                            ApPaymentSettlementAdapters.CreateInvoiceLoadSpec(
+                                apInvoiceRepository,
+                                payment.VendorId,
+                                settings.BaseCurrencyCode
+                            ),
+                            innerCancellationToken
+                        );
+                    if (invoiceLoadFailure is not null)
+                    {
+                        return invoiceLoadFailure;
+                    }
+
+                    var (allocationFailure, settledAmounts, paymentAllocations) =
+                        await SettlementAllocationApplicator.ApplyAsync(
+                            ApPaymentSettlementAdapters.CreateAllocationInputs(
+                                validatedCommand.Allocations
+                            ),
+                            command.AllocationDate ?? command.PaymentDate,
+                            validatedCommand.PerformedBy,
+                            dependencies.Clock.UtcNow,
+                            ApPaymentSettlementAdapters.CreateAllocationApplySpec(
+                                payment,
+                                invoiceLoadInvoices!,
+                                apPaymentAllocationRepository
+                            )
+                        );
+                    if (allocationFailure is not null)
+                    {
+                        return allocationFailure;
+                    }
+
+                    return ApPaymentSnapshotFactory.BuildSuccess(
+                        payment,
+                        invoiceLoadInvoices!.Values,
+                        "AP payment created successfully.",
+                        settledAmounts,
+                        paymentAllocations
+                    );
+                },
+                cancellationToken
+            );
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected failure before creating AP payment.");
+            ApPaymentCommandResultDto? translatedFailure = WorkflowFailureTranslator.TryTranslate(
+                ex,
+                [
+                    new WorkflowExceptionRule<ApPaymentCommandResultDto>(
+                        innerException =>
+                            dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(
+                                innerException
+                            ),
+                        innerException =>
+                        {
+                            logger.LogWarning(
+                                innerException,
+                                "Concurrency failure while creating AP payment {DocNo}",
+                                command.DocNo
+                            );
+                            return ApPaymentCommandResultDto.Fail(
+                                ApPaymentErrors.AllocationConcurrencyConflict
+                            );
+                        }
+                    ),
+                    new WorkflowExceptionRule<ApPaymentCommandResultDto>(
+                        innerException =>
+                            dependencies.PersistenceFailureClassifier.IsApPaymentDocNoConflict(
+                                innerException
+                            ),
+                        _ => ApPaymentCommandResultDto.Fail(ApPaymentErrors.DuplicateDocumentNumber)
+                    ),
+                ]
+            );
+            if (translatedFailure is not null)
+            {
+                return translatedFailure;
+            }
+
+            logger.LogError(ex, "Unexpected failure before creating AP payment {DocNo}", command.DocNo);
             return ApPaymentCommandResultDto.Fail(ApPaymentErrors.UnexpectedCreateFailure);
         }
     }

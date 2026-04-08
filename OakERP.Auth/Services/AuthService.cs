@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using OakERP.Application.Interfaces.Persistence;
+using OakERP.Auth.Internal.Support;
 using OakERP.Auth.Identity;
 using OakERP.Auth.Jwt;
 using OakERP.Common.Dtos.Auth;
@@ -24,6 +25,7 @@ public sealed class AuthService : IAuthService
     {
         var auditLogger = new AuthAuditLogger(logger);
         var identityFailureMapper = new IdentityFailureMapper();
+        var transactionRunner = new AuthTransactionRunner(unitOfWork);
 
         registrationWorkflow = new AuthRegistrationWorkflow(
             identityGateway,
@@ -32,7 +34,8 @@ public sealed class AuthService : IAuthService
             unitOfWork,
             clock,
             auditLogger,
-            identityFailureMapper
+            identityFailureMapper,
+            transactionRunner
         );
         loginWorkflow = new AuthLoginWorkflow(
             identityGateway,

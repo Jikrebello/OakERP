@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using OakERP.API.Errors;
 using OakERP.Common.Dtos.Base;
@@ -19,4 +21,11 @@ public abstract class BaseApiController : ControllerBase
         result.StatusCode = statusCode;
         return StatusCode(statusCode, result);
     }
+
+    protected string ResolvePerformedBy() =>
+        User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+        ?? User.FindFirstValue(ClaimTypes.Email)
+        ?? User.FindFirstValue(JwtRegisteredClaimNames.Email)
+        ?? "api-user";
 }

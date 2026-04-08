@@ -4,21 +4,11 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Timeouts;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NUnit.Framework;
-using OakERP.API.Extensions;
-using OakERP.API.Runtime;
 using OakERP.Common.Dtos.Auth;
-using OakERP.Infrastructure.Persistence;
 using Shouldly;
 
 namespace OakERP.Tests.Integration.Runtime;
@@ -235,10 +225,7 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
 
         var body = await RuntimeSupportTestJson.ReadJsonAsync(response);
         body.GetProperty("status").GetInt32().ShouldBe(StatusCodes.Status500InternalServerError);
-        body
-            .GetProperty("title")
-            .GetString()
-            .ShouldBe("Application configuration is invalid.");
+        body.GetProperty("title").GetString().ShouldBe("Application configuration is invalid.");
     }
 
     private sealed class ThrowingAuthService : IAuthService
@@ -273,7 +260,6 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
         }
     }
 }
-
 
 internal static class RuntimeSupportTestJson
 {

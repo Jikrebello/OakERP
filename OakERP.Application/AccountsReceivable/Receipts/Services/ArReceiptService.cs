@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using OakERP.Application.Settlements.Documents;
 using OakERP.Domain.RepositoryInterfaces.AccountsReceivable;
 using OakERP.Domain.RepositoryInterfaces.Bank;
 
@@ -15,7 +16,7 @@ public sealed class ArReceiptService : IArReceiptService
         IArInvoiceRepository arInvoiceRepository,
         ICustomerRepository customerRepository,
         IBankAccountRepository bankAccountRepository,
-        ArReceiptServiceDependencies dependencies,
+        SettlementDocumentWorkflowDependencies dependencies,
         ILogger<ArReceiptService> logger
     )
     {

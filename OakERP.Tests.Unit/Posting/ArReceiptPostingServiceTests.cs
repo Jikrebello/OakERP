@@ -1,9 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
-using OakERP.Domain.Posting.AccountsReceivable;
 using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Domain.Posting.Inventory;
 using Shouldly;

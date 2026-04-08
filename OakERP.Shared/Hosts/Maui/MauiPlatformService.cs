@@ -1,8 +1,8 @@
 using OakERP.Common.Abstractions;
 
-namespace OakERP.Mobile.Services;
+namespace OakERP.Shared.Hosts.Maui;
 
-internal class MauiPlatformService : IPlatformService
+internal sealed class MauiPlatformService : IPlatformService
 {
     public bool IsWeb => false;
 

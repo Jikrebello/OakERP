@@ -1,8 +1,8 @@
 using OakERP.Shared.Services;
 
-namespace OakERP.Mobile.Services;
+namespace OakERP.Shared.Hosts.Maui;
 
-public class FormFactor : IFormFactor
+public sealed class MauiFormFactor : IFormFactor
 {
     public string GetFormFactor() => DeviceInfo.Idiom.ToString();
 

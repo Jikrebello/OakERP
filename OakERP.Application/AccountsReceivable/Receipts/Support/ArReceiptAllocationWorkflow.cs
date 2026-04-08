@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using OakERP.Application.Common.Orchestration;
+using OakERP.Application.Settlements.Documents;
 using OakERP.Common.Enums;
 using OakERP.Domain.AccountsReceivable;
 using OakERP.Domain.Entities.AccountsReceivable;
@@ -11,7 +13,7 @@ internal sealed class ArReceiptAllocationWorkflow(
     IArReceiptRepository arReceiptRepository,
     IArReceiptAllocationRepository arReceiptAllocationRepository,
     IArInvoiceRepository arInvoiceRepository,
-    ArReceiptServiceDependencies dependencies,
+    SettlementDocumentWorkflowDependencies dependencies,
     ILogger<Services.ArReceiptService> logger
 )
 {
@@ -29,115 +31,121 @@ internal sealed class ArReceiptAllocationWorkflow(
                 return validatedCommand.Failure;
             }
 
-            await dependencies.UnitOfWork.BeginTransactionAsync();
-
-            try
-            {
-                ArReceipt? receipt = await arReceiptRepository.GetTrackedForAllocationAsync(
-                    command.ReceiptId,
-                    cancellationToken
-                );
-                if (receipt is null)
+            return await dependencies.AllocateWorkflowRunner.ExecuteAsync(
+                async innerCancellationToken =>
                 {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return ArReceiptCommandResultDto.Fail(ArReceiptErrors.ReceiptNotFound);
-                }
-
-                if (receipt.DocStatus != DocStatus.Draft)
-                {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return ArReceiptCommandResultDto.Fail(ArReceiptErrors.OnlyDraftReceiptsAllowed);
-                }
-
-                GlPostingSettings settings = await dependencies.GlSettingsProvider.GetSettingsAsync(
-                    cancellationToken
-                );
-                if (
-                    !ArSettlementCalculator.MatchesCurrency(
-                        receipt.CurrencyCode,
-                        settings.BaseCurrencyCode
-                    )
-                )
-                {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return ArReceiptCommandResultDto.Fail(ArReceiptErrors.AllocationBaseCurrencyOnly);
-                }
-
-                var (invoiceLoadInvoices, invoiceLoadFailure) =
-                    await SettlementInvoiceLoader.LoadAsync(
-                        [.. validatedCommand.Allocations.Select(x => x.ArInvoiceId)],
-                        ArReceiptSettlementAdapters.CreateInvoiceLoadSpec(
-                            arInvoiceRepository,
-                            receipt.CustomerId,
-                            receipt.CurrencyCode
-                        ),
-                        cancellationToken
+                    ArReceipt? receipt = await arReceiptRepository.GetTrackedForAllocationAsync(
+                        command.ReceiptId,
+                        innerCancellationToken
                     );
-                if (invoiceLoadFailure is not null)
-                {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return invoiceLoadFailure;
-                }
+                    if (receipt is null)
+                    {
+                        return ArReceiptCommandResultDto.Fail(ArReceiptErrors.ReceiptNotFound);
+                    }
 
-                var (allocationFailure, settledAmounts, receiptAllocations) =
-                    await SettlementAllocationApplicator.ApplyAsync(
-                        ArReceiptSettlementAdapters.CreateAllocationInputs(validatedCommand.Allocations),
-                        command.AllocationDate ?? receipt.ReceiptDate,
-                        validatedCommand.PerformedBy,
-                        dependencies.Clock.UtcNow,
-                        ArReceiptSettlementAdapters.CreateAllocationApplySpec(
-                            receipt,
-                            invoiceLoadInvoices!,
-                            arReceiptAllocationRepository
-                        )
+                    ArReceiptCommandResultDto? draftFailure =
+                        SettlementDocumentPreconditions.EnsureDraftStatus(
+                            receipt.DocStatus,
+                            ArReceiptCommandResultDto.Fail(ArReceiptErrors.OnlyDraftReceiptsAllowed)
+                        );
+                    if (draftFailure is not null)
+                    {
+                        return draftFailure;
+                    }
+
+                    GlPostingSettings settings =
+                        await dependencies.GlSettingsProvider.GetSettingsAsync(
+                            innerCancellationToken
+                        );
+                    ArReceiptCommandResultDto? currencyFailure =
+                        SettlementDocumentPreconditions.EnsureCurrency(
+                            receipt.CurrencyCode,
+                            settings.BaseCurrencyCode,
+                            ArSettlementCalculator.MatchesCurrency,
+                            ArReceiptCommandResultDto.Fail(
+                                ArReceiptErrors.AllocationBaseCurrencyOnly
+                            )
+                        );
+                    if (currencyFailure is not null)
+                    {
+                        return currencyFailure;
+                    }
+
+                    var (invoiceLoadInvoices, invoiceLoadFailure) =
+                        await SettlementInvoiceLoader.LoadAsync(
+                            [.. validatedCommand.Allocations.Select(x => x.ArInvoiceId)],
+                            ArReceiptSettlementAdapters.CreateInvoiceLoadSpec(
+                                arInvoiceRepository,
+                                receipt.CustomerId,
+                                receipt.CurrencyCode
+                            ),
+                            innerCancellationToken
+                        );
+                    if (invoiceLoadFailure is not null)
+                    {
+                        return invoiceLoadFailure;
+                    }
+
+                    var (allocationFailure, settledAmounts, receiptAllocations) =
+                        await SettlementAllocationApplicator.ApplyAsync(
+                            ArReceiptSettlementAdapters.CreateAllocationInputs(
+                                validatedCommand.Allocations
+                            ),
+                            command.AllocationDate ?? receipt.ReceiptDate,
+                            validatedCommand.PerformedBy,
+                            dependencies.Clock.UtcNow,
+                            ArReceiptSettlementAdapters.CreateAllocationApplySpec(
+                                receipt,
+                                invoiceLoadInvoices!,
+                                arReceiptAllocationRepository
+                            )
+                        );
+                    if (allocationFailure is not null)
+                    {
+                        return allocationFailure;
+                    }
+
+                    return ArReceiptSnapshotFactory.BuildSuccess(
+                        receipt,
+                        invoiceLoadInvoices!.Values,
+                        "AR receipt allocations saved successfully.",
+                        settledAmounts,
+                        receiptAllocations
                     );
-                if (allocationFailure is not null)
-                {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return allocationFailure;
-                }
-
-                await dependencies.UnitOfWork.SaveChangesAsync(cancellationToken);
-                await dependencies.UnitOfWork.CommitAsync();
-
-                return ArReceiptSnapshotFactory.BuildSuccess(
-                    receipt,
-                    invoiceLoadInvoices!.Values,
-                    "AR receipt allocations saved successfully.",
-                    settledAmounts,
-                    receiptAllocations
-                );
-            }
-            catch (Exception ex)
-            {
-                await dependencies.UnitOfWork.RollbackAsync();
-                if (dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(ex))
-                {
-                    logger.LogWarning(
-                        ex,
-                        "Concurrency failure while allocating AR receipt {ReceiptId}",
-                        command.ReceiptId
-                    );
-                    return ArReceiptCommandResultDto.Fail(
-                        ArReceiptErrors.AllocationConcurrencyConflict
-                    );
-                }
-
-                logger.LogError(
-                    ex,
-                    "Unexpected failure while allocating AR receipt {ReceiptId}",
-                    command.ReceiptId
-                );
-                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.UnexpectedAllocateFailure);
-            }
+                },
+                cancellationToken
+            );
         }
         catch (Exception ex)
         {
-            logger.LogError(
+            ArReceiptCommandResultDto? translatedFailure = WorkflowFailureTranslator.TryTranslate(
                 ex,
-                "Unexpected failure before allocating AR receipt {ReceiptId}",
-                command.ReceiptId
+                [
+                    new WorkflowExceptionRule<ArReceiptCommandResultDto>(
+                        innerException =>
+                            dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(
+                                innerException
+                            ),
+                        innerException =>
+                        {
+                            logger.LogWarning(
+                                innerException,
+                                "Concurrency failure while allocating AR receipt {ReceiptId}",
+                                command.ReceiptId
+                            );
+                            return ArReceiptCommandResultDto.Fail(
+                                ArReceiptErrors.AllocationConcurrencyConflict
+                            );
+                        }
+                    ),
+                ]
             );
+            if (translatedFailure is not null)
+            {
+                return translatedFailure;
+            }
+
+            logger.LogError(ex, "Unexpected failure while allocating AR receipt {ReceiptId}", command.ReceiptId);
             return ArReceiptCommandResultDto.Fail(ArReceiptErrors.UnexpectedAllocateFailure);
         }
     }

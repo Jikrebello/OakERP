@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using OakERP.Application.Interfaces;
-using OakERP.Common.Time;
+using OakERP.Application.Settlements.Documents;
 
 namespace OakERP.Application.Extensions;
 
@@ -9,8 +8,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddSingleton<IClock, SystemClock>();
-        services.AddScoped<ApPaymentServiceDependencies>();
-        services.AddScoped<ArReceiptServiceDependencies>();
+        services.AddScoped<SettlementDocumentWorkflowDependencies>();
         services.AddScoped<PostingSourceRepositories>();
         services.AddScoped<PostingPersistenceDependencies>();
         services.AddScoped<PostingRuntimeDependencies>();

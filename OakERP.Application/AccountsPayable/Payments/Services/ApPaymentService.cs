@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using OakERP.Application.Settlements.Documents;
 using OakERP.Domain.RepositoryInterfaces.AccountsPayable;
 using OakERP.Domain.RepositoryInterfaces.Bank;
 
@@ -15,7 +16,7 @@ public sealed class ApPaymentService : IApPaymentService
         IApInvoiceRepository apInvoiceRepository,
         IVendorRepository vendorRepository,
         IBankAccountRepository bankAccountRepository,
-        ApPaymentServiceDependencies dependencies,
+        SettlementDocumentWorkflowDependencies dependencies,
         ILogger<ApPaymentService> logger
     )
     {

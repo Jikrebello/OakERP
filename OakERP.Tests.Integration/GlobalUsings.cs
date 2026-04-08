@@ -5,7 +5,6 @@ global using OakERP.Application.AccountsPayable.Payments.Contracts;
 global using OakERP.Application.AccountsReceivable.Receipts.Commands;
 global using OakERP.Application.AccountsReceivable.Receipts.Contracts;
 global using OakERP.Application.Posting.Contracts;
-global using OakERP.Auth.Identity;
 global using OakERP.Auth.Services;
 global using OakERP.Common.Exceptions;
 global using OakERP.Tests.Integration.TestSetup;

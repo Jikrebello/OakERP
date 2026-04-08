@@ -1,5 +1,6 @@
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Auth.Identity;
+using OakERP.Auth.Internal.Support;
 using OakERP.Auth.Jwt;
 using OakERP.Common.Dtos.Auth;
 using OakERP.Common.Persistence;
@@ -16,7 +17,8 @@ internal sealed class AuthRegistrationWorkflow(
     IUnitOfWork unitOfWork,
     IClock clock,
     AuthAuditLogger auditLogger,
-    IdentityFailureMapper identityFailureMapper
+    IdentityFailureMapper identityFailureMapper,
+    AuthTransactionRunner transactionRunner
 )
 {
     public async Task<AuthResultDto> RegisterAsync(RegisterDto Dto)
@@ -41,39 +43,39 @@ internal sealed class AuthRegistrationWorkflow(
             return AuthResultDto.Fail(AuthErrors.EmailAlreadyExists);
         }
 
-        await unitOfWork.BeginTransactionAsync();
         try
         {
-            Tenant tenant = CreateTenant(Dto.TenantName);
-            await tenantRepository.AddAsync(tenant);
-            await unitOfWork.SaveChangesAsync();
+            return await transactionRunner.ExecuteAsync(
+                async () =>
+                {
+                    Tenant tenant = CreateTenant(Dto.TenantName);
+                    await tenantRepository.AddAsync(tenant);
+                    await unitOfWork.SaveChangesAsync();
 
-            ApplicationUser user = CreateUser(Dto, email, normalizedEmail, tenant.Id);
-            AuthResultDto? createUserFailure = await TryCreateIdentityUserAsync(
-                user,
-                Dto.Password,
-                email,
-                tenant
+                    ApplicationUser user = CreateUser(Dto, email, normalizedEmail, tenant.Id);
+                    AuthResultDto? createUserFailure = await TryCreateIdentityUserAsync(
+                        user,
+                        Dto.Password,
+                        email,
+                        tenant
+                    );
+                    if (createUserFailure is not null)
+                    {
+                        return createUserFailure;
+                    }
+
+                    AuthResultDto? roleFailure = await TryAssignAdminRoleAsync(user, email, tenant);
+                    if (roleFailure is not null)
+                    {
+                        return roleFailure;
+                    }
+
+                    return BuildRegistrationSuccess(user, email, tenant);
+                }
             );
-            if (createUserFailure is not null)
-            {
-                return createUserFailure;
-            }
-
-            AuthResultDto? roleFailure = await TryAssignAdminRoleAsync(user, email, tenant);
-            if (roleFailure is not null)
-            {
-                return roleFailure;
-            }
-
-            await unitOfWork.SaveChangesAsync();
-            await unitOfWork.CommitAsync();
-
-            return BuildRegistrationSuccess(user, email, tenant);
         }
         catch (Exception ex)
         {
-            await unitOfWork.RollbackAsync();
             auditLogger.LogRegistrationError(
                 ex,
                 email,
@@ -146,7 +148,6 @@ internal sealed class AuthRegistrationWorkflow(
             return null;
         }
 
-        await unitOfWork.RollbackAsync();
         auditLogger.LogRegistrationWarning(
             email,
             AuthAuditLogger.IdentityCreateFailed,
@@ -168,7 +169,6 @@ internal sealed class AuthRegistrationWorkflow(
             return null;
         }
 
-        await unitOfWork.RollbackAsync();
         auditLogger.LogRegistrationWarning(
             email,
             AuthAuditLogger.RoleAssignmentFailed,

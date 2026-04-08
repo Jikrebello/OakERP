@@ -64,4 +64,8 @@
   <ItemGroup>
     <ProjectReference Include="..\OakERP.Shared\OakERP.Shared.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\OakERP.Shared\Hosts\Maui\*.cs" LinkBase="Hosts\Maui" />
+  </ItemGroup>
 </Project>

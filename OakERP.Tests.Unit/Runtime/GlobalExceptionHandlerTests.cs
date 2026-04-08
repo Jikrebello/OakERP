@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -25,8 +24,12 @@ public sealed class GlobalExceptionHandlerTests
 
         handled.ShouldBeTrue();
         problemDetailsService.LastContext.ShouldNotBeNull();
-        problemDetailsService.LastContext.ProblemDetails.Status.ShouldBe(StatusCodes.Status404NotFound);
-        problemDetailsService.LastContext.ProblemDetails.Title.ShouldBe("AP invoice was not found.");
+        problemDetailsService.LastContext.ProblemDetails.Status.ShouldBe(
+            StatusCodes.Status404NotFound
+        );
+        problemDetailsService.LastContext.ProblemDetails.Title.ShouldBe(
+            "AP invoice was not found."
+        );
         problemDetailsService.LastContext.ProblemDetails.Detail.ShouldBeNull();
     }
 
@@ -45,9 +48,15 @@ public sealed class GlobalExceptionHandlerTests
 
         handled.ShouldBeTrue();
         problemDetailsService.LastContext.ShouldNotBeNull();
-        problemDetailsService.LastContext.ProblemDetails.Status.ShouldBe(StatusCodes.Status500InternalServerError);
-        problemDetailsService.LastContext.ProblemDetails.Title.ShouldBe("Application configuration is invalid.");
-        problemDetailsService.LastContext.ProblemDetails.Detail.ShouldBe("Api:BaseUrl is not configured.");
+        problemDetailsService.LastContext.ProblemDetails.Status.ShouldBe(
+            StatusCodes.Status500InternalServerError
+        );
+        problemDetailsService.LastContext.ProblemDetails.Title.ShouldBe(
+            "Application configuration is invalid."
+        );
+        problemDetailsService.LastContext.ProblemDetails.Detail.ShouldBe(
+            "Api:BaseUrl is not configured."
+        );
     }
 
     [Fact]
@@ -65,8 +74,12 @@ public sealed class GlobalExceptionHandlerTests
 
         handled.ShouldBeTrue();
         problemDetailsService.LastContext.ShouldNotBeNull();
-        problemDetailsService.LastContext.ProblemDetails.Status.ShouldBe(StatusCodes.Status500InternalServerError);
-        problemDetailsService.LastContext.ProblemDetails.Title.ShouldBe("An unexpected error occurred.");
+        problemDetailsService.LastContext.ProblemDetails.Status.ShouldBe(
+            StatusCodes.Status500InternalServerError
+        );
+        problemDetailsService.LastContext.ProblemDetails.Title.ShouldBe(
+            "An unexpected error occurred."
+        );
         problemDetailsService.LastContext.ProblemDetails.Detail.ShouldBeNull();
     }
 
@@ -115,7 +128,6 @@ public sealed class GlobalExceptionHandlerTests
 
         public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
 
-        public IFileProvider ContentRootFileProvider { get; set; } =
-            new NullFileProvider();
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
     }
 }

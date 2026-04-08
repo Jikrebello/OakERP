@@ -1,5 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,11 +18,4 @@ public sealed class ApInvoicesController(IApInvoiceService apInvoiceService) : B
         var result = await apInvoiceService.CreateAsync(command, cancellationToken);
         return ApiResult(result);
     }
-
-    private string ResolvePerformedBy() =>
-        User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-        ?? User.FindFirstValue(ClaimTypes.Email)
-        ?? User.FindFirstValue(JwtRegisteredClaimNames.Email)
-        ?? "api-user";
 }

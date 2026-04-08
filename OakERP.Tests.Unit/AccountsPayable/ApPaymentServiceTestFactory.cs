@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using OakERP.Application.Interfaces.Persistence;
+using OakERP.Application.Settlements.Documents;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.AccountsPayable;
 using OakERP.Domain.Entities.Bank;
@@ -66,7 +67,7 @@ public sealed class ApPaymentServiceTestFactory
             ApInvoiceRepository.Object,
             VendorRepository.Object,
             BankAccountRepository.Object,
-            new ApPaymentServiceDependencies(
+            new SettlementDocumentWorkflowDependencies(
                 GlSettingsProvider.Object,
                 UnitOfWork.Object,
                 PersistenceFailureClassifier.Object,

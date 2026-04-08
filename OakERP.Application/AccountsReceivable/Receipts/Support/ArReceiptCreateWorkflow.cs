@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using OakERP.Application.Common.Orchestration;
+using OakERP.Application.Settlements.Documents;
 using OakERP.Common.Enums;
 using OakERP.Domain.AccountsReceivable;
 using OakERP.Domain.Entities.AccountsReceivable;
@@ -14,7 +16,7 @@ internal sealed class ArReceiptCreateWorkflow(
     IArInvoiceRepository arInvoiceRepository,
     ICustomerRepository customerRepository,
     IBankAccountRepository bankAccountRepository,
-    ArReceiptServiceDependencies dependencies,
+    SettlementDocumentWorkflowDependencies dependencies,
     ILogger<Services.ArReceiptService> logger
 )
 {
@@ -35,150 +37,173 @@ internal sealed class ArReceiptCreateWorkflow(
                 return validatedCommand.Failure;
             }
 
-            var customer = await customerRepository.FindNoTrackingAsync(
-                command.CustomerId,
+            var (_, customerFailure) = await SettlementDocumentPreconditions.LoadActivePartyAsync(
+                innerCancellationToken =>
+                    customerRepository.FindNoTrackingAsync(
+                        command.CustomerId,
+                        innerCancellationToken
+                    ),
+                customer => new SettlementDocumentPartySnapshot(customer.Id, customer.IsActive),
+                ArReceiptCommandResultDto.Fail(ArReceiptErrors.CustomerNotFound),
+                ArReceiptCommandResultDto.Fail(ArReceiptErrors.CustomerInactive),
                 cancellationToken
             );
-            if (customer is null)
+            if (customerFailure is not null)
             {
-                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.CustomerNotFound);
+                return customerFailure;
             }
 
-            if (!customer.IsActive)
-            {
-                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.CustomerInactive);
-            }
-
-            var bankAccount = await bankAccountRepository.FindNoTrackingAsync(
-                command.BankAccountId,
-                cancellationToken
-            );
-            if (bankAccount is null)
-            {
-                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.BankAccountNotFound);
-            }
-
-            if (!bankAccount.IsActive)
-            {
-                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.BankAccountInactive);
-            }
-
-            if (
-                !ArSettlementCalculator.MatchesCurrency(
-                    bankAccount.CurrencyCode,
-                    validatedCommand.CurrencyCode
-                )
-            )
-            {
-                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.ReceiptCurrencyMismatch);
-            }
-
-            bool docNoExists = await arReceiptRepository.ExistsDocNoAsync(
-                validatedCommand.DocNo,
-                cancellationToken
-            );
-            if (docNoExists)
-            {
-                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.DuplicateDocumentNumber);
-            }
-
-            await dependencies.UnitOfWork.BeginTransactionAsync();
-
-            try
-            {
-                var receipt = new ArReceipt
-                {
-                    DocNo = validatedCommand.DocNo,
-                    CustomerId = command.CustomerId,
-                    BankAccountId = command.BankAccountId,
-                    ReceiptDate = command.ReceiptDate,
-                    Amount = command.Amount,
-                    CurrencyCode = validatedCommand.CurrencyCode,
-                    DocStatus = DocStatus.Draft,
-                    Memo = validatedCommand.Memo,
-                    CreatedBy = validatedCommand.PerformedBy,
-                    UpdatedBy = validatedCommand.PerformedBy,
-                    UpdatedAt = dependencies.Clock.UtcNow,
-                };
-
-                await arReceiptRepository.AddAsync(receipt);
-
-                var (invoiceLoadInvoices, invoiceLoadFailure) =
-                    await SettlementInvoiceLoader.LoadAsync(
-                        [.. validatedCommand.Allocations.Select(x => x.ArInvoiceId)],
-                        ArReceiptSettlementAdapters.CreateInvoiceLoadSpec(
-                            arInvoiceRepository,
-                            receipt.CustomerId,
-                            validatedCommand.CurrencyCode
+            var (bankAccount, bankAccountFailure) =
+                await SettlementDocumentPreconditions.LoadActiveBankAccountAsync(
+                    innerCancellationToken =>
+                        bankAccountRepository.FindNoTrackingAsync(
+                            command.BankAccountId,
+                            innerCancellationToken
                         ),
-                        cancellationToken
-                    );
-                if (invoiceLoadFailure is not null)
-                {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return invoiceLoadFailure;
-                }
-
-                var (allocationFailure, settledAmounts, receiptAllocations) =
-                    await SettlementAllocationApplicator.ApplyAsync(
-                        ArReceiptSettlementAdapters.CreateAllocationInputs(validatedCommand.Allocations),
-                        command.AllocationDate ?? command.ReceiptDate,
-                        validatedCommand.PerformedBy,
-                        dependencies.Clock.UtcNow,
-                        ArReceiptSettlementAdapters.CreateAllocationApplySpec(
-                            receipt,
-                            invoiceLoadInvoices!,
-                            arReceiptAllocationRepository
-                        )
-                    );
-                if (allocationFailure is not null)
-                {
-                    await dependencies.UnitOfWork.RollbackAsync();
-                    return allocationFailure;
-                }
-
-                await dependencies.UnitOfWork.SaveChangesAsync(cancellationToken);
-                await dependencies.UnitOfWork.CommitAsync();
-
-                return ArReceiptSnapshotFactory.BuildSuccess(
-                    receipt,
-                    invoiceLoadInvoices!.Values,
-                    "AR receipt created successfully.",
-                    settledAmounts,
-                    receiptAllocations
+                    entity =>
+                        new SettlementDocumentBankAccountSnapshot(
+                            entity.Id,
+                            entity.IsActive,
+                            entity.CurrencyCode
+                        ),
+                    ArReceiptCommandResultDto.Fail(ArReceiptErrors.BankAccountNotFound),
+                    ArReceiptCommandResultDto.Fail(ArReceiptErrors.BankAccountInactive),
+                    cancellationToken
                 );
-            }
-            catch (Exception ex)
+            if (bankAccountFailure is not null)
             {
-                await dependencies.UnitOfWork.RollbackAsync();
-                if (dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(ex))
-                {
-                    logger.LogWarning(
-                        ex,
-                        "Concurrency failure while creating AR receipt {DocNo}",
-                        validatedCommand.DocNo
-                    );
-                    return ArReceiptCommandResultDto.Fail(
-                        ArReceiptErrors.AllocationConcurrencyConflict
-                    );
-                }
-
-                if (dependencies.PersistenceFailureClassifier.IsArReceiptDocNoConflict(ex))
-                {
-                    return ArReceiptCommandResultDto.Fail(ArReceiptErrors.DuplicateDocumentNumber);
-                }
-
-                logger.LogError(
-                    ex,
-                    "Unexpected failure while creating AR receipt {DocNo}",
-                    validatedCommand.DocNo
-                );
-                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.UnexpectedCreateFailure);
+                return bankAccountFailure;
             }
+
+            ArReceiptCommandResultDto? currencyFailure =
+                SettlementDocumentPreconditions.EnsureCurrency(
+                    bankAccount!.CurrencyCode,
+                    validatedCommand.CurrencyCode,
+                    ArSettlementCalculator.MatchesCurrency,
+                    ArReceiptCommandResultDto.Fail(ArReceiptErrors.ReceiptCurrencyMismatch)
+                );
+            if (currencyFailure is not null)
+            {
+                return currencyFailure;
+            }
+
+            ArReceiptCommandResultDto? docNoFailure =
+                await SettlementDocumentPreconditions.EnsureDocumentNumberAvailableAsync(
+                    innerCancellationToken =>
+                        arReceiptRepository.ExistsDocNoAsync(
+                            validatedCommand.DocNo,
+                            innerCancellationToken
+                        ),
+                    ArReceiptCommandResultDto.Fail(ArReceiptErrors.DuplicateDocumentNumber),
+                    cancellationToken
+                );
+            if (docNoFailure is not null)
+            {
+                return docNoFailure;
+            }
+
+            return await dependencies.CreateWorkflowRunner.ExecuteAsync(
+                async innerCancellationToken =>
+                {
+                    var receipt = new ArReceipt
+                    {
+                        DocNo = validatedCommand.DocNo,
+                        CustomerId = command.CustomerId,
+                        BankAccountId = command.BankAccountId,
+                        ReceiptDate = command.ReceiptDate,
+                        Amount = command.Amount,
+                        CurrencyCode = validatedCommand.CurrencyCode,
+                        DocStatus = DocStatus.Draft,
+                        Memo = validatedCommand.Memo,
+                        CreatedBy = validatedCommand.PerformedBy,
+                        UpdatedBy = validatedCommand.PerformedBy,
+                        UpdatedAt = dependencies.Clock.UtcNow,
+                    };
+
+                    await arReceiptRepository.AddAsync(receipt);
+
+                    var (invoiceLoadInvoices, invoiceLoadFailure) =
+                        await SettlementInvoiceLoader.LoadAsync(
+                            [.. validatedCommand.Allocations.Select(x => x.ArInvoiceId)],
+                            ArReceiptSettlementAdapters.CreateInvoiceLoadSpec(
+                                arInvoiceRepository,
+                                receipt.CustomerId,
+                                validatedCommand.CurrencyCode
+                            ),
+                            innerCancellationToken
+                        );
+                    if (invoiceLoadFailure is not null)
+                    {
+                        return invoiceLoadFailure;
+                    }
+
+                    var (allocationFailure, settledAmounts, receiptAllocations) =
+                        await SettlementAllocationApplicator.ApplyAsync(
+                            ArReceiptSettlementAdapters.CreateAllocationInputs(
+                                validatedCommand.Allocations
+                            ),
+                            command.AllocationDate ?? command.ReceiptDate,
+                            validatedCommand.PerformedBy,
+                            dependencies.Clock.UtcNow,
+                            ArReceiptSettlementAdapters.CreateAllocationApplySpec(
+                                receipt,
+                                invoiceLoadInvoices!,
+                                arReceiptAllocationRepository
+                            )
+                        );
+                    if (allocationFailure is not null)
+                    {
+                        return allocationFailure;
+                    }
+
+                    return ArReceiptSnapshotFactory.BuildSuccess(
+                        receipt,
+                        invoiceLoadInvoices!.Values,
+                        "AR receipt created successfully.",
+                        settledAmounts,
+                        receiptAllocations
+                    );
+                },
+                cancellationToken
+            );
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected failure before creating AR receipt.");
+            ArReceiptCommandResultDto? translatedFailure = WorkflowFailureTranslator.TryTranslate(
+                ex,
+                [
+                    new WorkflowExceptionRule<ArReceiptCommandResultDto>(
+                        innerException =>
+                            dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(
+                                innerException
+                            ),
+                        innerException =>
+                        {
+                            logger.LogWarning(
+                                innerException,
+                                "Concurrency failure while creating AR receipt {DocNo}",
+                                command.DocNo
+                            );
+                            return ArReceiptCommandResultDto.Fail(
+                                ArReceiptErrors.AllocationConcurrencyConflict
+                            );
+                        }
+                    ),
+                    new WorkflowExceptionRule<ArReceiptCommandResultDto>(
+                        innerException =>
+                            dependencies.PersistenceFailureClassifier.IsArReceiptDocNoConflict(
+                                innerException
+                            ),
+                        _ => ArReceiptCommandResultDto.Fail(ArReceiptErrors.DuplicateDocumentNumber)
+                    ),
+                ]
+            );
+            if (translatedFailure is not null)
+            {
+                return translatedFailure;
+            }
+
+            logger.LogError(ex, "Unexpected failure before creating AR receipt {DocNo}", command.DocNo);
             return ArReceiptCommandResultDto.Fail(ArReceiptErrors.UnexpectedCreateFailure);
         }
     }

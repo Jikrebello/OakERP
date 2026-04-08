@@ -1,4 +1,5 @@
 using OakERP.Common.Errors;
+using OakERP.Application.Settlements.Documents;
 
 namespace OakERP.Application.AccountsReceivable.Receipts.Support;
 
@@ -21,7 +22,7 @@ public static class ArReceiptErrors
     public static readonly ResultError ReceiptIdRequired =
         new("ar_receipt.receipt_id_required", "Receipt id is required.", FailureKind.Validation);
     public static readonly ResultError AllocationRequired =
-        new("ar_receipt.allocation_required", "At least one allocation is required.", FailureKind.Validation);
+        new("ar_receipt.allocation_required", SettlementDocumentErrorMessages.AllocationRequired, FailureKind.Validation);
     public static readonly ResultError AllocationInvoiceIdRequired =
         new("ar_receipt.allocation_invoice_id_required", "Allocation invoice id is required.", FailureKind.Validation);
     public static readonly ResultError AllocationDuplicateInvoice =
@@ -33,13 +34,13 @@ public static class ArReceiptErrors
     public static readonly ResultError CustomerInactive =
         new("ar_receipt.customer_inactive", "AR receipts can be created only for active customers.", FailureKind.Validation);
     public static readonly ResultError BankAccountNotFound =
-        new("ar_receipt.bank_account_not_found", "Bank account was not found.", FailureKind.NotFound);
+        new("ar_receipt.bank_account_not_found", SettlementDocumentErrorMessages.BankAccountNotFound, FailureKind.NotFound);
     public static readonly ResultError BankAccountInactive =
         new("ar_receipt.bank_account_inactive", "AR receipts can be created only for active bank accounts.", FailureKind.Validation);
     public static readonly ResultError ReceiptCurrencyMismatch =
         new("ar_receipt.currency_mismatch", "Receipt currency must match the selected bank account currency.", FailureKind.Validation);
     public static readonly ResultError DuplicateDocumentNumber =
-        new("ar_receipt.duplicate_document_number", "Document number already exists.", FailureKind.Conflict);
+        new("ar_receipt.duplicate_document_number", SettlementDocumentErrorMessages.DuplicateDocumentNumber, FailureKind.Conflict);
     public static readonly ResultError AllocationConcurrencyConflict =
         new("ar_receipt.allocation_concurrency_conflict", "The AR receipt was modified while allocations were being saved.", FailureKind.Conflict);
     public static readonly ResultError UnexpectedCreateFailure =

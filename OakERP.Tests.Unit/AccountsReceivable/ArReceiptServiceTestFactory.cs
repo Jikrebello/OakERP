@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using OakERP.Application.Interfaces.Persistence;
+using OakERP.Application.Settlements.Documents;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.AccountsReceivable;
 using OakERP.Domain.Entities.Bank;
@@ -66,7 +67,7 @@ public sealed class ArReceiptServiceTestFactory
             ArInvoiceRepository.Object,
             CustomerRepository.Object,
             BankAccountRepository.Object,
-            new ArReceiptServiceDependencies(
+            new SettlementDocumentWorkflowDependencies(
                 GlSettingsProvider.Object,
                 UnitOfWork.Object,
                 PersistenceFailureClassifier.Object,

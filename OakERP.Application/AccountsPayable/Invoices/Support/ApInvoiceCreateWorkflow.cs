@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using OakERP.Application.Common.Orchestration;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.AccountsPayable;
@@ -45,46 +46,44 @@ internal sealed class ApInvoiceCreateWorkflow(
                 return preconditionFailure;
             }
 
-            await unitOfWork.BeginTransactionAsync();
-
-            try
-            {
-                var invoice = BuildInvoice(command, validatedCommand, preconditions!.Vendor);
-
-                await apInvoiceRepository.AddAsync(invoice);
-                await unitOfWork.SaveChangesAsync(cancellationToken);
-                await unitOfWork.CommitAsync();
-
-                return ApInvoiceSnapshotFactory.BuildSuccess(
-                    invoice,
-                    "AP invoice created successfully."
-                );
-            }
-            catch (Exception ex)
-            {
-                await unitOfWork.RollbackAsync();
-                if (persistenceFailureClassifier.IsApInvoiceDocNoConflict(ex))
+            return await new ResultWorkflowTransactionRunner(unitOfWork).ExecuteAsync(
+                async _ =>
                 {
-                    return ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.DuplicateDocumentNumber);
-                }
+                    var invoice = BuildInvoice(command, validatedCommand, preconditions!.Vendor);
 
-                if (persistenceFailureClassifier.IsApInvoiceVendorInvoiceNoConflict(ex))
-                {
-                    return ApInvoiceCommandResultDto.Fail(
-                        ApInvoiceErrors.DuplicateVendorInvoiceNumber
+                    await apInvoiceRepository.AddAsync(invoice);
+
+                    return ApInvoiceSnapshotFactory.BuildSuccess(
+                        invoice,
+                        "AP invoice created successfully."
                     );
-                }
-
-                logger.LogError(
-                    ex,
-                    "Unexpected failure while creating AP invoice {DocNo}",
-                    validatedCommand.DocNo
-                );
-                return ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.UnexpectedCreateFailure);
-            }
+                },
+                cancellationToken
+            );
         }
         catch (Exception ex)
         {
+            ApInvoiceCommandResultDto? translatedFailure = WorkflowFailureTranslator.TryTranslate(
+                ex,
+                [
+                    new WorkflowExceptionRule<ApInvoiceCommandResultDto>(
+                        persistenceFailureClassifier.IsApInvoiceDocNoConflict,
+                        _ => ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.DuplicateDocumentNumber)
+                    ),
+                    new WorkflowExceptionRule<ApInvoiceCommandResultDto>(
+                        persistenceFailureClassifier.IsApInvoiceVendorInvoiceNoConflict,
+                        _ =>
+                            ApInvoiceCommandResultDto.Fail(
+                                ApInvoiceErrors.DuplicateVendorInvoiceNumber
+                            )
+                    ),
+                ]
+            );
+            if (translatedFailure is not null)
+            {
+                return translatedFailure;
+            }
+
             logger.LogError(ex, "Unexpected failure before creating AP invoice.");
             return ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.UnexpectedCreateFailure);
         }
