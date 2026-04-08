@@ -1,10 +1,13 @@
+---
+name: oakerp-pr-workflow
+description: Prepare OakERP branches and pull requests with the repo's validation and documentation workflow. Use when validating a branch, opening or updating a PR, summarizing review readiness, or checking task docs before review.
+---
+
 # OakERP PR Workflow Skill
 
-## Purpose
+Use this skill when preparing a branch for review, validating a PR locally, or creating or updating a GitHub PR for OakERP.
 
-Use this skill when Codex is preparing a branch for review, validating a PR locally, or creating/updating a GitHub PR for OakERP.
-
-## What To Read
+## Read First
 
 Read:
 - `AGENTS.md`

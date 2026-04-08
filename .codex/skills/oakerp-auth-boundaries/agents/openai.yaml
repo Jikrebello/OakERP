@@ -1,0 +1,4 @@
+interface:
+  display_name: "OakERP Auth Boundaries"
+  short_description: "Auth seam and identity boundary work"
+  default_prompt: "Use $oakerp-auth-boundaries to refactor OakERP auth seams without widening framework coupling."

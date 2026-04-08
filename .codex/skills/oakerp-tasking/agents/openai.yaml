@@ -1,0 +1,4 @@
+interface:
+  display_name: "OakERP Tasking"
+  short_description: "Task files for non-trivial work"
+  default_prompt: "Use $oakerp-tasking to set up or update OakERP task tracking for this slice."

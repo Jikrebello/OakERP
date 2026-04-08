@@ -1,0 +1,4 @@
+interface:
+  display_name: "OakERP Migration Seeding"
+  short_description: "Migration and seeding path cleanup"
+  default_prompt: "Use $oakerp-migration-seeding to review or refine OakERP migration and seeding flow."

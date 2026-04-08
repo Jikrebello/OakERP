@@ -1,0 +1,4 @@
+interface:
+  display_name: "OakERP Posting"
+  short_description: "Posting runtime and posting-flow work"
+  default_prompt: "Use $oakerp-posting to audit or extend OakERP posting behavior."

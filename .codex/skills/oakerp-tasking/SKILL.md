@@ -1,22 +1,28 @@
+---
+name: oakerp-tasking
+description: Create and maintain OakERP task folders under docs/ai/tasks/active for non-trivial work. Use when a task touches multiple files, multiple projects, architecture, configuration, tests, tooling, migrations, or any slice that needs scope, findings, and progress tracking.
+---
+
 # OakERP Tasking Skill
 
-## Purpose
-Use this skill when starting any non-trivial OakERP task that touches multiple files, multiple projects, architecture, configuration, tests, or process/tooling concerns.
+Use this skill when starting or continuing any non-trivial OakERP task that touches multiple files, multiple projects, architecture, configuration, tests, or process and tooling concerns.
 
-## When To Use It
+## Use It For
+
 Use task files for work such as:
 - architecture cleanup
 - dependency-direction changes
 - configuration cleanup
-- migration/seeding changes
+- migration and seeding changes
 - test architecture changes
-- client/UI boundary changes
-- CI/process/tooling work
+- client and UI boundary changes
+- CI, process, or tooling work
 - anything likely to take more than one iteration
 
 Do not use task files for tiny one-file typo fixes or isolated mechanical edits.
 
 ## Task Folder Convention
+
 Create one folder per task under:
 
 `docs/ai/tasks/active/<task-name>/`
@@ -31,6 +37,7 @@ Completed tasks can later be moved to:
 `docs/ai/tasks/archive/`
 
 ## Preferred Way To Create A Task
+
 Use the repo utility script:
 
 `.\tools\new-codex-task.ps1 <task-name>`
@@ -40,21 +47,23 @@ Example:
 `.\tools\new-codex-task.ps1 shared-ui-shell-cleanup`
 
 ## Expectations
+
 For any task folder:
-- `task_plan.md` defines scope, constraints, success criteria, and validation.
-- `findings.md` captures current-state observations, dependency notes, and deferred smells/risks.
-- `progress.md` records what changed, what was validated, what remains, and any deferred smells/risks left intentionally unresolved.
+- `task_plan.md` defines scope, constraints, success criteria, and validation
+- `findings.md` captures current-state observations, dependency notes, and deferred smells or risks
+- `progress.md` records what changed, what was validated, what remains, and any deferred smells or risks left intentionally unresolved
 
 If the task touches schema or posting behavior, also record:
 - whether migration rollback was reviewed or validated
 - which new domain-significant constants or enums were introduced
-- how rollback / transactional-failure behavior was verified
+- how rollback or transactional-failure behavior was verified
 
 If behavior changed, also record:
 - which tests were added or updated
 - why any missing test coverage was deferred
 
 ## Working Style
+
 1. Read `AGENTS.md`.
 2. Read relevant architecture docs in `docs/architecture/`.
 3. Create or update the task folder.
@@ -64,6 +73,7 @@ If behavior changed, also record:
 7. Record results in `progress.md`.
 
 ## Guardrails
+
 - Do not let task files become fiction. Keep them updated.
 - Do not broaden a task silently.
 - If new dependency conflicts appear, record them in `findings.md` before widening scope.
@@ -72,6 +82,7 @@ If behavior changed, also record:
 - Record deferred code smells and risks explicitly instead of implying they were fixed.
 
 ## OakERP-Specific Notes
+
 - Prefer dependency-direction fixes over cosmetic reorganization.
 - Preserve behavior unless explicitly told otherwise.
 - Avoid dragging Mobile into unrelated refactors.

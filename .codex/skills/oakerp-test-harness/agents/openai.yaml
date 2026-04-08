@@ -1,0 +1,4 @@
+interface:
+  display_name: "OakERP Test Harness"
+  short_description: "Targeted OakERP test and harness work"
+  default_prompt: "Use $oakerp-test-harness to update OakERP unit or integration tests with the right validation scope."

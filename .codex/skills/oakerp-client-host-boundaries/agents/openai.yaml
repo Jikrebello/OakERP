@@ -1,0 +1,4 @@
+interface:
+  display_name: "OakERP Client Hosts"
+  short_description: "Client, shared UI, and host boundaries"
+  default_prompt: "Use $oakerp-client-host-boundaries to separate OakERP client plumbing from shared UI and host code."

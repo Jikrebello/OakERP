@@ -1,0 +1,4 @@
+interface:
+  display_name: "OakERP Architecture"
+  short_description: "Architecture and dependency cleanup"
+  default_prompt: "Use $oakerp-architecture to plan or execute an OakERP architectural refactor."

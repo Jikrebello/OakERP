@@ -1,0 +1,4 @@
+interface:
+  display_name: "OakERP PR Workflow"
+  short_description: "Branch, validation, and PR flow"
+  default_prompt: "Use $oakerp-pr-workflow to prepare this OakERP branch for review."
