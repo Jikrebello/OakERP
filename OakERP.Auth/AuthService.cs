@@ -8,21 +8,6 @@ using OakERP.Domain.Repository_Interfaces.Users;
 
 namespace OakERP.Auth;
 
-/// <summary>
-/// Provides authentication and authorization services, including user registration, login,  and token generation. This
-/// service integrates with ASP.NET Identity and supports tenant-based licensing.
-/// </summary>
-/// <remarks>The <see cref="AuthService"/> class is designed to handle user authentication and authorization
-/// workflows, such as registering new users, validating login credentials, and generating JWT tokens.  It also ensures
-/// that users are associated with tenants and validates tenant licenses during login.</remarks>
-/// <remarks>
-/// Initializes a new instance of the <see cref="AuthService"/> class, providing services for user authentication
-/// and token generation.
-/// </remarks>
-/// <param name="identityGateway">The auth-local gateway used to perform the required ASP.NET Identity operations.</param>
-/// <param name="jwtGenerator">The <see cref="IJwtGenerator"/> instance responsible for generating JSON Web Tokens (JWTs) for authenticated
-/// users.</param>
-/// <param name="tenantRepository">The <see cref="ITenantRepository"/> instance used to manage tenant-specific data and operations.</param>
 public class AuthService(
     IIdentityGateway identityGateway,
     IJwtGenerator jwtGenerator,
@@ -60,17 +45,6 @@ public class AuthService(
     private static JwtTokenInput MapToJwtTokenInput(ApplicationUser user) =>
         new(user.Id, user.Email!, user.TenantId);
 
-    /// <summary>
-    /// Registers a new user and creates a tenant with an associated license.
-    /// </summary>
-    /// <remarks>This method performs the following steps: <list type="bullet"> <item>Validates that the
-    /// provided passwords match.</item> <item>Checks if the email is already registered.</item> <item>Creates a new
-    /// tenant with a license valid for one year.</item> <item>Registers the user under the tenant and assigns the
-    /// "TenantAdmin" role.</item> <item>Generates a JWT token for the newly registered user upon success.</item>
-    /// </list> If any step fails, the operation is rolled back, and an appropriate error message is returned.</remarks>
-    /// <param name="Dto">The registration details, including user information, tenant name, and password.</param>
-    /// <returns>An <see cref="AuthResultDto"/> indicating the result of the registration process.  If successful, the result
-    /// contains a JWT token and the user's full name.  If unsuccessful, the result contains an error message.</returns>
     public async Task<AuthResultDto> RegisterAsync(RegisterDto Dto)
     {
         var email = Dto.Email.Trim();
@@ -200,18 +174,6 @@ public class AuthService(
         }
     }
 
-    /// <summary>
-    /// Authenticates a user based on the provided login credentials and returns an authentication result.
-    /// </summary>
-    /// <remarks>This method performs several validation checks during the login process: <list type="bullet">
-    /// <item><description>Verifies the user's email and password using the sign-in manager.</description></item>
-    /// <item><description>Ensures the user exists in the system.</description></item> <item><description>Validates the
-    /// tenant associated with the user, including the presence and validity of a license.</description></item> </list>
-    /// If any of these checks fail, the method returns a failure result with an appropriate error message.</remarks>
-    /// <param name="Dto">The login data transfer object containing the user's email and password.</param>
-    /// <returns>An <see cref="AuthResultDto"/> containing the authentication result. If successful, the result includes a JWT
-    /// token,  the user's username, and their primary role. If authentication fails, the result contains an error
-    /// message.</returns>
     public async Task<AuthResultDto> LoginAsync(LoginDto Dto)
     {
         var email = Dto.Email.Trim();

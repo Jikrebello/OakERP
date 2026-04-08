@@ -1,7 +1,5 @@
 using System.Net;
 using Microsoft.Extensions.Logging;
-using OakERP.Application.AccountsPayable;
-using OakERP.Application.Interfaces.Persistence;
 using OakERP.Application.Settlements;
 using OakERP.Common.Enums;
 using OakERP.Domain.Accounts_Payable;
@@ -142,20 +140,17 @@ public sealed class ApPaymentService(
                     return invoiceLoadFailure;
                 }
 
-                var (
-                    allocationFailure,
-                    settledAmounts,
-                    paymentAllocations
-                ) = await SettlementAllocationApplicator.ApplyAsync(
-                    payment,
-                    invoiceLoadInvoices!,
-                    validatedCommand.Allocations,
-                    command.AllocationDate ?? command.PaymentDate,
-                    validatedCommand.PerformedBy,
-                    ApPaymentSettlementAdapters.CreateAllocationApplySpec(
-                        apPaymentAllocationRepository
-                    )
-                );
+                var (allocationFailure, settledAmounts, paymentAllocations) =
+                    await SettlementAllocationApplicator.ApplyAsync(
+                        payment,
+                        invoiceLoadInvoices!,
+                        validatedCommand.Allocations,
+                        command.AllocationDate ?? command.PaymentDate,
+                        validatedCommand.PerformedBy,
+                        ApPaymentSettlementAdapters.CreateAllocationApplySpec(
+                            apPaymentAllocationRepository
+                        )
+                    );
                 if (allocationFailure is not null)
                 {
                     await dependencies.UnitOfWork.RollbackAsync();
@@ -296,20 +291,17 @@ public sealed class ApPaymentService(
                     return invoiceLoadFailure;
                 }
 
-                var (
-                    allocationFailure,
-                    settledAmounts,
-                    paymentAllocations
-                ) = await SettlementAllocationApplicator.ApplyAsync(
-                    payment,
-                    invoiceLoadInvoices!,
-                    validatedCommand.Allocations,
-                    command.AllocationDate ?? payment.PaymentDate,
-                    validatedCommand.PerformedBy,
-                    ApPaymentSettlementAdapters.CreateAllocationApplySpec(
-                        apPaymentAllocationRepository
-                    )
-                );
+                var (allocationFailure, settledAmounts, paymentAllocations) =
+                    await SettlementAllocationApplicator.ApplyAsync(
+                        payment,
+                        invoiceLoadInvoices!,
+                        validatedCommand.Allocations,
+                        command.AllocationDate ?? payment.PaymentDate,
+                        validatedCommand.PerformedBy,
+                        ApPaymentSettlementAdapters.CreateAllocationApplySpec(
+                            apPaymentAllocationRepository
+                        )
+                    );
                 if (allocationFailure is not null)
                 {
                     await dependencies.UnitOfWork.RollbackAsync();
@@ -367,5 +359,4 @@ public sealed class ApPaymentService(
             );
         }
     }
-
 }

@@ -1,7 +1,5 @@
 using System.Net;
 using Microsoft.Extensions.Logging;
-using OakERP.Application.AccountsReceivable;
-using OakERP.Application.Interfaces.Persistence;
 using OakERP.Application.Settlements;
 using OakERP.Common.Enums;
 using OakERP.Domain.Accounts_Receivable;
@@ -141,20 +139,17 @@ public sealed class ArReceiptService(
                     return invoiceLoadFailure;
                 }
 
-                var (
-                    allocationFailure,
-                    settledAmounts,
-                    receiptAllocations
-                ) = await SettlementAllocationApplicator.ApplyAsync(
-                    receipt,
-                    invoiceLoadInvoices!,
-                    validatedCommand.Allocations,
-                    command.AllocationDate ?? command.ReceiptDate,
-                    validatedCommand.PerformedBy,
-                    ArReceiptSettlementAdapters.CreateAllocationApplySpec(
-                        arReceiptAllocationRepository
-                    )
-                );
+                var (allocationFailure, settledAmounts, receiptAllocations) =
+                    await SettlementAllocationApplicator.ApplyAsync(
+                        receipt,
+                        invoiceLoadInvoices!,
+                        validatedCommand.Allocations,
+                        command.AllocationDate ?? command.ReceiptDate,
+                        validatedCommand.PerformedBy,
+                        ArReceiptSettlementAdapters.CreateAllocationApplySpec(
+                            arReceiptAllocationRepository
+                        )
+                    );
                 if (allocationFailure is not null)
                 {
                     await dependencies.UnitOfWork.RollbackAsync();
@@ -295,20 +290,17 @@ public sealed class ArReceiptService(
                     return invoiceLoadFailure;
                 }
 
-                var (
-                    allocationFailure,
-                    settledAmounts,
-                    receiptAllocations
-                ) = await SettlementAllocationApplicator.ApplyAsync(
-                    receipt,
-                    invoiceLoadInvoices!,
-                    validatedCommand.Allocations,
-                    command.AllocationDate ?? receipt.ReceiptDate,
-                    validatedCommand.PerformedBy,
-                    ArReceiptSettlementAdapters.CreateAllocationApplySpec(
-                        arReceiptAllocationRepository
-                    )
-                );
+                var (allocationFailure, settledAmounts, receiptAllocations) =
+                    await SettlementAllocationApplicator.ApplyAsync(
+                        receipt,
+                        invoiceLoadInvoices!,
+                        validatedCommand.Allocations,
+                        command.AllocationDate ?? receipt.ReceiptDate,
+                        validatedCommand.PerformedBy,
+                        ArReceiptSettlementAdapters.CreateAllocationApplySpec(
+                            arReceiptAllocationRepository
+                        )
+                    );
                 if (allocationFailure is not null)
                 {
                     await dependencies.UnitOfWork.RollbackAsync();
@@ -366,5 +358,4 @@ public sealed class ArReceiptService(
             );
         }
     }
-
 }

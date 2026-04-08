@@ -2,9 +2,6 @@ using Microsoft.AspNetCore.Identity;
 
 namespace OakERP.Auth;
 
-/// <summary>
-/// Adapts ASP.NET Identity managers behind the auth-local <see cref="IIdentityGateway"/> seam.
-/// </summary>
 public sealed class IdentityGateway(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager

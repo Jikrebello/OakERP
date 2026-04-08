@@ -16,7 +16,6 @@ using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
 using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Domain.Repository_Interfaces.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Inventory;
-using OakERP.Infrastructure.Posting;
 
 namespace OakERP.Tests.Unit.Posting;
 

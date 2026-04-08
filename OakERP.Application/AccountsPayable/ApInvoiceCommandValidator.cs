@@ -1,5 +1,4 @@
 using System.Net;
-using OakERP.Application.AccountsPayable;
 using OakERP.Common.Enums;
 
 namespace OakERP.Application.AccountsPayable;
@@ -163,7 +162,8 @@ public static class ApInvoiceCommandValidator
     private static List<ValidatedApInvoiceLineInput> NormalizeLines(
         IReadOnlyList<ApInvoiceLineInputDto> lines
     ) =>
-        lines.Select(x => new ValidatedApInvoiceLineInput(
+        lines
+            .Select(x => new ValidatedApInvoiceLineInput(
                 NormalizeOptional(x.Description),
                 NormalizeOptional(x.AccountNo),
                 x.ItemId,

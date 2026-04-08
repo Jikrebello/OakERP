@@ -6,21 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace OakERP.Auth;
 
-/// <summary>
-/// Provides functionality for generating JSON Web Tokens (JWTs) for authenticated users.
-/// </summary>
-/// <remarks>This class generates JWTs using the HMAC-SHA256 algorithm and retrieves validated settings from
-/// strongly typed options. The generated tokens include claims for the user's ID, email, and tenant ID.</remarks>
 public class JwtGenerator(IOptions<JwtOptions> jwtOptionsAccessor) : IJwtGenerator
 {
-    /// <summary>
-    /// Generates a JSON Web Token (JWT) for the specified token input.
-    /// </summary>
-    /// <remarks>The method uses validated JWT options for the signing key, issuer, audience, and expiration time.</remarks>
-    /// <param name="input">The minimal auth-local token input required to generate the JWT.</param>
-    /// <returns>A string representation of the generated JWT, which includes claims such as the user's ID, email,  and tenant
-    /// ID, and is signed using HMAC-SHA256.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the signing key specified in the configuration is less than 32 characters long.</exception>
     public string Generate(JwtTokenInput input)
     {
         JwtOptions jwtOptions = jwtOptionsAccessor.Value;

@@ -8,7 +8,6 @@ using OakERP.Domain.Entities.Accounts_Receivable;
 using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.General_Ledger;
 using OakERP.Domain.Entities.Inventory;
-using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.General_Ledger;
 using OakERP.Tests.Integration.TestSetup;
 using Shouldly;

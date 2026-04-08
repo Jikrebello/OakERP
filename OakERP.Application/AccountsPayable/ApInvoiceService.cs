@@ -1,6 +1,5 @@
 using System.Net;
 using Microsoft.Extensions.Logging;
-using OakERP.Application.AccountsPayable;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Accounts_Payable;
@@ -166,12 +165,7 @@ public sealed class ApInvoiceService(
             catch (Exception ex)
             {
                 await unitOfWork.RollbackAsync();
-                if (
-                    persistenceFailureClassifier.IsUniqueConstraint(
-                        ex,
-                        "ix_ap_invoices_doc_no"
-                    )
-                )
+                if (persistenceFailureClassifier.IsUniqueConstraint(ex, "ix_ap_invoices_doc_no"))
                 {
                     return ApInvoiceCommandResultDto.Fail(
                         "An AP invoice with this document number already exists.",
