@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Common;
-using OakERP.Domain.Repository_Interfaces.Common;
+using OakERP.Domain.RepositoryInterfaces.Common;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Common;

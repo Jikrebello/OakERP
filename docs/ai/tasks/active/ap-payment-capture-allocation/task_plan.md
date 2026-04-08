@@ -17,10 +17,10 @@ OakERP is being built backend-first. AR invoice posting, AR receipt capture/allo
 
 ## Scope
 - `OakERP.Application/AccountsPayable`
-- `OakERP.Domain/Accounts_Payable`
-- `OakERP.Domain/Repository_Interfaces/Accounts_Payable`
-- `OakERP.Infrastructure/Accounts_Payable`
-- `OakERP.Infrastructure/Repositories/Accounts_Payable`
+- `OakERP.Domain/AccountsPayable`
+- `OakERP.Domain/RepositoryInterfaces/AccountsPayable`
+- `OakERP.Infrastructure/AccountsPayable`
+- `OakERP.Infrastructure/Repositories/AccountsPayable`
 - `OakERP.Infrastructure/Extensions`
 - `OakERP.API/Controllers`
 - `OakERP.Tests.Unit/AccountsPayable`

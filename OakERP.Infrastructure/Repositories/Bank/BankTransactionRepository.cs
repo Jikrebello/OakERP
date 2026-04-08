@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Bank;
-using OakERP.Domain.Repository_Interfaces.Bank;
+using OakERP.Domain.RepositoryInterfaces.Bank;
 using OakERP.Infrastructure.Persistence;
 
 namespace OakERP.Infrastructure.Repositories.Bank;

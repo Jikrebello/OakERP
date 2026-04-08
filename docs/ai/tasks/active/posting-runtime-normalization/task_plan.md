@@ -7,7 +7,7 @@ posting-runtime-normalization
 Normalize the shared posting runtime naming and placement after AR invoice posting, AR receipt posting, and AP invoice posting, without changing business behavior.
 
 ## Background
-The shared posting contracts already live in `OakERP.Domain.Posting`, and document-specific contexts/builders already live in AR/AP folders. The remaining debt is that the single shared concrete engine and rule-provider still live under `OakERP.Infrastructure.Posting.Accounts_Receivable` with AR-biased names even though they now support AP invoice posting too.
+The shared posting contracts already live in `OakERP.Domain.Posting`, and document-specific contexts/builders already live in AR/AP folders. The remaining debt is that the single shared concrete engine and rule-provider still live under `OakERP.Infrastructure.Posting.AccountsReceivable` with AR-biased names even though they now support AP invoice posting too.
 
 ## Scope
 - `OakERP.Infrastructure`

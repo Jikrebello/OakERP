@@ -17,10 +17,8 @@ using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using OakERP.API.Extensions;
 using OakERP.API.Runtime;
-using OakERP.Auth;
 using OakERP.Common.Dtos.Auth;
 using OakERP.Infrastructure.Persistence;
-using OakERP.Tests.Integration.TestSetup;
 using Shouldly;
 
 namespace OakERP.Tests.Integration.Runtime;
@@ -105,7 +103,7 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
         response.Content.Headers.ContentType?.MediaType.ShouldBe("application/json");
 
         var auditLog = loggerProvider
-            .Entries.Where(entry => entry.Category == "OakERP.Auth.AuthService")
+            .Entries.Where(entry => entry.Category == typeof(AuthService).FullName)
             .Single(entry =>
                 entry.Level == LogLevel.Warning
                 && entry.Properties.TryGetValue("AuditAction", out var auditAction)
@@ -167,7 +165,7 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
         RuntimeSupportTestJson.GetContextValue(requestLog, "TraceId").ShouldNotBeNullOrWhiteSpace();
 
         var auditLog = loggerProvider
-            .Entries.Where(entry => entry.Category == "OakERP.Auth.AuthService")
+            .Entries.Where(entry => entry.Category == typeof(AuthService).FullName)
             .Single(entry =>
                 entry.Level == LogLevel.Warning
                 && entry.Properties.TryGetValue("AuditAction", out var auditAction)

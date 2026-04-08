@@ -13,7 +13,7 @@ ap-payment-posting
 ## Dependency Observations
 - The posting seam already belongs in Application and Infrastructure; no API controller or new transport contract is needed.
 - A narrow `IApPaymentRepository.GetTrackedForPostingAsync` method remains inside repository ownership and avoids direct `DbContext` use in `PostingService`.
-- Runtime AP payment posting models belong under `OakERP.Domain.Posting.Accounts_Payable`.
+- Runtime AP payment posting models belong under `OakERP.Domain.Posting.AccountsPayable`.
 
 ## Structural Risks
 - AP payment allocations already affect AP invoice settlement state while the payment is still draft. This slice should keep that timing unchanged rather than widening into a settlement redesign.

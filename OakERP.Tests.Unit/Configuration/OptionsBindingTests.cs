@@ -1,9 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using OakERP.Auth;
 using OakERP.Auth.Extensions;
-using OakERP.Client;
+using OakERP.Client.Configuration;
 using OakERP.Client.Extensions;
 using OakERP.Client.Services.Api;
 using OakERP.Common.Abstractions;
@@ -58,12 +57,10 @@ public sealed class OptionsBindingTests
         services.AddOakApiClient(new ApiClientOptions { BaseUrl = "https://example.test/api/" });
 
         services.ShouldContain(x => x.ServiceType == typeof(IApiClient));
-        services.ShouldContain(
-            x => x.ServiceType == typeof(OakERP.Client.Services.Auth.IAuthSessionManager)
+        services.ShouldContain(x =>
+            x.ServiceType == typeof(OakERP.Client.Services.Auth.IAuthSessionManager)
         );
-        services.ShouldContain(
-            x => x.ServiceType == typeof(ICurrentUserService)
-        );
+        services.ShouldContain(x => x.ServiceType == typeof(ICurrentUserService));
     }
 
     private sealed class FakeTokenStore : ITokenStore

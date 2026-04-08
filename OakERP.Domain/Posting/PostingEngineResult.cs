@@ -1,4 +1,4 @@
-﻿using OakERP.Domain.Posting.General_Ledger;
+using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Domain.Posting.Inventory;
 
 namespace OakERP.Domain.Posting;

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OakERP.Domain.Entities.Inventory;
 using OakERP.Domain.Posting.Inventory;
-using OakERP.Domain.Repository_Interfaces.Inventory;
+using OakERP.Domain.RepositoryInterfaces.Inventory;
 
 namespace OakERP.Infrastructure.Posting.Inventory;
 

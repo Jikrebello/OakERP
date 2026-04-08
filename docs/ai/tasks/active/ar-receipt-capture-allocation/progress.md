@@ -35,12 +35,12 @@ ar-receipt-capture-allocation
 - `OakERP.Application/AccountsReceivable/ArReceiptSnapshotDTO.cs`
 - `OakERP.Application/AccountsReceivable/CreateArReceiptCommand.cs`
 - `OakERP.Application/AccountsReceivable/IArReceiptService.cs`
-- `OakERP.Domain/Repository_Interfaces/Accounts_Receivable/IArInvoiceRepository.cs`
-- `OakERP.Domain/Repository_Interfaces/Accounts_Receivable/IArReceiptRepository.cs`
-- `OakERP.Infrastructure/Accounts_Receivable/ArReceiptService.cs`
+- `OakERP.Domain/RepositoryInterfaces/AccountsReceivable/IArInvoiceRepository.cs`
+- `OakERP.Domain/RepositoryInterfaces/AccountsReceivable/IArReceiptRepository.cs`
+- `OakERP.Infrastructure/AccountsReceivable/ArReceiptService.cs`
 - `OakERP.Infrastructure/Extensions/ServiceCollectionExtensions.cs`
-- `OakERP.Infrastructure/Repositories/Accounts_Receivable/ArInvoiceRepository.cs`
-- `OakERP.Infrastructure/Repositories/Accounts_Receivable/ArReceiptRepository.cs`
+- `OakERP.Infrastructure/Repositories/AccountsReceivable/ArInvoiceRepository.cs`
+- `OakERP.Infrastructure/Repositories/AccountsReceivable/ArReceiptRepository.cs`
 - `OakERP.Tests.Integration/AccountsReceivable/ArReceiptApiTests.cs`
 - `OakERP.Tests.Integration/ApiRoutes.cs`
 - `OakERP.Tests.Unit/AccountsReceivable/ArReceiptServiceTestFactory.cs`

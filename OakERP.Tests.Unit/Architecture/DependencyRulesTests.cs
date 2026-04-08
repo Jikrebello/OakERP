@@ -1,6 +1,4 @@
 using System.Xml.Linq;
-using OakERP.Application.AccountsPayable;
-using OakERP.Auth;
 using OakERP.Domain.Entities.Users;
 using Shouldly;
 
@@ -11,35 +9,33 @@ public sealed class DependencyRulesTests
     [Fact]
     public void Domain_Assembly_Should_Not_Reference_AspNetCore_Ef_Or_Outer_Layers()
     {
-        string[] references =
-            typeof(Tenant)
-                .Assembly.GetReferencedAssemblies()
-                .Select(x => x.Name ?? string.Empty)
-                .ToArray();
+        string[] references = typeof(Tenant)
+            .Assembly.GetReferencedAssemblies()
+            .Select(x => x.Name ?? string.Empty)
+            .ToArray();
 
-        references.ShouldNotContain(
-            name => name.StartsWith("Microsoft.AspNetCore", StringComparison.Ordinal)
+        references.ShouldNotContain(name =>
+            name.StartsWith("Microsoft.AspNetCore", StringComparison.Ordinal)
         );
-        references.ShouldNotContain(
-            name => name.StartsWith("Microsoft.EntityFrameworkCore", StringComparison.Ordinal)
+        references.ShouldNotContain(name =>
+            name.StartsWith("Microsoft.EntityFrameworkCore", StringComparison.Ordinal)
         );
         references.ShouldNotContain(name => name.Equals("OakERP.API", StringComparison.Ordinal));
-        references.ShouldNotContain(
-            name => name.Equals("OakERP.Infrastructure", StringComparison.Ordinal)
+        references.ShouldNotContain(name =>
+            name.Equals("OakERP.Infrastructure", StringComparison.Ordinal)
         );
     }
 
     [Fact]
     public void Application_Assembly_Should_Not_Reference_Infrastructure()
     {
-        string[] references =
-            typeof(IApInvoiceService)
-                .Assembly.GetReferencedAssemblies()
-                .Select(x => x.Name ?? string.Empty)
-                .ToArray();
+        string[] references = typeof(IApInvoiceService)
+            .Assembly.GetReferencedAssemblies()
+            .Select(x => x.Name ?? string.Empty)
+            .ToArray();
 
-        references.ShouldNotContain(
-            name => name.Equals("OakERP.Infrastructure", StringComparison.Ordinal)
+        references.ShouldNotContain(name =>
+            name.Equals("OakERP.Infrastructure", StringComparison.Ordinal)
         );
     }
 
@@ -51,11 +47,11 @@ public sealed class DependencyRulesTests
             .Select(x => x.FullName ?? string.Empty)
             .ToArray();
 
-        exportedTypes.ShouldNotContain(
-            name => name.EndsWith(".ApplicationUser", StringComparison.Ordinal)
+        exportedTypes.ShouldNotContain(name =>
+            name.EndsWith(".ApplicationUser", StringComparison.Ordinal)
         );
 
-        typeof(ApplicationUser).FullName.ShouldBe("OakERP.Auth.ApplicationUser");
+        typeof(ApplicationUser).FullName.ShouldBe("OakERP.Auth.Identity.ApplicationUser");
     }
 
     [Fact]

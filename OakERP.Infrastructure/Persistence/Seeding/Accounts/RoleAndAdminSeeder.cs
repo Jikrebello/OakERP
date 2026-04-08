@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
-using OakERP.Auth;
+using OakERP.Auth.Identity;
 using OakERP.Common.Persistence;
 using OakERP.Domain.Entities.Users;
 using OakERP.Infrastructure.Persistence.Seeding.Base;

@@ -15,7 +15,7 @@ ar-receipt-posting
 ## Dependency Observations
 - The existing posting seam belongs in Application and Infrastructure; no new API endpoint is needed for this slice.
 - A narrow `IArReceiptRepository.GetTrackedForPostingAsync` method remains within repository ownership and avoids direct `DbContext` use in `PostingService`.
-- A runtime receipt posting context belongs under `OakERP.Domain.Posting.Accounts_Receivable`.
+- A runtime receipt posting context belongs under `OakERP.Domain.Posting.AccountsReceivable`.
 
 ## Structural Risks
 - `PostingService` currently uses AR-invoice-specific constructor dependencies and validation helpers; extending it must stay additive rather than turn into a broader posting redesign.
@@ -25,7 +25,7 @@ ar-receipt-posting
 
 ## Implementation Notes
 - The slice added a narrow tracked receipt-posting load on `IArReceiptRepository` and did not require any schema change.
-- Receipt posting uses a dedicated runtime context and context builder under `OakERP.Domain.Posting.Accounts_Receivable`.
+- Receipt posting uses a dedicated runtime context and context builder under `OakERP.Domain.Posting.AccountsReceivable`.
 - `PostingSourceTypes` now includes a receipt source constant, and the existing code-backed runtime rule provider now returns both AR invoice and AR receipt rules.
 - Receipt posting writes GL entries only and rejects any posting output that contains inventory rows.
 - Unapplied cash posts as `Dr Bank / Cr AR Control` for the full receipt amount; allocation state remains visible through persisted receipt allocations rather than separate GL accounts.

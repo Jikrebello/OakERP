@@ -20,9 +20,9 @@ ap-invoice-backend
 
 ## Files Touched
 - `OakERP.Application/AccountsPayable/*`
-- `OakERP.Domain/Repository_Interfaces/Accounts_Payable/IApInvoiceRepository.cs`
-- `OakERP.Infrastructure/Accounts_Payable/*`
-- `OakERP.Infrastructure/Repositories/Accounts_Payable/ApInvoiceRepository.cs`
+- `OakERP.Domain/RepositoryInterfaces/AccountsPayable/IApInvoiceRepository.cs`
+- `OakERP.Infrastructure/AccountsPayable/*`
+- `OakERP.Infrastructure/Repositories/AccountsPayable/ApInvoiceRepository.cs`
 - `OakERP.Infrastructure/Extensions/ServiceCollectionExtensions.cs`
 - `OakERP.API/Controllers/ApInvoicesController.cs`
 - `OakERP.API/Program.cs`

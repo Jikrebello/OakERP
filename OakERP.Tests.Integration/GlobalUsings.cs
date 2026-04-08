@@ -1,0 +1,9 @@
+global using OakERP.Application.AccountsPayable.Invoices.Commands;
+global using OakERP.Application.AccountsPayable.Invoices.Contracts;
+global using OakERP.Application.AccountsPayable.Payments.Commands;
+global using OakERP.Application.AccountsPayable.Payments.Contracts;
+global using OakERP.Application.AccountsReceivable.Receipts.Commands;
+global using OakERP.Application.AccountsReceivable.Receipts.Contracts;
+global using OakERP.Application.Posting.Contracts;
+global using OakERP.Auth.Services;
+global using OakERP.Tests.Integration.TestSetup;

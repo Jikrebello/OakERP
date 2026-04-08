@@ -3,13 +3,11 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
-using OakERP.Application.AccountsPayable;
 using OakERP.Common.Dtos.Auth;
 using OakERP.Common.Enums;
-using OakERP.Domain.Entities.Accounts_Payable;
+using OakERP.Domain.Entities.AccountsPayable;
 using OakERP.Domain.Entities.Common;
-using OakERP.Domain.Entities.General_Ledger;
-using OakERP.Tests.Integration.TestSetup;
+using OakERP.Domain.Entities.GeneralLedger;
 using Shouldly;
 
 namespace OakERP.Tests.Integration.AccountsPayable;

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;
-using OakERP.Auth;
 using OakERP.Common.Dtos.Auth;
 using OakERP.Common.Persistence;
 using OakERP.Domain.Entities.Users;

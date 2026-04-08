@@ -4,6 +4,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using OakERP.Auth.Identity;
+using OakERP.Auth.Jwt;
+using OakERP.Auth.Services;
 
 namespace OakERP.Auth.Extensions;
 

@@ -2,7 +2,7 @@ using Moq;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Inventory;
 using OakERP.Domain.Posting.Inventory;
-using OakERP.Infrastructure.Posting.Accounts_Receivable;
+using OakERP.Infrastructure.Posting.AccountsReceivable;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.Posting;
@@ -70,7 +70,7 @@ public sealed class ArInvoicePostingContextBuilderTests
         invoice.TaxTotal = 0m;
         invoice.Lines =
         [
-            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            new Domain.Entities.AccountsReceivable.ArInvoiceLine
             {
                 Id = Guid.NewGuid(),
                 LineNo = 1,
@@ -83,7 +83,7 @@ public sealed class ArInvoicePostingContextBuilderTests
                     Category = new ItemCategory { RevenueAccount = "4198" },
                 },
             },
-            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            new Domain.Entities.AccountsReceivable.ArInvoiceLine
             {
                 Id = Guid.NewGuid(),
                 LineNo = 2,
@@ -95,7 +95,7 @@ public sealed class ArInvoicePostingContextBuilderTests
                     Category = new ItemCategory { RevenueAccount = "4298" },
                 },
             },
-            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            new Domain.Entities.AccountsReceivable.ArInvoiceLine
             {
                 Id = Guid.NewGuid(),
                 LineNo = 3,
@@ -106,7 +106,7 @@ public sealed class ArInvoicePostingContextBuilderTests
                     Category = new ItemCategory { RevenueAccount = "4300" },
                 },
             },
-            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            new Domain.Entities.AccountsReceivable.ArInvoiceLine
             {
                 Id = Guid.NewGuid(),
                 LineNo = 4,

@@ -14,7 +14,7 @@ AR invoice posting slices 1A and 1B are implemented and validated. The narrow po
 
 ## Dependency Observations
 - `OakERP.Infrastructure.Posting.PostingService` stays on repository and unit-of-work abstractions.
-- `OakERP.Infrastructure.Posting.Accounts_Receivable.ArInvoicePostingEngine` is still pure with respect to persistence and lookups.
+- `OakERP.Infrastructure.Posting.AccountsReceivable.ArInvoicePostingEngine` is still pure with respect to persistence and lookups.
 - `OakERP.Domain.Posting.PostingRule` currently imports `OakERP.Domain.Entities.Posting`, which leaks the persisted posting model family into the runtime posting path.
 
 ## Structural Problems

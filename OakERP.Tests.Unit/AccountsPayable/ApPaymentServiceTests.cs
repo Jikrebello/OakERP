@@ -1,7 +1,6 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using OakERP.Application.AccountsPayable;
 using OakERP.Common.Enums;
 using Shouldly;
 
@@ -44,7 +43,7 @@ public sealed class ApPaymentServiceTests
             .ReturnsAsync(false);
         _factory
             .ApPaymentRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.Accounts_Payable.ApPayment>())
+                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsPayable.ApPayment>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -113,7 +112,7 @@ public sealed class ApPaymentServiceTests
             .ReturnsAsync(false);
         _factory
             .ApPaymentRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.Accounts_Payable.ApPayment>())
+                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsPayable.ApPayment>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -232,7 +231,7 @@ public sealed class ApPaymentServiceTests
             .ReturnsAsync(false);
         _factory
             .ApPaymentRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.Accounts_Payable.ApPayment>())
+                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsPayable.ApPayment>())
             )
             .Returns(Task.CompletedTask);
         _factory

@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using OakERP.Application.Posting;
 using OakERP.Common.Enums;
-using OakERP.Domain.Entities.General_Ledger;
+using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
-using OakERP.Domain.Posting.Accounts_Receivable;
-using OakERP.Domain.Posting.General_Ledger;
+using OakERP.Domain.Posting.AccountsReceivable;
+using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Domain.Posting.Inventory;
 using Shouldly;
 
@@ -197,7 +196,7 @@ public sealed class PostingServiceTests
             );
         _factory
             .GlEntryRepository.Setup(x =>
-                x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>())
+                x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -219,7 +218,7 @@ public sealed class PostingServiceTests
         invoice.PostingDate.ShouldBe(invoice.InvoiceDate);
         invoice.UpdatedBy.ShouldBe("unit-tester");
         _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
             Times.Exactly(5)
         );
         _factory.InventoryLedgerRepository.Verify(
@@ -379,7 +378,7 @@ public sealed class PostingServiceTests
             );
         _factory
             .GlEntryRepository.Setup(x =>
-                x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>())
+                x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -519,7 +518,7 @@ public sealed class PostingServiceTests
 
         ex.Message.ShouldContain("does not match quantity and unit cost");
         _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
             Times.Never
         );
         _factory.InventoryLedgerRepository.Verify(
@@ -616,7 +615,7 @@ public sealed class PostingServiceTests
 
         ex.Message.ShouldContain("without a source id");
         _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
             Times.Never
         );
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
@@ -730,7 +729,7 @@ public sealed class PostingServiceTests
             );
         _factory
             .GlEntryRepository.Setup(x =>
-                x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>())
+                x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -751,7 +750,7 @@ public sealed class PostingServiceTests
             Times.Never
         );
         _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
             Times.Exactly(2)
         );
         _factory.UnitOfWork.Verify(x => x.CommitAsync(), Times.Once);
@@ -779,7 +778,7 @@ public sealed class PostingServiceTests
 
         ex.Message.ShouldContain("exceed the receipt amount");
         _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
             Times.Never
         );
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);

@@ -15,15 +15,15 @@ ar-architecture-cleanup
 - Added unit tests for the extracted calculator and collaborators.
 
 ## Files Touched
-- `OakERP.Domain/Accounts_Receivable/ArSettlementCalculator.cs`
-- `OakERP.Domain/Posting/Accounts_Receivable/ArReceiptPostingContext.cs`
-- `OakERP.Infrastructure/Accounts_Receivable/ArReceiptCommandValidator.cs`
-- `OakERP.Infrastructure/Accounts_Receivable/ArReceiptSnapshotFactory.cs`
-- `OakERP.Infrastructure/Accounts_Receivable/ArReceiptService.cs`
+- `OakERP.Domain/AccountsReceivable/ArSettlementCalculator.cs`
+- `OakERP.Domain/Posting/AccountsReceivable/ArReceiptPostingContext.cs`
+- `OakERP.Infrastructure/AccountsReceivable/ArReceiptCommandValidator.cs`
+- `OakERP.Infrastructure/AccountsReceivable/ArReceiptSnapshotFactory.cs`
+- `OakERP.Infrastructure/AccountsReceivable/ArReceiptService.cs`
 - `OakERP.Infrastructure/Extensions/ServiceCollectionExtensions.cs`
-- `OakERP.Infrastructure/Posting/Accounts_Receivable/ArPostingEngine.cs`
-- `OakERP.Infrastructure/Posting/Accounts_Receivable/ArPostingRuleProvider.cs`
-- `OakERP.Infrastructure/Posting/Accounts_Receivable/ArReceiptPostingContextBuilder.cs`
+- `OakERP.Infrastructure/Posting/AccountsReceivable/ArPostingEngine.cs`
+- `OakERP.Infrastructure/Posting/AccountsReceivable/ArPostingRuleProvider.cs`
+- `OakERP.Infrastructure/Posting/AccountsReceivable/ArReceiptPostingContextBuilder.cs`
 - `OakERP.Infrastructure/Posting/PostingService.cs`
 - `OakERP.Tests.Unit/AccountsReceivable/*`
 - `OakERP.Tests.Unit/Posting/*`

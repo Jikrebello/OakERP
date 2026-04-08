@@ -20,12 +20,12 @@ ap-payment-capture-allocation
 
 ## Files Touched
 - `OakERP.Application/AccountsPayable/*`
-- `OakERP.Domain/Accounts_Payable/ApSettlementCalculator.cs`
-- `OakERP.Domain/Repository_Interfaces/Accounts_Payable/IApPaymentRepository.cs`
-- `OakERP.Domain/Repository_Interfaces/Accounts_Payable/IApInvoiceRepository.cs`
-- `OakERP.Infrastructure/Accounts_Payable/*`
-- `OakERP.Infrastructure/Repositories/Accounts_Payable/ApPaymentRepository.cs`
-- `OakERP.Infrastructure/Repositories/Accounts_Payable/ApInvoiceRepository.cs`
+- `OakERP.Domain/AccountsPayable/ApSettlementCalculator.cs`
+- `OakERP.Domain/RepositoryInterfaces/AccountsPayable/IApPaymentRepository.cs`
+- `OakERP.Domain/RepositoryInterfaces/AccountsPayable/IApInvoiceRepository.cs`
+- `OakERP.Infrastructure/AccountsPayable/*`
+- `OakERP.Infrastructure/Repositories/AccountsPayable/ApPaymentRepository.cs`
+- `OakERP.Infrastructure/Repositories/AccountsPayable/ApInvoiceRepository.cs`
 - `OakERP.Infrastructure/Extensions/ServiceCollectionExtensions.cs`
 - `OakERP.API/Controllers/ApPaymentsController.cs`
 - `OakERP.Tests.Unit/AccountsPayable/*`

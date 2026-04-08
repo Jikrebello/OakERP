@@ -11,7 +11,7 @@ ap-payment-posting
 - Activated Serena for symbol-aware discovery in the OakERP project.
 - Audited the current AP payment capture/allocation implementation, shared posting runtime, and posting test structure.
 - Created the active task docs for this slice.
-- Added the AP payment runtime posting context and context-builder seam under `OakERP.Domain.Posting.Accounts_Payable`.
+- Added the AP payment runtime posting context and context-builder seam under `OakERP.Domain.Posting.AccountsPayable`.
 - Added a narrow `IApPaymentRepository.GetTrackedForPostingAsync` load for posting without broadening repository scope.
 - Extended the existing posting rule provider, posting engine, and posting service in place for `DocKind.ApPayment`.
 - Kept AP payment posting GL-only, with zero inventory rows, zero bank transaction rows, and no AP payment capture redesign.
@@ -25,15 +25,15 @@ ap-payment-posting
 - `docs/ai/tasks/active/ap-payment-posting/progress.md`
 - `OakERP.Domain/Posting/IPostingEngine.cs`
 - `OakERP.Domain/Posting/PostingSourceTypes.cs`
-- `OakERP.Domain/Posting/Accounts_Payable/ApPaymentPostingContext.cs`
-- `OakERP.Domain/Posting/Accounts_Payable/IApPaymentPostingContextBuilder.cs`
-- `OakERP.Domain/Repository_Interfaces/Accounts_Payable/IApPaymentRepository.cs`
+- `OakERP.Domain/Posting/AccountsPayable/ApPaymentPostingContext.cs`
+- `OakERP.Domain/Posting/AccountsPayable/IApPaymentPostingContextBuilder.cs`
+- `OakERP.Domain/RepositoryInterfaces/AccountsPayable/IApPaymentRepository.cs`
 - `OakERP.Infrastructure/Extensions/ServiceCollectionExtensions.cs`
-- `OakERP.Infrastructure/Repositories/Accounts_Payable/ApPaymentRepository.cs`
+- `OakERP.Infrastructure/Repositories/AccountsPayable/ApPaymentRepository.cs`
 - `OakERP.Infrastructure/Posting/PostingRuleProvider.cs`
 - `OakERP.Infrastructure/Posting/PostingEngine.cs`
 - `OakERP.Infrastructure/Posting/PostingService.cs`
-- `OakERP.Infrastructure/Posting/Accounts_Payable/ApPaymentPostingContextBuilder.cs`
+- `OakERP.Infrastructure/Posting/AccountsPayable/ApPaymentPostingContextBuilder.cs`
 - `OakERP.Tests.Unit/Posting/PostingServiceTestFactory.cs`
 - `OakERP.Tests.Unit/Posting/PostingServiceTests.cs`
 - `OakERP.Tests.Unit/Posting/ApPostingServiceTests.cs`

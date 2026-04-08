@@ -1,16 +1,16 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using OakERP.Auth;
+using OakERP.Auth.Identity;
 using OakERP.Common.Enums;
-using OakERP.Domain.Entities.Accounts_Payable;
-using OakERP.Domain.Entities.Accounts_Receivable;
+using OakERP.Domain.Entities.AccountsPayable;
+using OakERP.Domain.Entities.AccountsReceivable;
 using OakERP.Domain.Entities.Bank;
 using OakERP.Domain.Entities.Common;
-using OakERP.Domain.Entities.General_Ledger;
+using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Entities.Inventory;
 using OakERP.Domain.Entities.Users;
-using OakERP.Infrastructure.Persistence.Seeding.Views.Accounts_Payable;
-using OakERP.Infrastructure.Persistence.Seeding.Views.Accounts_Recievable;
+using OakERP.Infrastructure.Persistence.Seeding.Views.AccountsPayable;
+using OakERP.Infrastructure.Persistence.Seeding.Views.AccountsReceivable;
 using OakERP.Infrastructure.Persistence.Seeding.Views.Inventory;
 
 namespace OakERP.Infrastructure.Persistence;

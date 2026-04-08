@@ -1,4 +1,4 @@
-using OakERP.Infrastructure.Posting.Accounts_Payable;
+using OakERP.Infrastructure.Posting.AccountsPayable;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.Posting;

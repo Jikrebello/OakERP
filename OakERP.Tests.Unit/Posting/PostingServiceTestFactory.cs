@@ -1,21 +1,20 @@
 using Moq;
 using OakERP.Application.Interfaces.Persistence;
-using OakERP.Application.Posting;
 using OakERP.Common.Enums;
-using OakERP.Domain.Accounts_Payable;
-using OakERP.Domain.Entities.Accounts_Payable;
-using OakERP.Domain.Entities.Accounts_Receivable;
+using OakERP.Domain.AccountsPayable;
+using OakERP.Domain.Entities.AccountsPayable;
+using OakERP.Domain.Entities.AccountsReceivable;
 using OakERP.Domain.Entities.Bank;
-using OakERP.Domain.Entities.General_Ledger;
+using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Entities.Inventory;
 using OakERP.Domain.Posting;
-using OakERP.Domain.Posting.Accounts_Payable;
-using OakERP.Domain.Posting.Accounts_Receivable;
-using OakERP.Domain.Posting.General_Ledger;
-using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
-using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
-using OakERP.Domain.Repository_Interfaces.General_Ledger;
-using OakERP.Domain.Repository_Interfaces.Inventory;
+using OakERP.Domain.Posting.AccountsPayable;
+using OakERP.Domain.Posting.AccountsReceivable;
+using OakERP.Domain.Posting.GeneralLedger;
+using OakERP.Domain.RepositoryInterfaces.AccountsPayable;
+using OakERP.Domain.RepositoryInterfaces.AccountsReceivable;
+using OakERP.Domain.RepositoryInterfaces.GeneralLedger;
+using OakERP.Domain.RepositoryInterfaces.Inventory;
 
 namespace OakERP.Tests.Unit.Posting;
 

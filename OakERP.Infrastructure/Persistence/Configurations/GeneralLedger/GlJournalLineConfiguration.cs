@@ -1,0 +1,61 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using OakERP.Domain.Entities.GeneralLedger;
+
+namespace OakERP.Infrastructure.Persistence.Configurations.GeneralLedger;
+
+internal class GlJournalLineConfiguration : IEntityTypeConfiguration<GlJournalLine>
+{
+    public void Configure(EntityTypeBuilder<GlJournalLine> builder)
+    {
+        builder.ToTable("gl_journal_lines");
+
+        // PK
+        builder.HasKey(x => x.Id);
+
+        // Columns
+        builder.Property(x => x.LineNo).IsRequired();
+        builder.Property(x => x.AccountNo).HasMaxLength(20).IsRequired();
+        builder.Property(x => x.Debit).HasColumnType("numeric(18,2)");
+        builder.Property(x => x.Credit).HasColumnType("numeric(18,2)");
+        builder.Property(x => x.Description).HasMaxLength(512);
+        builder
+            .Property<decimal>("signed_amount")
+            .HasColumnType("numeric(18,2)")
+            .HasComputedColumnSql("(\"debit\" - \"credit\")", stored: true)
+            .ValueGeneratedOnAddOrUpdate();
+
+        // Index
+        builder.HasIndex(x => new { x.JournalId, x.LineNo }).IsUnique();
+        builder.HasIndex(x => x.AccountNo);
+        builder.HasIndex("signed_amount");
+
+        // Relationships
+        builder
+            .HasOne(x => x.Journal)
+            .WithMany(j => j.Lines)
+            .HasForeignKey(x => x.JournalId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasOne(x => x.Account)
+            .WithMany(a => a.JournalLines)
+            .HasForeignKey(x => x.AccountNo)
+            .HasPrincipalKey("AccountNo") // explicit (PK already AccountNo)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Data integrity
+        builder.ToTable(t =>
+        {
+            // positive line number
+            t.HasCheckConstraint("ck_gjl_lineno_positive", "\"line_no\" > 0");
+
+            // nonnegative + exactly one side > 0 (no zero rows, no double-sided)
+            t.HasCheckConstraint(
+                "ck_gjl_one_sided_amount",
+                "(\"debit\" >= 0) AND (\"credit\" >= 0) AND "
+                    + "((\"debit\" = 0 AND \"credit\" > 0) OR (\"credit\" = 0 AND \"debit\" > 0))"
+            );
+        });
+    }
+}

@@ -1,4 +1,4 @@
-using OakERP.Client.ApiRoutes;
+using OakERP.Client.Routes;
 using OakERP.Client.Services.Api;
 using OakERP.Common.Dtos.Auth;
 

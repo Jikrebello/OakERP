@@ -1,0 +1,14 @@
+namespace OakERP.Domain.Entities.GeneralLedger;
+
+public sealed class FiscalPeriod
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public int FiscalYear { get; set; }
+    public int PeriodNo { get; set; } // 1..12
+    public DateOnly PeriodStart { get; set; }
+    public DateOnly PeriodEnd { get; set; }
+    public string Status { get; set; } = FiscalPeriodStatuses.Open; // open|closed
+
+    public ICollection<GlEntry> Entries { get; set; } = [];
+    public ICollection<GlJournal> Journals { get; set; } = [];
+}

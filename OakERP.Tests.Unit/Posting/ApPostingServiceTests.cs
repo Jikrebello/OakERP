@@ -1,9 +1,8 @@
 using Moq;
-using OakERP.Application.Posting;
 using OakERP.Common.Enums;
-using OakERP.Domain.Entities.General_Ledger;
+using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
-using OakERP.Domain.Posting.General_Ledger;
+using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Domain.Posting.Inventory;
 using Shouldly;
 
@@ -157,7 +156,7 @@ public sealed class ApPostingServiceTests
             );
         _factory
             .GlEntryRepository.Setup(x =>
-                x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>())
+                x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -178,7 +177,7 @@ public sealed class ApPostingServiceTests
             Times.Never
         );
         _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
             Times.Exactly(4)
         );
         _factory.UnitOfWork.Verify(x => x.CommitAsync(), Times.Once);
@@ -214,9 +213,9 @@ public sealed class ApPostingServiceTests
         _factory.ApInvoicePostingContextBuilder.Verify(
             x =>
                 x.BuildAsync(
-                    It.IsAny<OakERP.Domain.Entities.Accounts_Payable.ApInvoice>(),
+                    It.IsAny<OakERP.Domain.Entities.AccountsPayable.ApInvoice>(),
                     It.IsAny<DateOnly>(),
-                    It.IsAny<OakERP.Domain.Entities.General_Ledger.FiscalPeriod>(),
+                    It.IsAny<OakERP.Domain.Entities.GeneralLedger.FiscalPeriod>(),
                     It.IsAny<GlPostingSettings>(),
                     It.IsAny<PostingRule>(),
                     It.IsAny<CancellationToken>()
@@ -330,7 +329,7 @@ public sealed class ApPostingServiceTests
             Times.Never
         );
         _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
             Times.Never
         );
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
@@ -432,7 +431,7 @@ public sealed class ApPostingServiceTests
             );
         _factory
             .GlEntryRepository.Setup(x =>
-                x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>())
+                x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -454,7 +453,7 @@ public sealed class ApPostingServiceTests
             Times.Never
         );
         _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
             Times.Exactly(2)
         );
         _factory.UnitOfWork.Verify(x => x.CommitAsync(), Times.Once);
@@ -485,7 +484,7 @@ public sealed class ApPostingServiceTests
 
         ex.Message.ShouldContain("exceed the payment amount");
         _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
             Times.Never
         );
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
@@ -584,7 +583,7 @@ public sealed class ApPostingServiceTests
             Times.Never
         );
         _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.General_Ledger.GlEntry>()),
+            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
             Times.Never
         );
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);

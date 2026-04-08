@@ -11,7 +11,7 @@ ap-invoice-posting
 - Activated Serena for symbol-aware discovery in the OakERP project.
 - Audited the current AP invoice capture, posting seam, GL settings, and posting test structure.
 - Created the active task docs for this slice.
-- Added the AP invoice runtime posting context, line context, and context-builder seam under `OakERP.Domain.Posting.Accounts_Payable`.
+- Added the AP invoice runtime posting context, line context, and context-builder seam under `OakERP.Domain.Posting.AccountsPayable`.
 - Added a narrow `IApInvoiceRepository.GetTrackedForPostingAsync` load for posting without broadening repository scope.
 - Extended the existing posting rule provider, posting engine, and posting service in place for `DocKind.ApInvoice`.
 - Kept AP invoice posting GL-only, with zero inventory rows, zero bank/cash rows, and no bank transaction creation.
@@ -25,16 +25,16 @@ ap-invoice-posting
 - `docs/ai/tasks/active/ap-invoice-posting/progress.md`
 - `OakERP.Domain/Posting/IPostingEngine.cs`
 - `OakERP.Domain/Posting/PostingSourceTypes.cs`
-- `OakERP.Domain/Posting/Accounts_Payable/ApInvoicePostingContext.cs`
-- `OakERP.Domain/Posting/Accounts_Payable/ApInvoicePostingLineContext.cs`
-- `OakERP.Domain/Posting/Accounts_Payable/IApInvoicePostingContextBuilder.cs`
-- `OakERP.Domain/Repository_Interfaces/Accounts_Payable/IApInvoiceRepository.cs`
+- `OakERP.Domain/Posting/AccountsPayable/ApInvoicePostingContext.cs`
+- `OakERP.Domain/Posting/AccountsPayable/ApInvoicePostingLineContext.cs`
+- `OakERP.Domain/Posting/AccountsPayable/IApInvoicePostingContextBuilder.cs`
+- `OakERP.Domain/RepositoryInterfaces/AccountsPayable/IApInvoiceRepository.cs`
 - `OakERP.Infrastructure/Extensions/ServiceCollectionExtensions.cs`
-- `OakERP.Infrastructure/Repositories/Accounts_Payable/ApInvoiceRepository.cs`
+- `OakERP.Infrastructure/Repositories/AccountsPayable/ApInvoiceRepository.cs`
 - `OakERP.Infrastructure/Posting/PostingService.cs`
-- `OakERP.Infrastructure/Posting/Accounts_Receivable/ArPostingEngine.cs`
-- `OakERP.Infrastructure/Posting/Accounts_Receivable/ArPostingRuleProvider.cs`
-- `OakERP.Infrastructure/Posting/Accounts_Payable/ApInvoicePostingContextBuilder.cs`
+- `OakERP.Infrastructure/Posting/AccountsReceivable/ArPostingEngine.cs`
+- `OakERP.Infrastructure/Posting/AccountsReceivable/ArPostingRuleProvider.cs`
+- `OakERP.Infrastructure/Posting/AccountsPayable/ApInvoicePostingContextBuilder.cs`
 - `OakERP.Tests.Unit/Posting/PostingServiceTestFactory.cs`
 - `OakERP.Tests.Unit/Posting/PostingServiceTests.cs`
 - `OakERP.Tests.Unit/Posting/ApPostingEngineTests.cs`

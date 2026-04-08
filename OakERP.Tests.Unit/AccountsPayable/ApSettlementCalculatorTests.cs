@@ -1,5 +1,5 @@
-using OakERP.Domain.Accounts_Payable;
-using OakERP.Domain.Entities.Accounts_Payable;
+using OakERP.Domain.AccountsPayable;
+using OakERP.Domain.Entities.AccountsPayable;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.AccountsPayable;

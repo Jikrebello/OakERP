@@ -14,7 +14,7 @@ ap-invoice-posting
 ## Dependency Observations
 - The posting seam already belongs in Application and Infrastructure; no API controller or new transport contract is needed.
 - A narrow `IApInvoiceRepository.GetTrackedForPostingAsync` method remains inside repository ownership and avoids direct `DbContext` use in `PostingService`.
-- Runtime AP posting models belong under `OakERP.Domain.Posting.Accounts_Payable`.
+- Runtime AP posting models belong under `OakERP.Domain.Posting.AccountsPayable`.
 
 ## Structural Risks
 - The shared runtime implementation classes are still AR-named (`ArPostingEngine`, `ArPostingRuleProvider`). This slice should extend them in place and record the naming debt rather than widening into a posting-runtime refactor.
@@ -26,7 +26,7 @@ ap-invoice-posting
 - AP invoice posting should credit AP control for the full document total, debit each expense line account for its line total, and debit tax input for header tax when present.
 - AP invoice posting should write GL rows only, with zero inventory and zero bank/cash effects.
 - Source traceability should use a new centralized source type constant for AP invoices.
-- The AP runtime context lives under `OakERP.Domain.Posting.Accounts_Payable`, while the shared runtime engine and rule provider remain in their existing AR-named infrastructure files as intentional deferred naming debt.
+- The AP runtime context lives under `OakERP.Domain.Posting.AccountsPayable`, while the shared runtime engine and rule provider remain in their existing AR-named infrastructure files as intentional deferred naming debt.
 
 ## Rollback / Transaction Notes
 - No migration or rollback review is required unless implementation proves a hidden schema requirement.

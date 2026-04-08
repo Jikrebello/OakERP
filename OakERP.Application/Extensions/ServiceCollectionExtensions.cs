@@ -1,7 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using OakERP.Application.AccountsPayable;
-using OakERP.Application.AccountsReceivable;
-using OakERP.Application.Posting;
 
 namespace OakERP.Application.Extensions;
 

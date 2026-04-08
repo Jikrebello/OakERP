@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OakERP.Client.Configuration;
 using OakERP.Client.Services.Api;
 using OakERP.Client.Services.Auth;
 using OakERP.Common.Abstractions;

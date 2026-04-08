@@ -1,13 +1,12 @@
 using Microsoft.Extensions.Logging;
 using Moq;
-using OakERP.Application.AccountsReceivable;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.Enums;
-using OakERP.Domain.Entities.Accounts_Receivable;
+using OakERP.Domain.Entities.AccountsReceivable;
 using OakERP.Domain.Entities.Bank;
-using OakERP.Domain.Posting.General_Ledger;
-using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
-using OakERP.Domain.Repository_Interfaces.Bank;
+using OakERP.Domain.Posting.GeneralLedger;
+using OakERP.Domain.RepositoryInterfaces.AccountsReceivable;
+using OakERP.Domain.RepositoryInterfaces.Bank;
 
 namespace OakERP.Tests.Unit.AccountsReceivable;
 

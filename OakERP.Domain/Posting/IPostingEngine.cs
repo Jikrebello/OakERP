@@ -1,5 +1,5 @@
-using OakERP.Domain.Posting.Accounts_Payable;
-using OakERP.Domain.Posting.Accounts_Receivable;
+using OakERP.Domain.Posting.AccountsPayable;
+using OakERP.Domain.Posting.AccountsReceivable;
 
 namespace OakERP.Domain.Posting;
 

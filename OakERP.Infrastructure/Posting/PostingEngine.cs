@@ -1,8 +1,8 @@
 using OakERP.Common.Enums;
 using OakERP.Domain.Posting;
-using OakERP.Domain.Posting.Accounts_Payable;
-using OakERP.Domain.Posting.Accounts_Receivable;
-using OakERP.Domain.Posting.General_Ledger;
+using OakERP.Domain.Posting.AccountsPayable;
+using OakERP.Domain.Posting.AccountsReceivable;
+using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Domain.Posting.Inventory;
 
 namespace OakERP.Infrastructure.Posting;

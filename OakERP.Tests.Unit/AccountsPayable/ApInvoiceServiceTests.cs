@@ -14,7 +14,7 @@ public sealed class ApInvoiceServiceTests
         var vendor = ApInvoiceServiceTestFactory.CreateVendor(termsDays: 14);
         var currency = ApInvoiceServiceTestFactory.CreateCurrency();
         var account = ApInvoiceServiceTestFactory.CreateGlAccount();
-        var command = new OakERP.Application.AccountsPayable.CreateApInvoiceCommand
+        var command = new CreateApInvoiceCommand
         {
             DocNo = "APINV-3001",
             VendorId = vendor.Id,
@@ -76,7 +76,7 @@ public sealed class ApInvoiceServiceTests
             .ReturnsAsync(account);
         _factory
             .ApInvoiceRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.Accounts_Payable.ApInvoice>())
+                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsPayable.ApInvoice>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -195,7 +195,7 @@ public sealed class ApInvoiceServiceTests
             .GlAccountRepository.Setup(x =>
                 x.FindNoTrackingAsync("5999", It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync((OakERP.Domain.Entities.General_Ledger.GlAccount?)null);
+            .ReturnsAsync((OakERP.Domain.Entities.GeneralLedger.GlAccount?)null);
 
         var service = _factory.CreateService();
 

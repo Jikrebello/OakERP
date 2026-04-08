@@ -1,4 +1,4 @@
-﻿using OakERP.Domain.Entities.General_Ledger;
+using OakERP.Domain.Entities.GeneralLedger;
 
 namespace OakERP.Domain.Entities.Bank;
 

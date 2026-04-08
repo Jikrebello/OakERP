@@ -1,13 +1,12 @@
 using Microsoft.Extensions.Logging;
 using Moq;
-using OakERP.Application.AccountsPayable;
 using OakERP.Application.Interfaces.Persistence;
-using OakERP.Domain.Entities.Accounts_Payable;
+using OakERP.Domain.Entities.AccountsPayable;
 using OakERP.Domain.Entities.Common;
-using OakERP.Domain.Entities.General_Ledger;
-using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
-using OakERP.Domain.Repository_Interfaces.Common;
-using OakERP.Domain.Repository_Interfaces.General_Ledger;
+using OakERP.Domain.Entities.GeneralLedger;
+using OakERP.Domain.RepositoryInterfaces.AccountsPayable;
+using OakERP.Domain.RepositoryInterfaces.Common;
+using OakERP.Domain.RepositoryInterfaces.GeneralLedger;
 
 namespace OakERP.Tests.Unit.AccountsPayable;
 

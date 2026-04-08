@@ -11,8 +11,8 @@ posting-runtime-normalization
 - AP-specific and AR-specific posting context builders already have correct document-specific placement and do not need re-homing in this cleanup slice.
 
 ## Dependency Observations
-- The shared concrete runtime implementation belongs in `OakERP.Infrastructure.Posting`, not under `Accounts_Receivable`.
-- Document-specific context builders remain correctly placed under `Accounts_Payable` and `Accounts_Receivable`.
+- The shared concrete runtime implementation belongs in `OakERP.Infrastructure.Posting`, not under `AccountsReceivable`.
+- Document-specific context builders remain correctly placed under `AccountsPayable` and `AccountsReceivable`.
 - The cleanup can stay entirely inside Infrastructure and unit-test imports, with no application contract or API surface changes.
 - Actual import churn stayed narrow: DI registration plus the direct posting-engine unit tests.
 

@@ -56,25 +56,25 @@ public sealed class PostingEngineArInvoiceTests
         invoice.TaxTotal = 0m;
         invoice.Lines =
         [
-            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            new Domain.Entities.AccountsReceivable.ArInvoiceLine
             {
                 LineNo = 1,
                 LineTotal = 10m,
                 RevenueAccount = "4100",
             },
-            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            new Domain.Entities.AccountsReceivable.ArInvoiceLine
             {
                 LineNo = 2,
                 LineTotal = 10m,
                 RevenueAccount = "4200",
             },
-            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            new Domain.Entities.AccountsReceivable.ArInvoiceLine
             {
                 LineNo = 3,
                 LineTotal = 10m,
                 RevenueAccount = "4300",
             },
-            new Domain.Entities.Accounts_Receivable.ArInvoiceLine
+            new Domain.Entities.AccountsReceivable.ArInvoiceLine
             {
                 LineNo = 4,
                 LineTotal = 10m,

@@ -1,0 +1,15 @@
+using System.Text.Json.Serialization;
+
+namespace OakERP.Application.AccountsReceivable.Receipts.Commands;
+
+public sealed class AllocateArReceiptCommand
+{
+    [JsonIgnore]
+    public Guid ReceiptId { get; set; }
+
+    public DateOnly? AllocationDate { get; set; }
+    public IReadOnlyList<ArReceiptAllocationInputDto> Allocations { get; set; } = [];
+
+    [JsonIgnore]
+    public string? PerformedBy { get; set; }
+}

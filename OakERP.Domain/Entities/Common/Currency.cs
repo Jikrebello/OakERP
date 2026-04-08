@@ -1,5 +1,5 @@
-﻿using OakERP.Domain.Entities.Accounts_Payable;
-using OakERP.Domain.Entities.Accounts_Receivable;
+using OakERP.Domain.Entities.AccountsPayable;
+using OakERP.Domain.Entities.AccountsReceivable;
 using OakERP.Domain.Entities.Bank;
 
 namespace OakERP.Domain.Entities.Common;

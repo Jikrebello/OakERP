@@ -2,15 +2,13 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using OakERP.Application.Posting;
 using OakERP.Common.Enums;
-using OakERP.Domain.Entities.Accounts_Payable;
+using OakERP.Domain.Entities.AccountsPayable;
 using OakERP.Domain.Entities.Common;
-using OakERP.Domain.Entities.General_Ledger;
+using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Entities.Inventory;
 using OakERP.Domain.Posting;
-using OakERP.Domain.Posting.General_Ledger;
-using OakERP.Tests.Integration.TestSetup;
+using OakERP.Domain.Posting.GeneralLedger;
 using Shouldly;
 
 namespace OakERP.Tests.Integration.Posting;

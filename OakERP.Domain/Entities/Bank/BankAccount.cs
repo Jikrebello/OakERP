@@ -1,8 +1,8 @@
-﻿using OakERP.Common.Enums;
-using OakERP.Domain.Entities.Accounts_Payable;
-using OakERP.Domain.Entities.Accounts_Receivable;
+using OakERP.Common.Enums;
+using OakERP.Domain.Entities.AccountsPayable;
+using OakERP.Domain.Entities.AccountsReceivable;
 using OakERP.Domain.Entities.Common;
-using OakERP.Domain.Entities.General_Ledger;
+using OakERP.Domain.Entities.GeneralLedger;
 
 namespace OakERP.Domain.Entities.Bank;
 

@@ -13,8 +13,8 @@ The user is using Visual Studio and Sonar-style diagnostics as the current compl
 - `OakERP.Auth/AuthService.cs`
 - `OakERP.Common/Enums/`
 - `OakERP.Domain/Entities/*` currency default references
-- `OakERP.Infrastructure/Accounts_Payable/`
-- `OakERP.Infrastructure/Accounts_Receivable/`
+- `OakERP.Infrastructure/AccountsPayable/`
+- `OakERP.Infrastructure/AccountsReceivable/`
 - `OakERP.Infrastructure/Posting/`
 - `OakERP.Infrastructure/Extensions/ServiceCollectionExtensions.cs`
 - affected unit test factories in `OakERP.Tests.Unit/`
