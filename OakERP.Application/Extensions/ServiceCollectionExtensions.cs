@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using OakERP.Application.Interfaces;
-using OakERP.Application.Time;
+using OakERP.Common.Time;
 
 namespace OakERP.Application.Extensions;
 

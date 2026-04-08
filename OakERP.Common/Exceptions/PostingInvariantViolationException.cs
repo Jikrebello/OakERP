@@ -1,6 +1,11 @@
-using System.Net;
+using OakERP.Common.Errors;
 
 namespace OakERP.Common.Exceptions;
 
 public sealed class PostingInvariantViolationException(string message, Exception? innerException = null)
-    : OakErpException(message, HttpStatusCode.InternalServerError, "Posting invariant was violated.", innerException);
+    : OakErpException(
+        message,
+        FailureKind.Unexpected,
+        "Posting invariant was violated.",
+        innerException
+    );

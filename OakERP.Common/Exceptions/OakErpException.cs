@@ -1,15 +1,15 @@
-using System.Net;
+using OakERP.Common.Errors;
 
 namespace OakERP.Common.Exceptions;
 
 public abstract class OakErpException(
     string message,
-    HttpStatusCode statusCode,
+    FailureKind failureKind,
     string title,
     Exception? innerException = null
 ) : Exception(message, innerException)
 {
-    public HttpStatusCode StatusCode { get; } = statusCode;
+    public FailureKind FailureKind { get; } = failureKind;
 
     public string Title { get; } = title;
 }

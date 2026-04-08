@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.FluentUI.AspNetCore.Components;
 using OakERP.Client.Configuration;
-using OakERP.Client.Extensions;
 using OakERP.Common.Abstractions;
 using OakERP.Common.Exceptions;
+using OakERP.Shared.Extensions;
 using OakERP.Shared.Services;
-using OakERP.UI.Extensions;
 using OakERP.Web.Components;
 using OakERP.Web.Services;
 
@@ -48,9 +47,7 @@ builder.Services.AddScoped<ITokenStore, BlazorTokenStore>();
 builder.Services.AddScoped<IPlatformService, BlazorPlatformService>();
 
 // Register shared Razor Class Library services
-builder.Services.AddOakClientCoreServices();
-builder.Services.AddOakAuthUiState();
-builder.Services.AddOakApiClient(apiOptions);
+builder.Services.AddOakSharedHostServices(apiOptions);
 
 var app = builder.Build();
 

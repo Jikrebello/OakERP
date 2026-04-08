@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using OakERP.API.Errors;
 using OakERP.Common.Dtos.Base;
 
 namespace OakERP.API.Controllers;
@@ -9,12 +10,13 @@ public abstract class BaseApiController : ControllerBase
     protected IActionResult ApiResult<T>(T result)
         where T : BaseResultDto
     {
-        var statusCode = result.StatusCode.GetValueOrDefault();
-        if (statusCode == 0)
+        if (result.Success)
         {
-            statusCode = 500;
+            return Ok(result);
         }
 
-        return result.Success ? Ok(result) : StatusCode(statusCode, result);
+        var statusCode = ResultStatusCodeResolver.Resolve(result);
+        result.StatusCode = statusCode;
+        return StatusCode(statusCode, result);
     }
 }

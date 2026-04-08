@@ -3,10 +3,11 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using OakERP.Common.Time;
 
 namespace OakERP.Auth.Jwt;
 
-public class JwtGenerator(IOptions<JwtOptions> jwtOptionsAccessor) : IJwtGenerator
+public class JwtGenerator(IOptions<JwtOptions> jwtOptionsAccessor, IClock clock) : IJwtGenerator
 {
     public string Generate(JwtTokenInput input)
     {
@@ -23,7 +24,7 @@ public class JwtGenerator(IOptions<JwtOptions> jwtOptionsAccessor) : IJwtGenerat
         };
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.UtcNow.AddMinutes(jwtOptions.ExpireMinutes);
+        var expires = clock.UtcNow.UtcDateTime.AddMinutes(jwtOptions.ExpireMinutes);
 
         var token = new JwtSecurityToken(
             issuer: jwtOptions.Issuer,

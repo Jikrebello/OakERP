@@ -12,6 +12,7 @@ global using OakERP.Application.AccountsReceivable.Receipts.Services;
 global using OakERP.Application.AccountsReceivable.Receipts.Support;
 global using OakERP.Application.Interfaces;
 global using OakERP.Common.Exceptions;
+global using OakERP.Common.Time;
 global using OakERP.Application.Posting.Contracts;
 global using OakERP.Application.Posting.Operations;
 global using OakERP.Application.Posting.Services;

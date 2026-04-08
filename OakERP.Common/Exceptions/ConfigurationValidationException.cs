@@ -1,4 +1,4 @@
-using System.Net;
+using OakERP.Common.Errors;
 
 namespace OakERP.Common.Exceptions;
 
@@ -8,7 +8,7 @@ public sealed class ConfigurationValidationException(
     Exception? innerException = null
 ) : OakErpException(
     message,
-    HttpStatusCode.InternalServerError,
+    FailureKind.Unexpected,
     "Application configuration is invalid.",
     innerException
 )

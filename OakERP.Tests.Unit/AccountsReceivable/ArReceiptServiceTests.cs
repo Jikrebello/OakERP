@@ -1,6 +1,6 @@
-using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using OakERP.Common.Errors;
 using OakERP.Common.Enums;
 using Shouldly;
 
@@ -251,7 +251,7 @@ public sealed class ArReceiptServiceTests
         var result = await service.CreateAsync(command);
 
         result.Success.ShouldBeFalse();
-        result.StatusCode.ShouldBe((int)HttpStatusCode.BadRequest);
+        result.FailureKind.ShouldBe(FailureKind.Validation);
         result.Message.ShouldContain("same customer");
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
         _factory.UnitOfWork.Verify(x => x.CommitAsync(), Times.Never);
@@ -298,7 +298,7 @@ public sealed class ArReceiptServiceTests
         var result = await service.AllocateAsync(command);
 
         result.Success.ShouldBeFalse();
-        result.StatusCode.ShouldBe((int)HttpStatusCode.BadRequest);
+        result.FailureKind.ShouldBe(FailureKind.Validation);
         result.Message.ShouldContain("unapplied amount");
     }
 
@@ -343,7 +343,7 @@ public sealed class ArReceiptServiceTests
         var result = await service.AllocateAsync(command);
 
         result.Success.ShouldBeFalse();
-        result.StatusCode.ShouldBe((int)HttpStatusCode.BadRequest);
+        result.FailureKind.ShouldBe(FailureKind.Validation);
         result.Message.ShouldContain("remaining balance");
     }
 
@@ -382,7 +382,7 @@ public sealed class ArReceiptServiceTests
         var result = await service.CreateAsync(command);
 
         result.Success.ShouldBeFalse();
-        result.StatusCode.ShouldBe((int)HttpStatusCode.Conflict);
+        result.FailureKind.ShouldBe(FailureKind.Conflict);
         result.Message.ShouldContain("already exists");
         _factory.UnitOfWork.Verify(x => x.BeginTransactionAsync(), Times.Never);
     }
@@ -434,8 +434,8 @@ public sealed class ArReceiptServiceTests
         var result = await service.AllocateAsync(command);
 
         result.Success.ShouldBeFalse();
-        result.StatusCode.ShouldBe((int)HttpStatusCode.Conflict);
-        result.Message.ShouldContain("modified during allocation");
+        result.FailureKind.ShouldBe(FailureKind.Conflict);
+        result.Message.ShouldContain("modified while allocations were being saved");
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
     }
 }

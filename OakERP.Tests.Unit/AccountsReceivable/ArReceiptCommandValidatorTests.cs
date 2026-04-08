@@ -1,4 +1,4 @@
-using System.Net;
+using OakERP.Common.Errors;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.AccountsReceivable;
@@ -48,7 +48,7 @@ public sealed class ArReceiptCommandValidatorTests
         var result = ArReceiptCommandValidator.ValidateAllocate(command);
 
         result.Failure.ShouldNotBeNull();
-        result.Failure!.StatusCode.ShouldBe((int)HttpStatusCode.BadRequest);
-        result.Failure.Message.ShouldContain("only once per allocation request");
+        result.Failure!.FailureKind.ShouldBe(FailureKind.Validation);
+        result.Failure.Message.ShouldContain("only once per request");
     }
 }

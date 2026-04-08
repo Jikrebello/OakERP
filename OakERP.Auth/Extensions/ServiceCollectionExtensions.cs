@@ -2,12 +2,14 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using OakERP.Auth.Identity;
 using OakERP.Auth.Jwt;
 using OakERP.Auth.Services;
 using OakERP.Common.Exceptions;
+using OakERP.Common.Time;
 
 namespace OakERP.Auth.Extensions;
 
@@ -55,6 +57,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddAuthServices(this IServiceCollection services)
     {
+        services.TryAddSingleton<IClock, SystemClock>();
         services.AddScoped<IIdentityGateway, IdentityGateway>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IJwtGenerator, JwtGenerator>();

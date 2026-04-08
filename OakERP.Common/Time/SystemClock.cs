@@ -1,6 +1,4 @@
-using OakERP.Application.Interfaces;
-
-namespace OakERP.Application.Time;
+namespace OakERP.Common.Time;
 
 public sealed class SystemClock : IClock
 {

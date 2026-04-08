@@ -1,4 +1,3 @@
-using System.Net;
 using OakERP.Common.Dtos.Base;
 using OakERP.Common.Errors;
 
@@ -22,8 +21,8 @@ public sealed class ArReceiptCommandResultDto : BaseResultDto
             Message = message,
         };
 
-    public static ArReceiptCommandResultDto Fail(string message, HttpStatusCode statusCode) =>
-        Fail<ArReceiptCommandResultDto>(message, statusCode);
+    public static ArReceiptCommandResultDto Fail(string code, string message, FailureKind kind) =>
+        Fail<ArReceiptCommandResultDto>(code, message, kind);
 
     public static ArReceiptCommandResultDto Fail(ResultError error) =>
         Fail<ArReceiptCommandResultDto>(error);

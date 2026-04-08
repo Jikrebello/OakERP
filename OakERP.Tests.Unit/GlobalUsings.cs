@@ -20,3 +20,4 @@ global using OakERP.Auth.Identity;
 global using OakERP.Auth.Jwt;
 global using OakERP.Auth.Services;
 global using OakERP.Common.Exceptions;
+global using OakERP.Common.Time;

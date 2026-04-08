@@ -1,4 +1,3 @@
-using System.Net;
 using OakERP.Common.Dtos.Base;
 using OakERP.Common.Errors;
 
@@ -26,8 +25,8 @@ public class AuthResultDto : BaseResultDto
             Message = "Login successful",
         };
 
-    public static AuthResultDto Fail(string message, HttpStatusCode statusCode) =>
-        Fail<AuthResultDto>(message, statusCode);
+    public static AuthResultDto Fail(string code, string message, FailureKind kind) =>
+        Fail<AuthResultDto>(code, message, kind);
 
     public static AuthResultDto Fail(ResultError error) => Fail<AuthResultDto>(error);
 }

@@ -1,4 +1,3 @@
-using System.Net;
 using OakERP.Common.Dtos.Base;
 using OakERP.Common.Errors;
 
@@ -22,8 +21,8 @@ public sealed class ApPaymentCommandResultDto : BaseResultDto
             Message = message,
         };
 
-    public static ApPaymentCommandResultDto Fail(string message, HttpStatusCode statusCode) =>
-        Fail<ApPaymentCommandResultDto>(message, statusCode);
+    public static ApPaymentCommandResultDto Fail(string code, string message, FailureKind kind) =>
+        Fail<ApPaymentCommandResultDto>(code, message, kind);
 
     public static ApPaymentCommandResultDto Fail(ResultError error) =>
         Fail<ApPaymentCommandResultDto>(error);

@@ -1,4 +1,4 @@
-namespace OakERP.Application.Interfaces;
+namespace OakERP.Common.Time;
 
 public interface IClock
 {

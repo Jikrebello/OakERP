@@ -1,6 +1,11 @@
-using System.Net;
+using OakERP.Common.Errors;
 
 namespace OakERP.Common.Exceptions;
 
 public sealed class ConcurrencyConflictException(string message, Exception? innerException = null)
-    : OakErpException(message, HttpStatusCode.Conflict, "The resource was modified by another operation.", innerException);
+    : OakErpException(
+        message,
+        FailureKind.Conflict,
+        "The resource was modified by another operation.",
+        innerException
+    );

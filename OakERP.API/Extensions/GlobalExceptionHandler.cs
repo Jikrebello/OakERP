@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using OakERP.API.Errors;
 using OakERP.Common.Exceptions;
 
 namespace OakERP.API.Extensions;
@@ -46,7 +47,7 @@ public sealed class GlobalExceptionHandler(
     {
         if (exception is OakErpException oakErpException)
         {
-            var statusCode = (int)oakErpException.StatusCode;
+            int statusCode = ResultStatusCodeResolver.Resolve(oakErpException.FailureKind);
             return new ProblemDetails
             {
                 Status = statusCode,

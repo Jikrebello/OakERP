@@ -1,151 +1,73 @@
-using System.Net;
 using OakERP.Common.Errors;
 
 namespace OakERP.Application.AccountsReceivable.Receipts.Support;
 
-internal static class ArReceiptErrors
+public static class ArReceiptErrors
 {
     public static readonly ResultError DocumentNumberRequired =
-        new("Document number is required.", HttpStatusCode.BadRequest);
-
+        new("ar_receipt.document_number_required", "Document number is required.", FailureKind.Validation);
     public static readonly ResultError DocumentNumberTooLong =
-        new("Document number may not exceed 40 characters.", HttpStatusCode.BadRequest);
-
+        new("ar_receipt.document_number_too_long", "Document number may not exceed 40 characters.", FailureKind.Validation);
     public static readonly ResultError CustomerIdRequired =
-        new("Customer id is required.", HttpStatusCode.BadRequest);
-
+        new("ar_receipt.customer_id_required", "Customer id is required.", FailureKind.Validation);
     public static readonly ResultError BankAccountIdRequired =
-        new("Bank account id is required.", HttpStatusCode.BadRequest);
-
+        new("ar_receipt.bank_account_id_required", "Bank account id is required.", FailureKind.Validation);
     public static readonly ResultError ReceiptAmountInvalid =
-        new("Receipt amount must be greater than zero.", HttpStatusCode.BadRequest);
-
+        new("ar_receipt.amount_invalid", "Receipt amount must be greater than zero.", FailureKind.Validation);
     public static readonly ResultError MemoTooLong =
-        new("Receipt memo may not exceed 512 characters.", HttpStatusCode.BadRequest);
-
+        new("ar_receipt.memo_too_long", "Receipt memo may not exceed 512 characters.", FailureKind.Validation);
     public static readonly ResultError BaseCurrencyOnly =
-        new(
-            "AR receipt capture currently supports only the base currency.",
-            HttpStatusCode.BadRequest
-        );
-
+        new("ar_receipt.base_currency_only", "AR receipts currently support only the base currency.", FailureKind.Validation);
     public static readonly ResultError ReceiptIdRequired =
-        new("Receipt id is required.", HttpStatusCode.BadRequest);
-
+        new("ar_receipt.receipt_id_required", "Receipt id is required.", FailureKind.Validation);
     public static readonly ResultError AllocationRequired =
-        new("At least one allocation is required.", HttpStatusCode.BadRequest);
-
+        new("ar_receipt.allocation_required", "At least one allocation is required.", FailureKind.Validation);
     public static readonly ResultError AllocationInvoiceIdRequired =
-        new("Allocation invoice id is required.", HttpStatusCode.BadRequest);
-
+        new("ar_receipt.allocation_invoice_id_required", "Allocation invoice id is required.", FailureKind.Validation);
     public static readonly ResultError AllocationDuplicateInvoice =
-        new(
-            "Each invoice may appear only once per allocation request.",
-            HttpStatusCode.BadRequest
-        );
-
+        new("ar_receipt.allocation_duplicate_invoice", "Each invoice may be allocated only once per request.", FailureKind.Validation);
     public static readonly ResultError AllocationAmountInvalid =
-        new("Allocation amount must be greater than zero.", HttpStatusCode.BadRequest);
-
+        new("ar_receipt.allocation_amount_invalid", "Allocation amount must be greater than zero.", FailureKind.Validation);
     public static readonly ResultError CustomerNotFound =
-        new("Customer was not found.", HttpStatusCode.NotFound);
-
+        new("ar_receipt.customer_not_found", "Customer was not found.", FailureKind.NotFound);
     public static readonly ResultError CustomerInactive =
-        new(
-            "AR receipts can be created only for active customers.",
-            HttpStatusCode.BadRequest
-        );
-
+        new("ar_receipt.customer_inactive", "AR receipts can be created only for active customers.", FailureKind.Validation);
     public static readonly ResultError BankAccountNotFound =
-        new("Bank account was not found.", HttpStatusCode.NotFound);
-
+        new("ar_receipt.bank_account_not_found", "Bank account was not found.", FailureKind.NotFound);
     public static readonly ResultError BankAccountInactive =
-        new(
-            "AR receipts can be created only against active bank accounts.",
-            HttpStatusCode.BadRequest
-        );
-
+        new("ar_receipt.bank_account_inactive", "AR receipts can be created only for active bank accounts.", FailureKind.Validation);
     public static readonly ResultError ReceiptCurrencyMismatch =
-        new(
-            "Bank account currency must match the receipt currency.",
-            HttpStatusCode.BadRequest
-        );
-
+        new("ar_receipt.currency_mismatch", "Receipt currency must match the selected bank account currency.", FailureKind.Validation);
     public static readonly ResultError DuplicateDocumentNumber =
-        new(
-            "An AR receipt with this document number already exists.",
-            HttpStatusCode.Conflict
-        );
-
+        new("ar_receipt.duplicate_document_number", "Document number already exists.", FailureKind.Conflict);
     public static readonly ResultError AllocationConcurrencyConflict =
-        new(
-            "The receipt or one of its invoices was modified during allocation.",
-            HttpStatusCode.Conflict
-        );
-
+        new("ar_receipt.allocation_concurrency_conflict", "The AR receipt was modified while allocations were being saved.", FailureKind.Conflict);
     public static readonly ResultError UnexpectedCreateFailure =
-        new(
-            "An unexpected error occurred while creating the AR receipt.",
-            HttpStatusCode.InternalServerError
-        );
-
+        new("ar_receipt.unexpected_create_failure", "Unexpected error while creating AR receipt.", FailureKind.Unexpected);
     public static readonly ResultError InvoicesNotFound =
-        new("One or more AR invoices were not found.", HttpStatusCode.NotFound);
-
+        new("ar_receipt.invoices_not_found", "One or more AR invoices were not found.", FailureKind.NotFound);
     public static readonly ResultError OnlyPostedInvoicesAllowed =
-        new(
-            "Only posted AR invoices can be allocated in this slice.",
-            HttpStatusCode.BadRequest
-        );
-
+        new("ar_receipt.only_posted_invoices_allowed", "Only posted AR invoices can be allocated.", FailureKind.Validation);
     public static readonly ResultError SameCustomerRequired =
-        new(
-            "AR receipt allocations must reference invoices for the same customer.",
-            HttpStatusCode.BadRequest
-        );
-
+        new("ar_receipt.same_customer_required", "All allocated invoices must belong to the same customer as the receipt.", FailureKind.Validation);
     public static readonly ResultError SameCurrencyRequired =
-        new(
-            "AR receipt allocations must reference invoices in the same currency as the receipt.",
-            HttpStatusCode.BadRequest
-        );
-
+        new("ar_receipt.same_currency_required", "All allocated invoices must use the same currency as the receipt.", FailureKind.Validation);
     public static readonly ResultError AllocationTotalExceedsUnapplied =
-        new(
-            "Allocation total exceeds the receipt's unapplied amount.",
-            HttpStatusCode.BadRequest
-        );
-
+        new("ar_receipt.allocation_total_exceeds_unapplied", "Allocation total exceeds the receipt's unapplied amount.", FailureKind.Validation);
     public static readonly ResultError InvoiceNotFound =
-        new("AR invoice was not found.", HttpStatusCode.NotFound);
-
+        new("ar_receipt.invoice_not_found", "AR invoice was not found.", FailureKind.NotFound);
     public static readonly ResultError ReceiptNotFound =
-        new("AR receipt was not found.", HttpStatusCode.NotFound);
-
+        new("ar_receipt.receipt_not_found", "AR receipt was not found.", FailureKind.NotFound);
     public static readonly ResultError OnlyDraftReceiptsAllowed =
-        new(
-            "Only draft AR receipts can be allocated in this slice.",
-            HttpStatusCode.BadRequest
-        );
-
+        new("ar_receipt.only_draft_receipts_allowed", "Only draft AR receipts can be allocated.", FailureKind.Validation);
     public static readonly ResultError AllocationBaseCurrencyOnly =
-        new(
-            "AR receipt allocation currently supports only receipts in the base currency.",
-            HttpStatusCode.BadRequest
-        );
-
+        new("ar_receipt.allocation_base_currency_only", "Only base currency AR receipts can be allocated.", FailureKind.Validation);
     public static readonly ResultError UnexpectedAllocateFailure =
-        new(
-            "An unexpected error occurred while allocating the AR receipt.",
-            HttpStatusCode.InternalServerError
-        );
+        new("ar_receipt.unexpected_allocate_failure", "Unexpected error while allocating AR receipt.", FailureKind.Unexpected);
 
     public static ResultError InvoiceWithoutRemainingBalance(string docNo) =>
-        new($"AR invoice {docNo} has no remaining balance to allocate.", HttpStatusCode.BadRequest);
+        new("ar_receipt.invoice_without_remaining_balance", $"AR invoice {docNo} has no remaining balance to allocate.", FailureKind.Validation);
 
     public static ResultError AllocationExceedsInvoiceBalance(string docNo) =>
-        new(
-            $"Allocation amount exceeds the remaining balance for invoice {docNo}.",
-            HttpStatusCode.BadRequest
-        );
+        new("ar_receipt.allocation_exceeds_invoice_balance", $"Allocation exceeds the remaining balance of AR invoice {docNo}.", FailureKind.Validation);
 }

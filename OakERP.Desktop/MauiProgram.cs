@@ -1,12 +1,11 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.FluentUI.AspNetCore.Components;
 using OakERP.Client.Configuration;
-using OakERP.Client.Extensions;
 using OakERP.Common.Abstractions;
 using OakERP.Common.Exceptions;
 using OakERP.Services;
+using OakERP.Shared.Extensions;
 using OakERP.Shared.Services;
-using OakERP.UI.Extensions;
 
 namespace OakERP;
 
@@ -44,9 +43,7 @@ public static class MauiProgram
         builder.Services.AddScoped<IPlatformService, MauiPlatformService>();
 
         // Shared Razor Class Lib services
-        builder.Services.AddOakClientCoreServices();
-        builder.Services.AddOakAuthUiState();
-        builder.Services.AddOakApiClient(apiOptions);
+        builder.Services.AddOakSharedHostServices(apiOptions);
 
         // UI setup
         builder.Services.AddMauiBlazorWebView();

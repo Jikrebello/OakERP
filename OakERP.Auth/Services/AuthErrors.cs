@@ -1,34 +1,33 @@
-using System.Net;
 using OakERP.Common.Errors;
 
 namespace OakERP.Auth.Services;
 
-internal static class AuthErrors
+public static class AuthErrors
 {
     public static readonly ResultError EmailAlreadyExists =
-        new("Email already exists.", HttpStatusCode.Conflict);
+        new("auth.email_already_exists", "Email already exists.", FailureKind.Conflict);
 
     public static readonly ResultError UnexpectedRegistrationFailure =
-        new(
-            "An unexpected error occurred during registration.",
-            HttpStatusCode.InternalServerError
-        );
+        new("auth.unexpected_registration_failure", "Unexpected error while registering user.", FailureKind.Unexpected);
 
     public static readonly ResultError InvalidCredentials =
-        new("Invalid login credentials.", HttpStatusCode.Unauthorized);
+        new("auth.invalid_credentials", "Invalid login credentials.", FailureKind.Unauthorized);
 
     public static readonly ResultError PasswordsDoNotMatch =
-        new("Passwords do not match.", HttpStatusCode.BadRequest);
+        new("auth.passwords_do_not_match", "Passwords do not match.", FailureKind.Validation);
 
     public static readonly ResultError RoleAssignmentFailed =
-        new("User created but failed to assign role.", HttpStatusCode.InternalServerError);
+        new("auth.role_assignment_failed", "User created but failed to assign role.", FailureKind.Unexpected);
 
     public static readonly ResultError TenantNotFound =
-        new("Tenant not found.", HttpStatusCode.NotFound);
+        new("auth.tenant_not_found", "Tenant not found.", FailureKind.NotFound);
 
     public static readonly ResultError LicenseNotFound =
-        new("License not found for tenant.", HttpStatusCode.Forbidden);
+        new("auth.license_not_found", "License not found for tenant.", FailureKind.Forbidden);
 
     public static readonly ResultError LicenseExpired =
-        new("License has expired.", HttpStatusCode.Forbidden);
+        new("auth.license_expired", "License has expired.", FailureKind.Forbidden);
+
+    public static ResultError IdentityCreateFailed(string message) =>
+        new("auth.identity_create_failed", message, FailureKind.Validation);
 }

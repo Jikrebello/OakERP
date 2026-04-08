@@ -1,4 +1,4 @@
-using System.Net;
+using OakERP.Common.Errors;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.AccountsPayable;
@@ -31,7 +31,7 @@ public sealed class ApInvoiceCommandValidatorTests
         var result = ApInvoiceCommandValidator.ValidateCreate(command);
 
         result.Failure.ShouldNotBeNull();
-        result.Failure!.StatusCode.ShouldBe((int)HttpStatusCode.BadRequest);
+        result.Failure!.FailureKind.ShouldBe(FailureKind.Validation);
         result.Failure.Message.ShouldContain("Item-based");
     }
 
@@ -61,7 +61,7 @@ public sealed class ApInvoiceCommandValidatorTests
         var result = ApInvoiceCommandValidator.ValidateCreate(command);
 
         result.Failure.ShouldNotBeNull();
-        result.Failure!.StatusCode.ShouldBe((int)HttpStatusCode.BadRequest);
+        result.Failure!.FailureKind.ShouldBe(FailureKind.Validation);
         result.Failure.Message.ShouldContain("Document total");
     }
 }

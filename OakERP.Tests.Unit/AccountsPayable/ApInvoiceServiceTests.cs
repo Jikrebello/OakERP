@@ -1,5 +1,5 @@
-using System.Net;
 using Moq;
+using OakERP.Common.Errors;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.AccountsPayable;
@@ -113,7 +113,7 @@ public sealed class ApInvoiceServiceTests
         var result = await service.CreateAsync(command);
 
         result.Success.ShouldBeFalse();
-        result.StatusCode.ShouldBe((int)HttpStatusCode.BadRequest);
+        result.FailureKind.ShouldBe(FailureKind.Validation);
         result.Message.ShouldContain("active vendors");
         _factory.UnitOfWork.Verify(x => x.BeginTransactionAsync(), Times.Never);
     }
@@ -155,7 +155,7 @@ public sealed class ApInvoiceServiceTests
         var result = await service.CreateAsync(command);
 
         result.Success.ShouldBeFalse();
-        result.StatusCode.ShouldBe((int)HttpStatusCode.Conflict);
+        result.FailureKind.ShouldBe(FailureKind.Conflict);
         result.Message.ShouldContain("vendor");
         _factory.UnitOfWork.Verify(x => x.BeginTransactionAsync(), Times.Never);
     }
@@ -202,7 +202,7 @@ public sealed class ApInvoiceServiceTests
         var result = await service.CreateAsync(command);
 
         result.Success.ShouldBeFalse();
-        result.StatusCode.ShouldBe((int)HttpStatusCode.BadRequest);
+        result.FailureKind.ShouldBe(FailureKind.Validation);
         result.Message.ShouldContain("missing or inactive");
     }
 }
