@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using OakERP.Application.Extensions;
 using OakERP.API.Extensions;
 using OakERP.API.Runtime;
 using OakERP.Auth.Extensions;
@@ -46,13 +47,12 @@ builder.Services.AddRuntimeSupport(builder.Configuration);
 builder
     .Services.AddApplicationDb(builder.Configuration)
     .AddIdentityServices()
+    .AddApplicationServices()
     .AddJwtAuth(builder.Configuration)
     .AddAuthServices()
     .AddSwaggerDocs()
     .AddPersistenceServices()
     .AddRepositories()
-    .AddAccountsPayableServices()
-    .AddAccountsReceivableServices()
     .AddPostingServices();
 
 // Seeders

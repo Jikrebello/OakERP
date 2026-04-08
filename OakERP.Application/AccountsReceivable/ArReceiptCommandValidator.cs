@@ -3,7 +3,7 @@ using OakERP.Application.AccountsReceivable;
 using OakERP.Domain.Accounts_Receivable;
 using OakERP.Domain.Posting.General_Ledger;
 
-namespace OakERP.Infrastructure.Accounts_Receivable;
+namespace OakERP.Application.AccountsReceivable;
 
 public static class ArReceiptCommandValidator
 {

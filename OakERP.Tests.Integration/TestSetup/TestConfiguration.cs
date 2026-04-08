@@ -4,31 +4,29 @@ namespace OakERP.Tests.Integration.TestSetup;
 
 internal static class TestConfiguration
 {
-    private const string DefaultTransactionalConnectionString =
-        "Host=localhost;Port=5433;Username=oakadmin;Password=oakpass;Database=oakerp";
-
-    private const string DefaultResetConnectionString =
-        "Host=localhost;Port=5433;Database=oakerp_test;Username=oakadmin;Password=oakpass;Include Error Detail=true";
-
     private static IConfigurationRoot BuildConfiguration() =>
         new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: true)
             .AddJsonFile("appsettings.Testing.json", optional: true)
+            .AddEnvironmentVariables(prefix: "OakERP__")
             .AddEnvironmentVariables()
             .Build();
 
-    public static string GetTransactionalConnectionString()
+    public static OakErpTestDatabaseOptions GetDatabaseOptions()
     {
-        return Environment.GetEnvironmentVariable("OakERP__Tests__TransactionalConnectionString")
-            ?? BuildConfiguration().GetConnectionString("TransactionalConnection")
-            ?? DefaultTransactionalConnectionString;
-    }
+        IConfigurationRoot configuration = BuildConfiguration();
+        var options = new OakErpTestDatabaseOptions
+        {
+            TransactionalConnectionString =
+                configuration["Tests:TransactionalConnectionString"]
+                ?? configuration.GetConnectionString("TransactionalConnection"),
+            ResetConnectionString =
+                configuration["Tests:ResetConnectionString"]
+                ?? configuration.GetConnectionString("DefaultConnection"),
+        };
 
-    public static string GetResetConnectionString()
-    {
-        return Environment.GetEnvironmentVariable("OakERP__Tests__ResetConnectionString")
-            ?? BuildConfiguration().GetConnectionString("DefaultConnection")
-            ?? DefaultResetConnectionString;
+        options.Validate();
+        return options;
     }
 }

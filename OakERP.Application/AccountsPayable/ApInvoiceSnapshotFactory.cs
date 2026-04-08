@@ -1,7 +1,7 @@
 using OakERP.Application.AccountsPayable;
 using OakERP.Domain.Entities.Accounts_Payable;
 
-namespace OakERP.Infrastructure.Accounts_Payable;
+namespace OakERP.Application.AccountsPayable;
 
 public static class ApInvoiceSnapshotFactory
 {

@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Application.Posting;
 using OakERP.Common.Enums;
@@ -17,7 +16,7 @@ using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Domain.Repository_Interfaces.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Inventory;
 
-namespace OakERP.Infrastructure.Posting;
+namespace OakERP.Application.Posting;
 
 public sealed class PostingService(
     PostingSourceRepositories sourceRepositories,
@@ -181,17 +180,17 @@ public sealed class PostingService(
                 postingResult.InventoryMovements.Count
             );
         }
-        catch (DbUpdateConcurrencyException ex)
+        catch (Exception ex)
         {
             await unitOfWork.RollbackAsync();
-            throw new InvalidOperationException(
-                "The AP payment was modified during posting. It may already be posted.",
-                ex
-            );
-        }
-        catch
-        {
-            await unitOfWork.RollbackAsync();
+            if (persistenceDependencies.PersistenceFailureClassifier.IsConcurrencyConflict(ex))
+            {
+                throw new InvalidOperationException(
+                    "The AP payment was modified during posting. It may already be posted.",
+                    ex
+                );
+            }
+
             throw;
         }
     }
@@ -304,17 +303,17 @@ public sealed class PostingService(
                 postingResult.InventoryMovements.Count
             );
         }
-        catch (DbUpdateConcurrencyException ex)
+        catch (Exception ex)
         {
             await unitOfWork.RollbackAsync();
-            throw new InvalidOperationException(
-                "The AP invoice was modified during posting. It may already be posted.",
-                ex
-            );
-        }
-        catch
-        {
-            await unitOfWork.RollbackAsync();
+            if (persistenceDependencies.PersistenceFailureClassifier.IsConcurrencyConflict(ex))
+            {
+                throw new InvalidOperationException(
+                    "The AP invoice was modified during posting. It may already be posted.",
+                    ex
+                );
+            }
+
             throw;
         }
     }
@@ -421,17 +420,17 @@ public sealed class PostingService(
                 postingResult.InventoryMovements.Count
             );
         }
-        catch (DbUpdateConcurrencyException ex)
+        catch (Exception ex)
         {
             await unitOfWork.RollbackAsync();
-            throw new InvalidOperationException(
-                "The AR invoice was modified during posting. It may already be posted.",
-                ex
-            );
-        }
-        catch
-        {
-            await unitOfWork.RollbackAsync();
+            if (persistenceDependencies.PersistenceFailureClassifier.IsConcurrencyConflict(ex))
+            {
+                throw new InvalidOperationException(
+                    "The AR invoice was modified during posting. It may already be posted.",
+                    ex
+                );
+            }
+
             throw;
         }
     }
@@ -560,17 +559,17 @@ public sealed class PostingService(
                 postingResult.InventoryMovements.Count
             );
         }
-        catch (DbUpdateConcurrencyException ex)
+        catch (Exception ex)
         {
             await unitOfWork.RollbackAsync();
-            throw new InvalidOperationException(
-                "The AR receipt was modified during posting. It may already be posted.",
-                ex
-            );
-        }
-        catch
-        {
-            await unitOfWork.RollbackAsync();
+            if (persistenceDependencies.PersistenceFailureClassifier.IsConcurrencyConflict(ex))
+            {
+                throw new InvalidOperationException(
+                    "The AR receipt was modified during posting. It may already be posted.",
+                    ex
+                );
+            }
+
             throw;
         }
     }

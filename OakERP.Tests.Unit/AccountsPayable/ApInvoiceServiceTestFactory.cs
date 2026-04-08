@@ -8,7 +8,6 @@ using OakERP.Domain.Entities.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
 using OakERP.Domain.Repository_Interfaces.Common;
 using OakERP.Domain.Repository_Interfaces.General_Ledger;
-using OakERP.Infrastructure.Accounts_Payable;
 
 namespace OakERP.Tests.Unit.AccountsPayable;
 
@@ -19,6 +18,8 @@ public sealed class ApInvoiceServiceTestFactory
     public Mock<ICurrencyRepository> CurrencyRepository { get; } = new(MockBehavior.Strict);
     public Mock<IGlAccountRepository> GlAccountRepository { get; } = new(MockBehavior.Strict);
     public Mock<IUnitOfWork> UnitOfWork { get; } = new(MockBehavior.Strict);
+    public Mock<IPersistenceFailureClassifier> PersistenceFailureClassifier { get; } =
+        new(MockBehavior.Strict);
     public Mock<ILogger<ApInvoiceService>> Logger { get; } = new();
 
     public ApInvoiceServiceTestFactory()
@@ -26,6 +27,12 @@ public sealed class ApInvoiceServiceTestFactory
         UnitOfWork.Setup(x => x.BeginTransactionAsync()).Returns(Task.CompletedTask);
         UnitOfWork.Setup(x => x.CommitAsync()).Returns(Task.CompletedTask);
         UnitOfWork.Setup(x => x.RollbackAsync()).Returns(Task.CompletedTask);
+        PersistenceFailureClassifier
+            .Setup(x => x.IsUniqueConstraint(It.IsAny<Exception>(), It.IsAny<string>()))
+            .Returns(false);
+        PersistenceFailureClassifier
+            .Setup(x => x.IsConcurrencyConflict(It.IsAny<Exception>()))
+            .Returns(false);
     }
 
     public ApInvoiceService CreateService() =>
@@ -35,6 +42,7 @@ public sealed class ApInvoiceServiceTestFactory
             CurrencyRepository.Object,
             GlAccountRepository.Object,
             UnitOfWork.Object,
+            PersistenceFailureClassifier.Object,
             Logger.Object
         );
 

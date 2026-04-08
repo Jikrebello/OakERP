@@ -1,7 +1,5 @@
 using System.Net;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 using OakERP.Application.AccountsPayable;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.Enums;
@@ -10,7 +8,7 @@ using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
 using OakERP.Domain.Repository_Interfaces.Common;
 using OakERP.Domain.Repository_Interfaces.General_Ledger;
 
-namespace OakERP.Infrastructure.Accounts_Payable;
+namespace OakERP.Application.AccountsPayable;
 
 public sealed class ApInvoiceService(
     IApInvoiceRepository apInvoiceRepository,
@@ -18,6 +16,7 @@ public sealed class ApInvoiceService(
     ICurrencyRepository currencyRepository,
     IGlAccountRepository glAccountRepository,
     IUnitOfWork unitOfWork,
+    IPersistenceFailureClassifier persistenceFailureClassifier,
     ILogger<ApInvoiceService> logger
 ) : IApInvoiceService
 {
@@ -164,26 +163,35 @@ public sealed class ApInvoiceService(
                     "AP invoice created successfully."
                 );
             }
-            catch (DbUpdateException ex) when (IsUniqueConstraint(ex, "ix_ap_invoices_doc_no"))
-            {
-                await unitOfWork.RollbackAsync();
-                return ApInvoiceCommandResultDto.Fail(
-                    "An AP invoice with this document number already exists.",
-                    HttpStatusCode.Conflict
-                );
-            }
-            catch (DbUpdateException ex)
-                when (IsUniqueConstraint(ex, "ix_ap_invoices_vendor_id_invoice_no"))
-            {
-                await unitOfWork.RollbackAsync();
-                return ApInvoiceCommandResultDto.Fail(
-                    "This vendor invoice number already exists for the selected vendor.",
-                    HttpStatusCode.Conflict
-                );
-            }
             catch (Exception ex)
             {
                 await unitOfWork.RollbackAsync();
+                if (
+                    persistenceFailureClassifier.IsUniqueConstraint(
+                        ex,
+                        "ix_ap_invoices_doc_no"
+                    )
+                )
+                {
+                    return ApInvoiceCommandResultDto.Fail(
+                        "An AP invoice with this document number already exists.",
+                        HttpStatusCode.Conflict
+                    );
+                }
+
+                if (
+                    persistenceFailureClassifier.IsUniqueConstraint(
+                        ex,
+                        "ix_ap_invoices_vendor_id_invoice_no"
+                    )
+                )
+                {
+                    return ApInvoiceCommandResultDto.Fail(
+                        "This vendor invoice number already exists for the selected vendor.",
+                        HttpStatusCode.Conflict
+                    );
+                }
+
                 logger.LogError(
                     ex,
                     "Unexpected failure while creating AP invoice {DocNo}",
@@ -204,13 +212,4 @@ public sealed class ApInvoiceService(
             );
         }
     }
-
-    private static bool IsUniqueConstraint(DbUpdateException ex, string constraintName) =>
-        ex.InnerException is PostgresException postgresException
-        && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
-        && string.Equals(
-            postgresException.ConstraintName,
-            constraintName,
-            StringComparison.Ordinal
-        );
 }

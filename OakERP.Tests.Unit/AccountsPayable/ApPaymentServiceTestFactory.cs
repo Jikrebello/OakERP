@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OakERP.Application.AccountsPayable;
@@ -9,7 +8,6 @@ using OakERP.Domain.Entities.Bank;
 using OakERP.Domain.Posting.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
 using OakERP.Domain.Repository_Interfaces.Bank;
-using OakERP.Infrastructure.Accounts_Payable;
 
 namespace OakERP.Tests.Unit.AccountsPayable;
 
@@ -23,6 +21,8 @@ public sealed class ApPaymentServiceTestFactory
     public Mock<IBankAccountRepository> BankAccountRepository { get; } = new(MockBehavior.Strict);
     public Mock<IGlSettingsProvider> GlSettingsProvider { get; } = new(MockBehavior.Strict);
     public Mock<IUnitOfWork> UnitOfWork { get; } = new(MockBehavior.Strict);
+    public Mock<IPersistenceFailureClassifier> PersistenceFailureClassifier { get; } =
+        new(MockBehavior.Strict);
     public Mock<ILogger<ApPaymentService>> Logger { get; } = new();
 
     public ApPaymentServiceTestFactory()
@@ -38,6 +38,12 @@ public sealed class ApPaymentServiceTestFactory
         UnitOfWork.Setup(x => x.BeginTransactionAsync()).Returns(Task.CompletedTask);
         UnitOfWork.Setup(x => x.CommitAsync()).Returns(Task.CompletedTask);
         UnitOfWork.Setup(x => x.RollbackAsync()).Returns(Task.CompletedTask);
+        PersistenceFailureClassifier
+            .Setup(x => x.IsUniqueConstraint(It.IsAny<Exception>(), It.IsAny<string>()))
+            .Returns(false);
+        PersistenceFailureClassifier
+            .Setup(x => x.IsConcurrencyConflict(It.IsAny<Exception>()))
+            .Returns(false);
     }
 
     public ApPaymentService CreateService() =>
@@ -47,7 +53,11 @@ public sealed class ApPaymentServiceTestFactory
             ApInvoiceRepository.Object,
             VendorRepository.Object,
             BankAccountRepository.Object,
-            new ApPaymentServiceDependencies(GlSettingsProvider.Object, UnitOfWork.Object),
+            new ApPaymentServiceDependencies(
+                GlSettingsProvider.Object,
+                UnitOfWork.Object,
+                PersistenceFailureClassifier.Object
+            ),
             Logger.Object
         );
 

@@ -1,16 +1,22 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.FluentUI.AspNetCore.Components;
+using OakERP.Client;
+using OakERP.Client.Extensions;
 using OakERP.Client.Services.Api;
 using OakERP.Common.Abstractions;
-using OakERP.Shared.Extensions;
 using OakERP.Shared.Services;
+using OakERP.UI.Extensions;
 using OakERP.Web.Components;
 using OakERP.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-var apiBaseUrl =
-    builder.Configuration["Api:BaseUrl"]
-    ?? throw new InvalidOperationException("Api:BaseUrl is not configured.");
+var apiOptions = new ApiClientOptions
+{
+    BaseUrl =
+        builder.Configuration["Api:BaseUrl"]
+        ?? Environment.GetEnvironmentVariable("OakERP__Api__BaseUrl")
+        ?? throw new InvalidOperationException("Api:BaseUrl is not configured."),
+};
 
 // Add Razor Components & Fluent UI
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
@@ -23,17 +29,10 @@ builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<ITokenStore, BlazorTokenStore>();
 builder.Services.AddScoped<IPlatformService, BlazorPlatformService>();
 
-builder.Services.AddScoped<AuthTokenHandler>();
-
-builder
-    .Services.AddHttpClient<IApiClient, ApiClient>(client =>
-    {
-        client.BaseAddress = new Uri(apiBaseUrl);
-    })
-    .AddHttpMessageHandler<AuthTokenHandler>();
-
 // Register shared Razor Class Library services
-builder.Services.AddOakClientServices();
+builder.Services.AddOakClientCoreServices();
+builder.Services.AddOakAuthUiState();
+builder.Services.AddOakApiClient(apiOptions);
 
 var app = builder.Build();
 

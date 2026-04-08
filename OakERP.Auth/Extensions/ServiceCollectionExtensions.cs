@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace OakERP.Auth.Extensions;
@@ -13,7 +14,12 @@ public static class ServiceCollectionExtensions
         IConfiguration config
     )
     {
-        var jwtSettings = config.GetSection("JwtSettings");
+        JwtOptions jwtOptions =
+            config.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
+            ?? throw new InvalidOperationException("JwtSettings is not configured.");
+        jwtOptions.Validate();
+
+        services.AddSingleton(Options.Create(jwtOptions));
 
         services
             .AddAuthentication(options =>
@@ -29,10 +35,10 @@ public static class ServiceCollectionExtensions
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSettings["Issuer"],
-                    ValidAudience = jwtSettings["Audience"],
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudience = jwtOptions.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtSettings["Key"]!)
+                        Encoding.UTF8.GetBytes(jwtOptions.Key)
                     ),
                 };
             });

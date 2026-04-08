@@ -1,7 +1,5 @@
 using System.Net;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 using OakERP.Application.AccountsPayable;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.Enums;
@@ -11,7 +9,7 @@ using OakERP.Domain.Posting.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
 using OakERP.Domain.Repository_Interfaces.Bank;
 
-namespace OakERP.Infrastructure.Accounts_Payable;
+namespace OakERP.Application.AccountsPayable;
 
 public sealed class ApPaymentService(
     IApPaymentRepository apPaymentRepository,
@@ -167,31 +165,35 @@ public sealed class ApPaymentService(
                     paymentAllocations
                 );
             }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                await dependencies.UnitOfWork.RollbackAsync();
-                logger.LogWarning(
-                    ex,
-                    "Concurrency failure while creating AP payment {DocNo}. Entries: {Entries}",
-                    validatedCommand.DocNo,
-                    string.Join(", ", ex.Entries.Select(x => x.Entity.GetType().Name))
-                );
-                return ApPaymentCommandResultDto.Fail(
-                    "The payment or one of its invoices was modified during allocation.",
-                    HttpStatusCode.Conflict
-                );
-            }
-            catch (DbUpdateException ex) when (IsUniqueDocNoViolation(ex))
-            {
-                await dependencies.UnitOfWork.RollbackAsync();
-                return ApPaymentCommandResultDto.Fail(
-                    "An AP payment with this document number already exists.",
-                    HttpStatusCode.Conflict
-                );
-            }
             catch (Exception ex)
             {
                 await dependencies.UnitOfWork.RollbackAsync();
+                if (dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(ex))
+                {
+                    logger.LogWarning(
+                        ex,
+                        "Concurrency failure while creating AP payment {DocNo}",
+                        validatedCommand.DocNo
+                    );
+                    return ApPaymentCommandResultDto.Fail(
+                        "The payment or one of its invoices was modified during allocation.",
+                        HttpStatusCode.Conflict
+                    );
+                }
+
+                if (
+                    dependencies.PersistenceFailureClassifier.IsUniqueConstraint(
+                        ex,
+                        "ix_ap_payments_doc_no"
+                    )
+                )
+                {
+                    return ApPaymentCommandResultDto.Fail(
+                        "An AP payment with this document number already exists.",
+                        HttpStatusCode.Conflict
+                    );
+                }
+
                 logger.LogError(
                     ex,
                     "Unexpected failure while creating AP payment {DocNo}",
@@ -310,23 +312,22 @@ public sealed class ApPaymentService(
                     paymentAllocations
                 );
             }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                await dependencies.UnitOfWork.RollbackAsync();
-                logger.LogWarning(
-                    ex,
-                    "Concurrency failure while allocating AP payment {PaymentId}. Entries: {Entries}",
-                    command.PaymentId,
-                    string.Join(", ", ex.Entries.Select(x => x.Entity.GetType().Name))
-                );
-                return ApPaymentCommandResultDto.Fail(
-                    "The payment or one of its invoices was modified during allocation.",
-                    HttpStatusCode.Conflict
-                );
-            }
             catch (Exception ex)
             {
                 await dependencies.UnitOfWork.RollbackAsync();
+                if (dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(ex))
+                {
+                    logger.LogWarning(
+                        ex,
+                        "Concurrency failure while allocating AP payment {PaymentId}",
+                        command.PaymentId
+                    );
+                    return ApPaymentCommandResultDto.Fail(
+                        "The payment or one of its invoices was modified during allocation.",
+                        HttpStatusCode.Conflict
+                    );
+                }
+
                 logger.LogError(
                     ex,
                     "Unexpected failure while allocating AP payment {PaymentId}",
@@ -528,12 +529,4 @@ public sealed class ApPaymentService(
         return (null, settledAmounts, paymentAllocations);
     }
 
-    private static bool IsUniqueDocNoViolation(DbUpdateException ex) =>
-        ex.InnerException is PostgresException postgresException
-        && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
-        && string.Equals(
-            postgresException.ConstraintName,
-            "ix_ap_payments_doc_no",
-            StringComparison.Ordinal
-        );
 }

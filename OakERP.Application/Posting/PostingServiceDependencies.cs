@@ -8,7 +8,7 @@ using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Domain.Repository_Interfaces.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Inventory;
 
-namespace OakERP.Infrastructure.Posting;
+namespace OakERP.Application.Posting;
 
 public sealed class PostingSourceRepositories(
     IApPaymentRepository apPaymentRepository,
@@ -31,7 +31,8 @@ public sealed class PostingPersistenceDependencies(
     IGlAccountRepository glAccountRepository,
     IGlEntryRepository glEntryRepository,
     IInventoryLedgerRepository inventoryLedgerRepository,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    IPersistenceFailureClassifier persistenceFailureClassifier
 )
 {
     public IFiscalPeriodRepository FiscalPeriodRepository { get; } = fiscalPeriodRepository;
@@ -44,6 +45,9 @@ public sealed class PostingPersistenceDependencies(
         inventoryLedgerRepository;
 
     public IUnitOfWork UnitOfWork { get; } = unitOfWork;
+
+    public IPersistenceFailureClassifier PersistenceFailureClassifier { get; } =
+        persistenceFailureClassifier;
 }
 
 public sealed class PostingRuntimeDependencies(

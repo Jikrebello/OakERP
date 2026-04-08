@@ -9,7 +9,8 @@ public static class TestDatabaseReset
 
     public static async Task ResetAsync()
     {
-        await using var conn = new NpgsqlConnection(TestConfiguration.GetResetConnectionString());
+        var options = TestConfiguration.GetDatabaseOptions();
+        await using var conn = new NpgsqlConnection(options.ResetConnectionString);
         await conn.OpenAsync();
 
         _respawner ??= await Respawner.CreateAsync(

@@ -2,7 +2,7 @@ using OakERP.Application.AccountsReceivable;
 using OakERP.Domain.Accounts_Receivable;
 using OakERP.Domain.Entities.Accounts_Receivable;
 
-namespace OakERP.Infrastructure.Accounts_Receivable;
+namespace OakERP.Application.AccountsReceivable;
 
 public static class ArReceiptSnapshotFactory
 {

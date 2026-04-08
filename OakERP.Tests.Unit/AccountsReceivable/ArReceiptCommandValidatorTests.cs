@@ -1,6 +1,5 @@
 using System.Net;
 using OakERP.Application.AccountsReceivable;
-using OakERP.Infrastructure.Accounts_Receivable;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.AccountsReceivable;

@@ -1,7 +1,5 @@
 using System.Net;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 using OakERP.Application.AccountsReceivable;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.Enums;
@@ -11,7 +9,7 @@ using OakERP.Domain.Posting.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Domain.Repository_Interfaces.Bank;
 
-namespace OakERP.Infrastructure.Accounts_Receivable;
+namespace OakERP.Application.AccountsReceivable;
 
 public sealed class ArReceiptService(
     IArReceiptRepository arReceiptRepository,
@@ -166,31 +164,35 @@ public sealed class ArReceiptService(
                     receiptAllocations
                 );
             }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                await dependencies.UnitOfWork.RollbackAsync();
-                logger.LogWarning(
-                    ex,
-                    "Concurrency failure while creating AR receipt {DocNo}. Entries: {Entries}",
-                    validatedCommand.DocNo,
-                    string.Join(", ", ex.Entries.Select(x => x.Entity.GetType().Name))
-                );
-                return ArReceiptCommandResultDto.Fail(
-                    "The receipt or one of its invoices was modified during allocation.",
-                    HttpStatusCode.Conflict
-                );
-            }
-            catch (DbUpdateException ex) when (IsUniqueDocNoViolation(ex))
-            {
-                await dependencies.UnitOfWork.RollbackAsync();
-                return ArReceiptCommandResultDto.Fail(
-                    "An AR receipt with this document number already exists.",
-                    HttpStatusCode.Conflict
-                );
-            }
             catch (Exception ex)
             {
                 await dependencies.UnitOfWork.RollbackAsync();
+                if (dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(ex))
+                {
+                    logger.LogWarning(
+                        ex,
+                        "Concurrency failure while creating AR receipt {DocNo}",
+                        validatedCommand.DocNo
+                    );
+                    return ArReceiptCommandResultDto.Fail(
+                        "The receipt or one of its invoices was modified during allocation.",
+                        HttpStatusCode.Conflict
+                    );
+                }
+
+                if (
+                    dependencies.PersistenceFailureClassifier.IsUniqueConstraint(
+                        ex,
+                        "ix_ar_receipts_doc_no"
+                    )
+                )
+                {
+                    return ArReceiptCommandResultDto.Fail(
+                        "An AR receipt with this document number already exists.",
+                        HttpStatusCode.Conflict
+                    );
+                }
+
                 logger.LogError(
                     ex,
                     "Unexpected failure while creating AR receipt {DocNo}",
@@ -309,23 +311,22 @@ public sealed class ArReceiptService(
                     receiptAllocations
                 );
             }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                await dependencies.UnitOfWork.RollbackAsync();
-                logger.LogWarning(
-                    ex,
-                    "Concurrency failure while allocating AR receipt {ReceiptId}. Entries: {Entries}",
-                    command.ReceiptId,
-                    string.Join(", ", ex.Entries.Select(x => x.Entity.GetType().Name))
-                );
-                return ArReceiptCommandResultDto.Fail(
-                    "The receipt or one of its invoices was modified during allocation.",
-                    HttpStatusCode.Conflict
-                );
-            }
             catch (Exception ex)
             {
                 await dependencies.UnitOfWork.RollbackAsync();
+                if (dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(ex))
+                {
+                    logger.LogWarning(
+                        ex,
+                        "Concurrency failure while allocating AR receipt {ReceiptId}",
+                        command.ReceiptId
+                    );
+                    return ArReceiptCommandResultDto.Fail(
+                        "The receipt or one of its invoices was modified during allocation.",
+                        HttpStatusCode.Conflict
+                    );
+                }
+
                 logger.LogError(
                     ex,
                     "Unexpected failure while allocating AR receipt {ReceiptId}",
@@ -527,12 +528,4 @@ public sealed class ArReceiptService(
         return (null, settledAmounts, receiptAllocations);
     }
 
-    private static bool IsUniqueDocNoViolation(DbUpdateException ex) =>
-        ex.InnerException is PostgresException postgresException
-        && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
-        && string.Equals(
-            postgresException.ConstraintName,
-            "ix_ar_receipts_doc_no",
-            StringComparison.Ordinal
-        );
 }

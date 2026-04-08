@@ -1,5 +1,5 @@
 using OakERP.Domain.Entities.Accounts_Receivable;
-using OakERP.Infrastructure.Accounts_Receivable;
+using OakERP.Application.AccountsReceivable;
 using Shouldly;
 
 namespace OakERP.Tests.Unit.AccountsReceivable;

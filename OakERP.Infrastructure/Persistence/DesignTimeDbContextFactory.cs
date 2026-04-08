@@ -27,7 +27,9 @@ namespace OakERP.Infrastructure.Persistence
             var cs =
                 config.GetConnectionString("DefaultConnection")
                 ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-                ?? "Host=localhost;Port=5432;Database=oakerp;Username=oakadmin;Password=oakpass;Include Error Detail=true";
+                ?? throw new InvalidOperationException(
+                    "ConnectionStrings:DefaultConnection is not configured for design-time migrations."
+                );
 
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseNpgsql(

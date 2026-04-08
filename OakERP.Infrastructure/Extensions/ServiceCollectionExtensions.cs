@@ -4,10 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using OakERP.Application.AccountsPayable;
-using OakERP.Application.AccountsReceivable;
 using OakERP.Application.Interfaces.Persistence;
-using OakERP.Application.Posting;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Users;
 using OakERP.Domain.Posting;
@@ -22,8 +19,6 @@ using OakERP.Domain.Repository_Interfaces.Common;
 using OakERP.Domain.Repository_Interfaces.General_Ledger;
 using OakERP.Domain.Repository_Interfaces.Inventory;
 using OakERP.Domain.Repository_Interfaces.Users;
-using OakERP.Infrastructure.Accounts_Payable;
-using OakERP.Infrastructure.Accounts_Receivable;
 using OakERP.Infrastructure.Persistence;
 using OakERP.Infrastructure.Persistence.Seeding.Base;
 using OakERP.Infrastructure.Posting;
@@ -120,6 +115,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPersistenceServices(this IServiceCollection services)
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IPersistenceFailureClassifier, PersistenceFailureClassifier>();
 
         return services;
     }
@@ -145,30 +141,8 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddAccountsReceivableServices(this IServiceCollection services)
-    {
-        services.AddScoped<ArReceiptServiceDependencies>();
-        services.AddScoped<IArReceiptService, ArReceiptService>();
-
-        return services;
-    }
-
-    public static IServiceCollection AddAccountsPayableServices(this IServiceCollection services)
-    {
-        services.AddScoped<ApPaymentServiceDependencies>();
-        services.AddScoped<IApInvoiceService, ApInvoiceService>();
-        services.AddScoped<IApPaymentService, ApPaymentService>();
-
-        return services;
-    }
-
     public static IServiceCollection AddPostingServices(this IServiceCollection services)
     {
-        services.AddScoped<PostingSourceRepositories>();
-        services.AddScoped<PostingPersistenceDependencies>();
-        services.AddScoped<PostingRuntimeDependencies>();
-        services.AddScoped<PostingContextBuilders>();
-        services.AddScoped<IPostingService, PostingService>();
         services.AddScoped<IPostingEngine, PostingEngine>();
         services.AddScoped<IPostingRuleProvider, PostingRuleProvider>();
         services.AddScoped<IGlSettingsProvider, AppSettingGlSettingsProvider>();

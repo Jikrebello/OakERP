@@ -1,10 +1,12 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.FluentUI.AspNetCore.Components;
+using OakERP.Client;
+using OakERP.Client.Extensions;
 using OakERP.Client.Services.Api;
 using OakERP.Common.Abstractions;
 using OakERP.Services;
-using OakERP.Shared.Extensions;
 using OakERP.Shared.Services;
+using OakERP.UI.Extensions;
 
 namespace OakERP;
 
@@ -13,10 +15,6 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
-        var apiBaseUrl =
-            builder.Configuration["Api:BaseUrl"]
-            ?? Environment.GetEnvironmentVariable("OakERP__Api__BaseUrl")
-            ?? "https://localhost:7057/api/";
 
         builder
             .UseMauiApp<App>()
@@ -25,26 +23,23 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             });
 
+        var apiOptions = new ApiClientOptions
+        {
+            BaseUrl =
+                builder.Configuration["Api:BaseUrl"]
+                ?? Environment.GetEnvironmentVariable("OakERP__Api__BaseUrl")
+                ?? throw new InvalidOperationException("Api:BaseUrl is not configured."),
+        };
+
         // Device-specific services used by shared Razor UI
         builder.Services.AddSingleton<IFormFactor, FormFactor>();
         builder.Services.AddScoped<ITokenStore, MauiTokenStore>();
         builder.Services.AddScoped<IPlatformService, MauiPlatformService>();
 
-        builder.Services.AddScoped<AuthTokenHandler>();
-
-        builder.Services.AddScoped<IApiClient>(sp =>
-        {
-            var tokenHandler = sp.GetRequiredService<AuthTokenHandler>();
-            tokenHandler.InnerHandler = new HttpClientHandler();
-
-            var client = new HttpClient(tokenHandler) { BaseAddress = new Uri(apiBaseUrl) };
-
-            var logger = sp.GetRequiredService<ILogger<ApiClient>>();
-            return new ApiClient(client, logger);
-        });
-
         // Shared Razor Class Lib services
-        builder.Services.AddOakClientServices();
+        builder.Services.AddOakClientCoreServices();
+        builder.Services.AddOakAuthUiState();
+        builder.Services.AddOakApiClient(apiOptions);
 
         // UI setup
         builder.Services.AddMauiBlazorWebView();

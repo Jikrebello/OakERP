@@ -1,14 +1,18 @@
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Domain.Posting.General_Ledger;
 
-namespace OakERP.Infrastructure.Accounts_Payable;
+namespace OakERP.Application.AccountsPayable;
 
 public sealed class ApPaymentServiceDependencies(
     IGlSettingsProvider glSettingsProvider,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    IPersistenceFailureClassifier persistenceFailureClassifier
 )
 {
     public IGlSettingsProvider GlSettingsProvider { get; } = glSettingsProvider;
 
     public IUnitOfWork UnitOfWork { get; } = unitOfWork;
+
+    public IPersistenceFailureClassifier PersistenceFailureClassifier { get; } =
+        persistenceFailureClassifier;
 }

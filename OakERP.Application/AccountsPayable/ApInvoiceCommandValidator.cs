@@ -2,7 +2,7 @@ using System.Net;
 using OakERP.Application.AccountsPayable;
 using OakERP.Common.Enums;
 
-namespace OakERP.Infrastructure.Accounts_Payable;
+namespace OakERP.Application.AccountsPayable;
 
 public static class ApInvoiceCommandValidator
 {

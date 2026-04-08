@@ -43,12 +43,20 @@ public sealed class PostingServiceTestFactory
         new(MockBehavior.Strict);
     public Mock<IPostingEngine> PostingEngine { get; } = new(MockBehavior.Strict);
     public Mock<IUnitOfWork> UnitOfWork { get; } = new(MockBehavior.Strict);
+    public Mock<IPersistenceFailureClassifier> PersistenceFailureClassifier { get; } =
+        new(MockBehavior.Strict);
 
     public PostingServiceTestFactory()
     {
         UnitOfWork.Setup(x => x.BeginTransactionAsync()).Returns(Task.CompletedTask);
         UnitOfWork.Setup(x => x.CommitAsync()).Returns(Task.CompletedTask);
         UnitOfWork.Setup(x => x.RollbackAsync()).Returns(Task.CompletedTask);
+        PersistenceFailureClassifier
+            .Setup(x => x.IsUniqueConstraint(It.IsAny<Exception>(), It.IsAny<string>()))
+            .Returns(false);
+        PersistenceFailureClassifier
+            .Setup(x => x.IsConcurrencyConflict(It.IsAny<Exception>()))
+            .Returns(false);
     }
 
     public PostingService CreateService() =>
@@ -64,7 +72,8 @@ public sealed class PostingServiceTestFactory
                 GlAccountRepository.Object,
                 GlEntryRepository.Object,
                 InventoryLedgerRepository.Object,
-                UnitOfWork.Object
+                UnitOfWork.Object,
+                PersistenceFailureClassifier.Object
             ),
             new PostingRuntimeDependencies(
                 GlSettingsProvider.Object,

@@ -44,6 +44,7 @@ public class AuthService(
     private const string AuditReasonTenantNotFound = "TenantNotFound";
     private const string AuditReasonLicenseNotFound = "LicenseNotFound";
     private const string AuditReasonLicenseExpired = "LicenseExpired";
+
     private sealed record AuditContext(
         string Action,
         string Outcome,

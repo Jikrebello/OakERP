@@ -419,9 +419,13 @@ public sealed class ApPaymentServiceTests
                 )
             )
             .ReturnsAsync([invoice]);
+        var concurrencyException = new DbUpdateConcurrencyException();
         _factory
             .UnitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new DbUpdateConcurrencyException());
+            .ThrowsAsync(concurrencyException);
+        _factory
+            .PersistenceFailureClassifier.Setup(x => x.IsConcurrencyConflict(concurrencyException))
+            .Returns(true);
 
         var service = _factory.CreateService();
 
