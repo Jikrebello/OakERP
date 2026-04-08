@@ -107,6 +107,10 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- push-past-nine-wave12-14
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- refactor-waves-8-11
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
@@ -273,7 +277,6 @@ OakERP
 |   |           +-- ApPaymentCommandValidator.cs
 |   |           +-- ApPaymentCreateWorkflow.cs
 |   |           +-- ApPaymentErrors.cs
-|   |           +-- ApPaymentServiceDependencies.cs
 |   |           +-- ApPaymentSettlementAdapters.cs
 |   |           \-- ApPaymentSnapshotFactory.cs
 |   +-- AccountsReceivable
@@ -295,9 +298,12 @@ OakERP
 |   |           +-- ArReceiptCommandValidator.cs
 |   |           +-- ArReceiptCreateWorkflow.cs
 |   |           +-- ArReceiptErrors.cs
-|   |           +-- ArReceiptServiceDependencies.cs
 |   |           +-- ArReceiptSettlementAdapters.cs
 |   |           \-- ArReceiptSnapshotFactory.cs
+|   +-- Common
+|   |   \-- Orchestration
+|   |       +-- ResultWorkflowTransactionRunner.cs
+|   |       \-- WorkflowFailureTranslator.cs
 |   +-- Extensions
 |   |   \-- ServiceCollectionExtensions.cs
 |   +-- Interfaces
@@ -330,6 +336,12 @@ OakERP
 |   |   +-- Allocation
 |   |   |   +-- SettlementAllocationApplicator.cs
 |   |   |   \-- SettlementAllocationApplySpec.cs
+|   |   +-- Documents
+|   |   |   +-- SettlementDocumentAllocateWorkflowRunner.cs
+|   |   |   +-- SettlementDocumentCreateWorkflowRunner.cs
+|   |   |   +-- SettlementDocumentErrorMessages.cs
+|   |   |   +-- SettlementDocumentPreconditions.cs
+|   |   |   \-- SettlementDocumentWorkflowDependencies.cs
 |   |   \-- Invoices
 |   |       +-- SettlementInvoiceLoader.cs
 |   |       \-- SettlementInvoiceLoadSpec.cs
@@ -342,11 +354,16 @@ OakERP
 |   |   +-- ApplicationUser.cs
 |   |   +-- IdentityGateway.cs
 |   |   \-- IIdentityGateway.cs
+|   +-- Internal
+|   |   \-- Support
+|   |       \-- AuthTransactionRunner.cs
 |   +-- Jwt
 |   |   +-- IJwtGenerator.cs
 |   |   +-- JwtGenerator.cs
 |   |   +-- JwtOptions.cs
 |   |   \-- JwtTokenInput.cs
+|   +-- Properties
+|   |   \-- AssemblyInfo.cs
 |   +-- Services
 |   |   +-- AuthAuditLogger.cs
 |   |   +-- AuthErrors.cs
@@ -446,10 +463,6 @@ OakERP
 |   |   |   \-- AboutAssets.txt
 |   |   \-- Splash
 |   |       \-- splash.svg
-|   +-- Services
-|   |   +-- FormFactor.cs
-|   |   +-- MauiPlatformService.cs
-|   |   \-- MauiTokenStore.cs
 |   +-- wwwroot
 |   |   +-- app.css
 |   |   \-- index.html
@@ -752,10 +765,6 @@ OakERP
 |   |   |   \-- AboutAssets.txt
 |   |   \-- Splash
 |   |       \-- splash.svg
-|   +-- Services
-|   |   +-- FormFactor.cs
-|   |   +-- MauiPlatformService.cs
-|   |   \-- MauiTokenStore.cs
 |   +-- wwwroot
 |   |   +-- css
 |   |   |   +-- bootstrap
@@ -785,6 +794,13 @@ OakERP
 |   +-- Extensions
 |   |   +-- NavigationExtensions.cs
 |   |   \-- ServiceCollectionExtensions.cs
+|   +-- Hosts
+|   |   \-- Maui
+|   |       +-- MauiAppBuilderExtensions.cs
+|   |       +-- MauiFormFactor.cs
+|   |       +-- MauiHostServiceCollectionExtensions.cs
+|   |       +-- MauiPlatformService.cs
+|   |       \-- MauiTokenStore.cs
 |   +-- Layout
 |   |   +-- MainLayout.razor
 |   |   \-- NavMenu.razor
@@ -857,8 +873,14 @@ OakERP
 |   +-- Architecture
 |   |   \-- DependencyRulesTests.cs
 |   +-- Auth
+|   |   +-- Internal
+|   |   |   \-- AuthTransactionRunnerTests.cs
 |   |   +-- AuthServiceTestFactory.cs
 |   |   \-- AuthServiceTests.cs
+|   +-- Common
+|   |   \-- Orchestration
+|   |       +-- ResultWorkflowTransactionRunnerTests.cs
+|   |       \-- WorkflowFailureTranslatorTests.cs
 |   +-- Configuration
 |   |   \-- OptionsBindingTests.cs
 |   +-- Posting
@@ -881,6 +903,7 @@ OakERP
 |   |   \-- GlobalExceptionHandlerTests.cs
 |   +-- Settlements
 |   |   +-- SettlementAllocationApplicatorTests.cs
+|   |   +-- SettlementDocumentPreconditionsTests.cs
 |   |   \-- SettlementInvoiceLoaderTests.cs
 |   +-- GlobalUsings.cs
 |   \-- OakERP.Tests.Unit.csproj
