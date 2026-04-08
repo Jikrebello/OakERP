@@ -9,6 +9,7 @@ public sealed class PersistenceFailureClassifier : IPersistenceFailureClassifier
     private const string ApInvoiceDocNoConstraint = "ix_ap_invoices_doc_no";
     private const string ApInvoiceVendorInvoiceNoConstraint = "ix_ap_invoices_vendor_id_invoice_no";
     private const string ApPaymentDocNoConstraint = "ix_ap_payments_doc_no";
+    private const string ArInvoiceDocNoConstraint = "ix_ar_invoices_doc_no";
     private const string ArReceiptDocNoConstraint = "ix_ar_receipts_doc_no";
 
     public bool IsUniqueConstraint(Exception exception, string constraintName) =>
@@ -29,6 +30,9 @@ public sealed class PersistenceFailureClassifier : IPersistenceFailureClassifier
 
     public bool IsApPaymentDocNoConflict(Exception exception) =>
         IsUniqueConstraint(exception, ApPaymentDocNoConstraint);
+
+    public bool IsArInvoiceDocNoConflict(Exception exception) =>
+        IsUniqueConstraint(exception, ArInvoiceDocNoConstraint);
 
     public bool IsArReceiptDocNoConflict(Exception exception) =>
         IsUniqueConstraint(exception, ArReceiptDocNoConstraint);

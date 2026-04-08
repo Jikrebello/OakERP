@@ -21,7 +21,7 @@ public sealed class PostingResultProcessorTests
         var postingResult = new PostingEngineResult(
             [
                 new GlEntryModel(
-                    new DateOnly(2026, 4, 8),
+                    DaysFromToday(-1),
                     period.Id,
                     "1100",
                     115m,
@@ -32,7 +32,7 @@ public sealed class PostingResultProcessorTests
                     "AR control"
                 ),
                 new GlEntryModel(
-                    new DateOnly(2026, 4, 8),
+                    DaysFromToday(-1),
                     period.Id,
                     "4000",
                     0m,
@@ -45,7 +45,7 @@ public sealed class PostingResultProcessorTests
             ],
             [
                 new InventoryMovementModel(
-                    new DateOnly(2026, 4, 8),
+                    DaysFromToday(-1),
                     Guid.NewGuid(),
                     Guid.NewGuid(),
                     InventoryTransactionType.SalesCogs,
@@ -106,7 +106,7 @@ public sealed class PostingResultProcessorTests
         var postingResult = new PostingEngineResult(
             [
                 new GlEntryModel(
-                    new DateOnly(2026, 4, 8),
+                    DaysFromToday(-1),
                     period.Id,
                     "1100",
                     10m,
@@ -117,7 +117,7 @@ public sealed class PostingResultProcessorTests
                     "Expense"
                 ),
                 new GlEntryModel(
-                    new DateOnly(2026, 4, 8),
+                    DaysFromToday(-1),
                     period.Id,
                     "2000",
                     0m,
@@ -130,7 +130,7 @@ public sealed class PostingResultProcessorTests
             ],
             [
                 new InventoryMovementModel(
-                    new DateOnly(2026, 4, 8),
+                    DaysFromToday(-1),
                     Guid.NewGuid(),
                     Guid.NewGuid(),
                     InventoryTransactionType.SalesCogs,

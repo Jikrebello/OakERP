@@ -20,7 +20,7 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
     public async Task PostAsync_Should_Post_Unapplied_ApPayment_To_Bank_And_ApControl()
     {
         var paymentId = await SeedPaymentScenarioAsync(amount: 125m, allocatedAmount: 0m);
-        var postingDate = new DateOnly(2026, 4, 10);
+        var postingDate = DaysFromToday(-2);
 
         PostResult result = await PostPaymentAsync(paymentId, postingDate);
 
@@ -151,7 +151,8 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
         var paymentId = await SeedPaymentScenarioAsync(
             amount: 100m,
             allocatedAmount: 0m,
-            includeOpenPeriod: false
+            includeOpenPeriod: false,
+            paymentDate: DaysFromToday(40)
         );
 
         await Should.ThrowAsync<PostingInvariantViolationException>(() =>
@@ -220,7 +221,8 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
         decimal amount,
         decimal allocatedAmount,
         bool includeOpenPeriod = true,
-        string bankCurrencyCode = "ZAR"
+        string bankCurrencyCode = "ZAR",
+        DateOnly? paymentDate = null
     )
     {
         var paymentId = Guid.NewGuid();
@@ -228,89 +230,129 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
         var bankAccountId = Guid.NewGuid();
         Guid? invoiceId = allocatedAmount > 0m ? Guid.NewGuid() : null;
         decimal invoiceTotal = allocatedAmount > 0m ? allocatedAmount + 40m : 0m;
+        var effectivePaymentDate = paymentDate ?? DaysFromToday(-4);
+        string vendorCode = $"VEND-{vendorId.ToString("N")[..8].ToUpperInvariant()}";
+        string vendorName = $"Posting Vendor {vendorId.ToString("N")[..8].ToUpperInvariant()}";
+        string bankName = $"Main Bank {bankAccountId.ToString("N")[..8].ToUpperInvariant()}";
+        string invoiceDocNo = invoiceId is not null
+            ? $"APINV-{invoiceId.Value.ToString("N")[..8].ToUpperInvariant()}"
+            : string.Empty;
+        string invoiceNo = invoiceId is not null
+            ? $"SUP-{invoiceId.Value.ToString("N")[..8].ToUpperInvariant()}"
+            : string.Empty;
+        string paymentDocNo = $"APPAY-{paymentId.ToString("N")[..8].ToUpperInvariant()}";
 
         await WithDbAsync(async db =>
         {
-            db.Currencies.AddRange(
-                new Currency
-                {
-                    Code = "ZAR",
-                    NumericCode = 710,
-                    Name = "Rand",
-                    Symbol = "R",
-                    Decimals = 2,
-                    IsActive = true,
-                },
-                new Currency
-                {
-                    Code = "USD",
-                    NumericCode = 840,
-                    Name = "US Dollar",
-                    Symbol = "$",
-                    Decimals = 2,
-                    IsActive = true,
-                }
-            );
+            if (!await db.Currencies.AnyAsync(x => x.Code == "ZAR"))
+            {
+                db.Currencies.Add(
+                    new Currency
+                    {
+                        Code = "ZAR",
+                        NumericCode = 710,
+                        Name = "Rand",
+                        Symbol = "R",
+                        Decimals = 2,
+                        IsActive = true,
+                    }
+                );
+            }
 
-            db.GlAccounts.AddRange(
-                new GlAccount
-                {
-                    AccountNo = "1000",
-                    Name = "Bank",
-                    Type = GlAccountType.Asset,
-                    IsActive = true,
-                },
-                new GlAccount
-                {
-                    AccountNo = "2000",
-                    Name = "Accounts Payable",
-                    Type = GlAccountType.Liability,
-                    IsActive = true,
-                    IsControl = true,
-                }
-            );
+            if (!await db.Currencies.AnyAsync(x => x.Code == "USD"))
+            {
+                db.Currencies.Add(
+                    new Currency
+                    {
+                        Code = "USD",
+                        NumericCode = 840,
+                        Name = "US Dollar",
+                        Symbol = "$",
+                        Decimals = 2,
+                        IsActive = true,
+                    }
+                );
+            }
 
-            db.AppSettings.Add(
-                new AppSetting
-                {
-                    Key = GlPostingSettingsKeys.Posting,
-                    ValueJson = JsonSerializer.Serialize(
-                        new GlPostingSettings(
-                            "ZAR",
-                            "1100",
-                            "2000",
-                            "4000",
-                            "5000",
-                            "1300",
-                            "5100",
-                            "2100",
-                            "2200"
-                        )
-                    ),
-                }
-            );
+            if (!await db.GlAccounts.AnyAsync(x => x.AccountNo == "1000"))
+            {
+                db.GlAccounts.Add(
+                    new GlAccount
+                    {
+                        AccountNo = "1000",
+                        Name = "Bank",
+                        Type = GlAccountType.Asset,
+                        IsActive = true,
+                    }
+                );
+            }
+
+            if (!await db.GlAccounts.AnyAsync(x => x.AccountNo == "2000"))
+            {
+                db.GlAccounts.Add(
+                    new GlAccount
+                    {
+                        AccountNo = "2000",
+                        Name = "Accounts Payable",
+                        Type = GlAccountType.Liability,
+                        IsActive = true,
+                        IsControl = true,
+                    }
+                );
+            }
+
+            if (!await db.AppSettings.AnyAsync(x => x.Key == GlPostingSettingsKeys.Posting))
+            {
+                db.AppSettings.Add(
+                    new AppSetting
+                    {
+                        Key = GlPostingSettingsKeys.Posting,
+                        ValueJson = JsonSerializer.Serialize(
+                            new GlPostingSettings(
+                                "ZAR",
+                                "1100",
+                                "2000",
+                                "4000",
+                                "5000",
+                                "1300",
+                                "5100",
+                                "2100",
+                                "2200"
+                            )
+                        ),
+                    }
+                );
+            }
 
             if (includeOpenPeriod)
             {
-                db.FiscalPeriods.Add(
-                    new FiscalPeriod
-                    {
-                        Id = Guid.NewGuid(),
-                        FiscalYear = 2026,
-                        PeriodNo = 4,
-                        PeriodStart = new DateOnly(2026, 4, 1),
-                        PeriodEnd = new DateOnly(2026, 4, 30),
-                        Status = FiscalPeriodStatuses.Open,
-                    }
-                );
+                if (
+                    !await db.FiscalPeriods.AnyAsync(x =>
+                        x.FiscalYear == effectivePaymentDate.Year
+                        && x.PeriodNo == effectivePaymentDate.Month
+                    )
+                )
+                {
+                    db.FiscalPeriods.Add(
+                        new FiscalPeriod
+                        {
+                            Id = Guid.NewGuid(),
+                            FiscalYear = effectivePaymentDate.Year,
+                            PeriodNo = effectivePaymentDate.Month,
+                            PeriodStart = StartOfMonth(effectivePaymentDate),
+                            PeriodEnd = EndOfMonth(effectivePaymentDate),
+                            Status = FiscalPeriodStatuses.Open,
+                        }
+                    );
+                }
             }
 
             db.Vendors.Add(
                 new Vendor
                 {
                     Id = vendorId,
-                    VendorCode = "VEND-POST-001",
-                    Name = "Posting Vendor",
+                    VendorCode = vendorCode,
+                    Name = vendorName,
                     IsActive = true,
                 }
             );
@@ -319,7 +361,7 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
                 new BankAccount
                 {
                     Id = bankAccountId,
-                    Name = "Main Bank",
+                    Name = bankName,
                     GlAccountNo = "1000",
                     OpeningBalance = 0m,
                     CurrencyCode = bankCurrencyCode,
@@ -333,11 +375,11 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
                     new ApInvoice
                     {
                         Id = invoiceId.Value,
-                        DocNo = "APINV-PAY-1001",
+                        DocNo = invoiceDocNo,
                         VendorId = vendorId,
-                        InvoiceNo = "SUP-PAY-1001",
-                        InvoiceDate = new DateOnly(2026, 4, 1),
-                        DueDate = new DateOnly(2026, 5, 1),
+                        InvoiceNo = invoiceNo,
+                        InvoiceDate = effectivePaymentDate.AddDays(-4),
+                        DueDate = effectivePaymentDate.AddDays(-4).AddDays(30),
                         CurrencyCode = "ZAR",
                         TaxTotal = 0m,
                         DocTotal = invoiceTotal,
@@ -349,10 +391,10 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
             var payment = new ApPayment
             {
                 Id = paymentId,
-                DocNo = "APPAY-POST-1001",
+                DocNo = paymentDocNo,
                 VendorId = vendorId,
                 BankAccountId = bankAccountId,
-                PaymentDate = new DateOnly(2026, 4, 5),
+                PaymentDate = effectivePaymentDate,
                 Amount = amount,
                 DocStatus = DocStatus.Draft,
             };

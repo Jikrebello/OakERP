@@ -20,7 +20,7 @@ public sealed class ApPaymentServiceTests
             DocNo = "APPAY-2001",
             VendorId = vendor.Id,
             BankAccountId = bankAccount.Id,
-            PaymentDate = new DateOnly(2026, 4, 5),
+            PaymentDate = DaysFromToday(-4),
             Amount = 125m,
             Memo = "Vendor payment",
             PerformedBy = "unit-user",
@@ -85,7 +85,7 @@ public sealed class ApPaymentServiceTests
             DocNo = "APPAY-2002",
             VendorId = vendor.Id,
             BankAccountId = bankAccount.Id,
-            PaymentDate = new DateOnly(2026, 4, 5),
+            PaymentDate = DaysFromToday(-4),
             Amount = 150m,
             PerformedBy = "unit-user",
             Allocations =
@@ -155,7 +155,7 @@ public sealed class ApPaymentServiceTests
         var command = new AllocateApPaymentCommand
         {
             PaymentId = payment.Id,
-            AllocationDate = new DateOnly(2026, 4, 6),
+            AllocationDate = DaysFromToday(-3),
             PerformedBy = "unit-user",
             Allocations =
             [
@@ -206,7 +206,7 @@ public sealed class ApPaymentServiceTests
             DocNo = "APPAY-2003",
             VendorId = vendor.Id,
             BankAccountId = bankAccount.Id,
-            PaymentDate = new DateOnly(2026, 4, 5),
+            PaymentDate = DaysFromToday(-4),
             Amount = 100m,
             Allocations =
             [
@@ -354,7 +354,7 @@ public sealed class ApPaymentServiceTests
             DocNo = "APPAY-DUP",
             VendorId = vendor.Id,
             BankAccountId = bankAccount.Id,
-            PaymentDate = new DateOnly(2026, 4, 5),
+            PaymentDate = DaysFromToday(-4),
             Amount = 10m,
         };
 

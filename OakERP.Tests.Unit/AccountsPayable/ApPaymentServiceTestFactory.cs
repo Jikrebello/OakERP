@@ -52,14 +52,15 @@ public sealed class ApPaymentServiceTestFactory
             .Setup(x => x.IsApPaymentDocNoConflict(It.IsAny<Exception>()))
             .Returns(false);
         PersistenceFailureClassifier
+            .Setup(x => x.IsArInvoiceDocNoConflict(It.IsAny<Exception>()))
+            .Returns(false);
+        PersistenceFailureClassifier
             .Setup(x => x.IsArReceiptDocNoConflict(It.IsAny<Exception>()))
             .Returns(false);
         PersistenceFailureClassifier
             .Setup(x => x.IsConcurrencyConflict(It.IsAny<Exception>()))
             .Returns(false);
-        Clock
-            .SetupGet(x => x.UtcNow)
-            .Returns(new DateTimeOffset(2026, 4, 8, 12, 0, 0, TimeSpan.Zero));
+        Clock.SetupGet(x => x.UtcNow).Returns(UtcAtHourDaysFromToday(0));
     }
 
     public ApPaymentService CreateService() =>
@@ -131,8 +132,8 @@ public sealed class ApPaymentServiceTestFactory
             DocNo = docNo,
             VendorId = vendorId ?? Guid.NewGuid(),
             InvoiceNo = $"{docNo}-V",
-            InvoiceDate = new DateOnly(2026, 4, 1),
-            DueDate = new DateOnly(2026, 5, 1),
+            InvoiceDate = DaysFromToday(-8),
+            DueDate = DaysFromToday(-8).AddDays(30),
             CurrencyCode = currencyCode,
             DocTotal = docTotal,
             DocStatus = status,
@@ -145,7 +146,7 @@ public sealed class ApPaymentServiceTestFactory
                 {
                     ApInvoiceId = invoice.Id,
                     ApPaymentId = Guid.NewGuid(),
-                    AllocationDate = new DateOnly(2026, 4, 2),
+                    AllocationDate = DaysFromToday(-7),
                     AmountApplied = settledAmount,
                 }
             );
@@ -169,7 +170,7 @@ public sealed class ApPaymentServiceTestFactory
             DocNo = "APPAY-1001",
             VendorId = vendorId ?? Guid.NewGuid(),
             BankAccountId = bankAccountId ?? Guid.NewGuid(),
-            PaymentDate = new DateOnly(2026, 4, 5),
+            PaymentDate = DaysFromToday(-4),
             Amount = amount,
             DocStatus = DocStatus.Draft,
             BankAccount = CreateBankAccount(bankAccountId, currencyCode: bankCurrencyCode),

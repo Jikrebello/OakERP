@@ -21,20 +21,20 @@ public sealed class MovingAverageInventoryCostServiceTests
             CreateLedger(
                 itemId,
                 locationId,
-                new DateOnly(2026, 3, 10),
+                DaysFromToday(-30),
                 5m,
                 10m,
                 50m,
-                new DateTimeOffset(2026, 3, 10, 8, 0, 0, TimeSpan.Zero)
+                UtcAtHourDaysFromToday(-30, 8)
             ),
             CreateLedger(
                 itemId,
                 locationId,
-                new DateOnly(2026, 3, 20),
+                DaysFromToday(-20),
                 5m,
                 20m,
                 100m,
-                new DateTimeOffset(2026, 3, 20, 8, 0, 0, TimeSpan.Zero)
+                UtcAtHourDaysFromToday(-20, 8)
             )
         );
         await db.SaveChangesAsync();
@@ -44,7 +44,7 @@ public sealed class MovingAverageInventoryCostServiceTests
         decimal unitCost = await service.GetUnitCostForSaleAsync(
             itemId,
             locationId,
-            new DateOnly(2026, 3, 15)
+            DaysFromToday(-25)
         );
 
         unitCost.ShouldBe(10m);
@@ -65,28 +65,28 @@ public sealed class MovingAverageInventoryCostServiceTests
                 Id = laterId,
                 ItemId = itemId,
                 LocationId = locationId,
-                TrxDate = new DateOnly(2026, 3, 10),
+                TrxDate = DaysFromToday(-30),
                 TransactionType = InventoryTransactionType.Issue,
                 Qty = -5m,
                 UnitCost = 20m,
                 ValueChange = -100m,
                 SourceType = "TEST",
                 SourceId = Guid.NewGuid(),
-                CreatedAt = new DateTimeOffset(2026, 3, 10, 8, 0, 0, TimeSpan.Zero),
+                CreatedAt = UtcAtHourDaysFromToday(-30, 8),
             },
             new InventoryLedger
             {
                 Id = earlierId,
                 ItemId = itemId,
                 LocationId = locationId,
-                TrxDate = new DateOnly(2026, 3, 10),
+                TrxDate = DaysFromToday(-30),
                 TransactionType = InventoryTransactionType.Receipt,
                 Qty = 5m,
                 UnitCost = 10m,
                 ValueChange = 50m,
                 SourceType = "TEST",
                 SourceId = Guid.NewGuid(),
-                CreatedAt = new DateTimeOffset(2026, 3, 10, 8, 0, 0, TimeSpan.Zero),
+                CreatedAt = UtcAtHourDaysFromToday(-30, 8),
             }
         );
         await db.SaveChangesAsync();
@@ -96,7 +96,7 @@ public sealed class MovingAverageInventoryCostServiceTests
         decimal unitCost = await service.GetUnitCostForSaleAsync(
             itemId,
             locationId,
-            new DateOnly(2026, 3, 10)
+            DaysFromToday(-30)
         );
 
         unitCost.ShouldBe(10m);
@@ -113,20 +113,20 @@ public sealed class MovingAverageInventoryCostServiceTests
             CreateLedger(
                 itemId,
                 locationId,
-                new DateOnly(2026, 3, 10),
+                DaysFromToday(-30),
                 5m,
                 10m,
                 50m,
-                new DateTimeOffset(2026, 3, 10, 8, 0, 0, TimeSpan.Zero)
+                UtcAtHourDaysFromToday(-30, 8)
             ),
             CreateLedger(
                 itemId,
                 locationId,
-                new DateOnly(2026, 3, 11),
+                DaysFromToday(-29),
                 -5m,
                 10m,
                 -50m,
-                new DateTimeOffset(2026, 3, 11, 8, 0, 0, TimeSpan.Zero)
+                UtcAtHourDaysFromToday(-29, 8)
             )
         );
         await db.SaveChangesAsync();
@@ -136,7 +136,7 @@ public sealed class MovingAverageInventoryCostServiceTests
         decimal unitCost = await service.GetUnitCostForSaleAsync(
             itemId,
             locationId,
-            new DateOnly(2026, 3, 12)
+            DaysFromToday(-28)
         );
 
         unitCost.ShouldBe(10m);

@@ -28,16 +28,18 @@ public class AuthApiTests : WebApiIntegrationTestBase
     [Test]
     public async Task Register_Endpoint_Should_Create_Tenant_And_License()
     {
+        string caseId = NewCaseId();
+
         // Arrange
         var Dto = new RegisterDto
         {
-            Email = $"apiuser_{TestId}@oak.test",
+            Email = $"apiuser_{caseId}@oak.test",
             Password = "TestPass123!",
             ConfirmPassword = "TestPass123!",
             FirstName = "TestFirstname",
             LastName = "TestLastname",
             PhoneNumber = "123456789",
-            TenantName = $"ApiTenant_{TestId}",
+            TenantName = $"ApiTenant_{caseId}",
         };
 
         // Act
@@ -69,16 +71,18 @@ public class AuthApiTests : WebApiIntegrationTestBase
     [Test]
     public async Task Register_Endpoint_Should_Fail_If_Passwords_Do_Not_Match()
     {
+        string caseId = NewCaseId();
+
         // Arrange
         var Dto = new RegisterDto
         {
-            Email = $"badpw_{TestId}@oak.test",
+            Email = $"badpw_{caseId}@oak.test",
             FirstName = "TestFirstname",
             LastName = "TestLastname",
             PhoneNumber = "123456789",
             Password = "GoodPass123!",
             ConfirmPassword = "MismatchPass123!",
-            TenantName = $"BadPwTenant_{TestId}",
+            TenantName = $"BadPwTenant_{caseId}",
         };
 
         // Act
@@ -104,16 +108,18 @@ public class AuthApiTests : WebApiIntegrationTestBase
     [Test]
     public async Task Register_Endpoint_Should_Fail_If_Email_Already_Exists()
     {
+        string caseId = NewCaseId();
+
         // Arrange (first registration)
         var Dto = new RegisterDto
         {
-            Email = $"duplicate_{TestId}@oak.test",
+            Email = $"duplicate_{caseId}@oak.test",
             Password = "TestPass123!",
             ConfirmPassword = "TestPass123!",
             FirstName = "TestFirstname",
             LastName = "TestLastname",
             PhoneNumber = "123456789",
-            TenantName = $"DupTenant_{TestId}",
+            TenantName = $"DupTenant_{caseId}",
         };
 
         // Act 1: create initial user/tenant
@@ -136,7 +142,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
             FirstName = "TestFirstname2",
             LastName = "TestLastname2",
             PhoneNumber = "987654321",
-            TenantName = $"DupTenant2_{TestId}",
+            TenantName = $"DupTenant2_{caseId}",
         };
 
         // Act 2: attempt duplicate email
@@ -167,16 +173,18 @@ public class AuthApiTests : WebApiIntegrationTestBase
     [Test]
     public async Task Login_Endpoint_Should_Succeed_With_Valid_Credentials()
     {
+        string caseId = NewCaseId();
+
         // Arrange: first register a user
         var registerDto = new RegisterDto
         {
-            Email = $"api_login_{TestId}@oak.test",
+            Email = $"api_login_{caseId}@oak.test",
             Password = "TestPass123!",
             ConfirmPassword = "TestPass123!",
             FirstName = "TestFirstname",
             LastName = "TestLastname",
             PhoneNumber = "123456789",
-            TenantName = $"ApiTenant_{TestId}",
+            TenantName = $"ApiTenant_{caseId}",
         };
 
         var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
@@ -209,16 +217,18 @@ public class AuthApiTests : WebApiIntegrationTestBase
     [Test]
     public async Task Login_Endpoint_Should_Fail_With_Invalid_Password()
     {
+        string caseId = NewCaseId();
+
         // Arrange: create a valid user first
         var registerDto = new RegisterDto
         {
-            Email = $"api_badpass_{TestId}@oak.test",
+            Email = $"api_badpass_{caseId}@oak.test",
             Password = "TestPass123!",
             ConfirmPassword = "TestPass123!",
             FirstName = "TestFirstName",
             LastName = "TestLastName",
             PhoneNumber = "1234567890",
-            TenantName = $"ApiTenant_{TestId}",
+            TenantName = $"ApiTenant_{caseId}",
         };
 
         var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
@@ -254,10 +264,12 @@ public class AuthApiTests : WebApiIntegrationTestBase
     [Test]
     public async Task Login_Endpoint_Should_Fail_With_Nonexistent_Email()
     {
+        string caseId = NewCaseId();
+
         // Arrange
         var loginDto = new LoginDto
         {
-            Email = $"doesnotexist_{TestId}@oak.test",
+            Email = $"doesnotexist_{caseId}@oak.test",
             Password = "AnyPassword123!",
         };
 
@@ -282,16 +294,18 @@ public class AuthApiTests : WebApiIntegrationTestBase
     [Test]
     public async Task Login_Endpoint_Should_Fail_If_License_Expired()
     {
+        string caseId = NewCaseId();
+
         // Arrange: register a user/tenant
         var registerDto = new RegisterDto
         {
-            Email = $"api_expired_{TestId}@oak.test",
+            Email = $"api_expired_{caseId}@oak.test",
             FirstName = "TestFirstname",
             LastName = "TestLastname",
             PhoneNumber = "123456789",
             Password = "TestPass123!",
             ConfirmPassword = "TestPass123!",
-            TenantName = $"ApiTenant_{TestId}",
+            TenantName = $"ApiTenant_{caseId}",
         };
 
         var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
@@ -341,16 +355,18 @@ public class AuthApiTests : WebApiIntegrationTestBase
     [Test]
     public async Task Login_Endpoint_Should_Fail_If_No_License_Assigned()
     {
+        string caseId = NewCaseId();
+
         // Arrange: register a user/tenant
         var registerDto = new RegisterDto
         {
-            Email = $"api_nolicense_{TestId}@oak.test",
+            Email = $"api_nolicense_{caseId}@oak.test",
             Password = "TestPass123!",
             ConfirmPassword = "TestPass123!",
             FirstName = "TestFirstname",
             LastName = "TestLastname",
             PhoneNumber = "123456789",
-            TenantName = $"ApiTenant_{TestId}",
+            TenantName = $"ApiTenant_{caseId}",
         };
 
         var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
@@ -390,4 +406,6 @@ public class AuthApiTests : WebApiIntegrationTestBase
         loginResult!.Success.ShouldBeFalse();
         loginResult.Message.ShouldContain("License not found for tenant.");
     }
+
+    private string NewCaseId() => $"{TestId}_{Guid.NewGuid().ToString("N")[..8]}";
 }

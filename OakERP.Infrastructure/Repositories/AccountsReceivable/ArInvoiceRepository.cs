@@ -40,6 +40,9 @@ public class ArInvoiceRepository(ApplicationDbContext db) : IArInvoiceRepository
 
     public IQueryable<ArInvoice> QueryNoTracking() => Set.AsNoTracking();
 
+    public Task<bool> ExistsDocNoAsync(string docNo, CancellationToken ct = default) =>
+        Set.AsNoTracking().AnyAsync(x => x.DocNo == docNo, ct);
+
     public async Task AddAsync(ArInvoice entity) => await Set.AddAsync(entity);
 
     public Task RemoveAsync(ArInvoice entity)

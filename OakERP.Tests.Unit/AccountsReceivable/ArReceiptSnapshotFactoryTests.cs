@@ -14,7 +14,7 @@ public sealed class ArReceiptSnapshotFactoryTests
             Id = Guid.NewGuid(),
             ArReceiptId = receipt.Id,
             ArInvoiceId = Guid.NewGuid(),
-            AllocationDate = new DateOnly(2026, 4, 7),
+            AllocationDate = DaysFromToday(-2),
             AmountApplied = 20m,
         };
         var earlierAllocation = new ArReceiptAllocation
@@ -22,7 +22,7 @@ public sealed class ArReceiptSnapshotFactoryTests
             Id = Guid.NewGuid(),
             ArReceiptId = receipt.Id,
             ArInvoiceId = Guid.NewGuid(),
-            AllocationDate = new DateOnly(2026, 4, 6),
+            AllocationDate = DaysFromToday(-3),
             AmountApplied = 30m,
         };
 

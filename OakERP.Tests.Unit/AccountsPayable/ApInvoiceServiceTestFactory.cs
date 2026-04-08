@@ -40,14 +40,15 @@ public sealed class ApInvoiceServiceTestFactory
             .Setup(x => x.IsApPaymentDocNoConflict(It.IsAny<Exception>()))
             .Returns(false);
         PersistenceFailureClassifier
+            .Setup(x => x.IsArInvoiceDocNoConflict(It.IsAny<Exception>()))
+            .Returns(false);
+        PersistenceFailureClassifier
             .Setup(x => x.IsArReceiptDocNoConflict(It.IsAny<Exception>()))
             .Returns(false);
         PersistenceFailureClassifier
             .Setup(x => x.IsConcurrencyConflict(It.IsAny<Exception>()))
             .Returns(false);
-        Clock
-            .SetupGet(x => x.UtcNow)
-            .Returns(new DateTimeOffset(2026, 4, 8, 12, 0, 0, TimeSpan.Zero));
+        Clock.SetupGet(x => x.UtcNow).Returns(UtcAtHourDaysFromToday(0));
     }
 
     public ApInvoiceService CreateService() =>
@@ -101,7 +102,7 @@ public sealed class ApInvoiceServiceTestFactory
             DocNo = "APINV-1001",
             VendorId = vendorId,
             InvoiceNo = "VEN-INV-001",
-            InvoiceDate = new DateOnly(2026, 4, 5),
+            InvoiceDate = DaysFromToday(-4),
             CurrencyCode = "ZAR",
             TaxTotal = taxTotal,
             DocTotal = docTotal,

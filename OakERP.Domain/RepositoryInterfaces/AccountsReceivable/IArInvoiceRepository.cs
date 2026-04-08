@@ -17,6 +17,8 @@ public interface IArInvoiceRepository
 
     IQueryable<ArInvoice> QueryNoTracking();
 
+    Task<bool> ExistsDocNoAsync(string docNo, CancellationToken ct = default);
+
     Task AddAsync(ArInvoice entity);
 
     Task RemoveAsync(ArInvoice entity);

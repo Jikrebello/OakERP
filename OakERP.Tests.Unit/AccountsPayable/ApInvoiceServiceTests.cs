@@ -19,7 +19,7 @@ public sealed class ApInvoiceServiceTests
             DocNo = "APINV-3001",
             VendorId = vendor.Id,
             InvoiceNo = "VEN-3001",
-            InvoiceDate = new DateOnly(2026, 4, 5),
+            InvoiceDate = DaysFromToday(-4),
             CurrencyCode = "ZAR",
             TaxTotal = 15m,
             DocTotal = 115m,

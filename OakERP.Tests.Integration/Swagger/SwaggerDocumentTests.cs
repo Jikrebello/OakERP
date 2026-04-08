@@ -48,6 +48,7 @@ public sealed class SwaggerDocumentTests
         AssertRoute(document, "/api/users/admin-only", "get", requiresBearer: true);
         AssertRoute(document, "/api/users/user-only", "get", requiresBearer: true);
         AssertRoute(document, "/api/ap-invoices", "post", requiresBearer: true);
+        AssertRoute(document, "/api/ar-invoices", "post", requiresBearer: true);
         AssertRoute(document, "/api/ap-payments", "post", requiresBearer: true);
         AssertRoute(
             document,
@@ -100,6 +101,13 @@ public sealed class SwaggerDocumentTests
         );
         AssertRequestBodyAndSuccessResponse(
             document,
+            "/api/ar-invoices",
+            "post",
+            "CreateArInvoiceCommand",
+            "ArInvoiceCommandResultDto"
+        );
+        AssertRequestBodyAndSuccessResponse(
+            document,
             "/api/ap-payments",
             "post",
             "CreateApPaymentCommand",
@@ -143,11 +151,13 @@ public sealed class SwaggerDocumentTests
         AssertSchemaExample(document, "RegisterDto");
         AssertSchemaExample(document, "LoginDto");
         AssertSchemaExample(document, "CreateApInvoiceCommand");
+        AssertSchemaExample(document, "CreateArInvoiceCommand");
         AssertSchemaExample(document, "CreateApPaymentCommand");
         AssertSchemaExample(document, "AllocateApPaymentCommand");
         AssertSchemaExample(document, "CreateArReceiptCommand");
         AssertSchemaExample(document, "AllocateArReceiptCommand");
         AssertSchemaExample(document, "CurrentUserResponse");
+        AssertArInvoiceCreateExampleShape(document);
     }
 
     private async Task<JsonDocument> GetSwaggerDocumentAsync()
@@ -248,6 +258,46 @@ public sealed class SwaggerDocumentTests
             $"{schemaName} example missing."
         );
         Assert.That(example.ValueKind, Is.Not.EqualTo(JsonValueKind.Undefined));
+    }
+
+    private static void AssertArInvoiceCreateExampleShape(JsonDocument document)
+    {
+        var example = document
+            .RootElement.GetProperty("components")
+            .GetProperty("schemas")
+            .GetProperty("CreateArInvoiceCommand")
+            .GetProperty("example");
+
+        var lines = example.GetProperty("lines");
+        Assert.That(
+            lines.GetArrayLength(),
+            Is.EqualTo(2),
+            "CreateArInvoiceCommand lines example mismatch."
+        );
+
+        var serviceLine = lines[0];
+        Assert.That(
+            serviceLine.TryGetProperty("revenueAccount", out _),
+            Is.True,
+            "CreateArInvoiceCommand service-line example missing revenueAccount."
+        );
+
+        var itemLine = lines[1];
+        Assert.That(
+            itemLine.TryGetProperty("itemId", out _),
+            Is.True,
+            "CreateArInvoiceCommand item-line example missing itemId."
+        );
+        Assert.That(
+            itemLine.TryGetProperty("locationId", out _),
+            Is.True,
+            "CreateArInvoiceCommand item-line example missing locationId."
+        );
+        Assert.That(
+            itemLine.TryGetProperty("taxRateId", out _),
+            Is.True,
+            "CreateArInvoiceCommand item-line example missing taxRateId."
+        );
     }
 
     private static JsonElement GetPath(JsonDocument document, string expectedPath)

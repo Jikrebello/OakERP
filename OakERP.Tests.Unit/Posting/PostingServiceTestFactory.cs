@@ -63,14 +63,15 @@ public sealed class PostingServiceTestFactory
             .Setup(x => x.IsApPaymentDocNoConflict(It.IsAny<Exception>()))
             .Returns(false);
         PersistenceFailureClassifier
+            .Setup(x => x.IsArInvoiceDocNoConflict(It.IsAny<Exception>()))
+            .Returns(false);
+        PersistenceFailureClassifier
             .Setup(x => x.IsArReceiptDocNoConflict(It.IsAny<Exception>()))
             .Returns(false);
         PersistenceFailureClassifier
             .Setup(x => x.IsConcurrencyConflict(It.IsAny<Exception>()))
             .Returns(false);
-        Clock
-            .SetupGet(x => x.UtcNow)
-            .Returns(new DateTimeOffset(2026, 4, 8, 12, 0, 0, TimeSpan.Zero));
+        Clock.SetupGet(x => x.UtcNow).Returns(UtcAtHourDaysFromToday(0));
     }
 
     public PostingService CreateService() =>
@@ -120,10 +121,10 @@ public sealed class PostingServiceTestFactory
         new()
         {
             Id = Guid.NewGuid(),
-            FiscalYear = 2026,
-            PeriodNo = 3,
-            PeriodStart = new DateOnly(2026, 3, 1),
-            PeriodEnd = new DateOnly(2026, 3, 31),
+            FiscalYear = DaysFromToday(-10).Year,
+            PeriodNo = DaysFromToday(-10).Month,
+            PeriodStart = StartOfMonth(DaysFromToday(-10)),
+            PeriodEnd = EndOfMonth(DaysFromToday(-10)),
             Status = FiscalPeriodStatuses.Open,
         };
 
@@ -253,8 +254,8 @@ public sealed class PostingServiceTestFactory
             Id = Guid.NewGuid(),
             DocNo = "AR-1001",
             CustomerId = Guid.NewGuid(),
-            InvoiceDate = new DateOnly(2026, 3, 15),
-            DueDate = new DateOnly(2026, 4, 14),
+            InvoiceDate = DaysFromToday(-10),
+            DueDate = DaysFromToday(-10).AddDays(30),
             CurrencyCode = "ZAR",
             DocTotal = 115m,
             TaxTotal = 15m,
@@ -282,8 +283,8 @@ public sealed class PostingServiceTestFactory
             Id = Guid.NewGuid(),
             DocNo = "AR-STK-1001",
             CustomerId = Guid.NewGuid(),
-            InvoiceDate = new DateOnly(2026, 3, 15),
-            DueDate = new DateOnly(2026, 4, 14),
+            InvoiceDate = DaysFromToday(-10),
+            DueDate = DaysFromToday(-10).AddDays(30),
             CurrencyCode = "ZAR",
             DocTotal = 115m,
             TaxTotal = 15m,
@@ -330,7 +331,7 @@ public sealed class PostingServiceTestFactory
             DocNo = "RCPT-1001",
             CustomerId = Guid.NewGuid(),
             BankAccountId = Guid.NewGuid(),
-            ReceiptDate = new DateOnly(2026, 3, 20),
+            ReceiptDate = DaysFromToday(-5),
             Amount = amount,
             CurrencyCode = currencyCode,
             DocStatus = DocStatus.Draft,
@@ -370,8 +371,8 @@ public sealed class PostingServiceTestFactory
             DocNo = "AP-1001",
             VendorId = Guid.NewGuid(),
             InvoiceNo = "SUP-1001",
-            InvoiceDate = new DateOnly(2026, 4, 5),
-            DueDate = new DateOnly(2026, 5, 5),
+            InvoiceDate = DaysFromToday(-4),
+            DueDate = DaysFromToday(-4).AddDays(30),
             CurrencyCode = "ZAR",
             TaxTotal = taxTotal,
             DocTotal = expenseTotal + taxTotal,
@@ -413,7 +414,7 @@ public sealed class PostingServiceTestFactory
             DocNo = "APPAY-1001",
             VendorId = Guid.NewGuid(),
             BankAccountId = Guid.NewGuid(),
-            PaymentDate = new DateOnly(2026, 4, 20),
+            PaymentDate = DaysFromToday(-2),
             Amount = amount,
             DocStatus = DocStatus.Draft,
             BankAccount = new BankAccount

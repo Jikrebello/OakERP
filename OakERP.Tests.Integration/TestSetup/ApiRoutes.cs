@@ -19,6 +19,11 @@ public static class ApiRoutes
         public const string Create = "/api/ap-invoices";
     }
 
+    public static class ArInvoices
+    {
+        public const string Create = "/api/ar-invoices";
+    }
+
     public static class ApPayments
     {
         public const string Create = "/api/ap-payments";

@@ -30,7 +30,7 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
         {
             var receipt = await db.ArReceipts.SingleAsync(x => x.Id == receiptId);
             receipt.DocStatus.ShouldBe(DocStatus.Posted);
-            receipt.PostingDate.ShouldBe(new DateOnly(2026, 4, 5));
+            receipt.PostingDate.ShouldBe(receipt.ReceiptDate);
 
             var glEntries = await db
                 .GlEntries.Where(x => x.SourceId == receiptId)
@@ -137,7 +137,10 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
     [Test]
     public async Task PostAsync_Should_Reject_When_No_Open_Period_Exists()
     {
-        var receiptId = await SeedReceiptScenarioAsync(includeOpenPeriod: false);
+        var receiptId = await SeedReceiptScenarioAsync(
+            includeOpenPeriod: false,
+            receiptDate: DaysFromToday(40)
+        );
 
         await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             PostReceiptAsync(receiptId)
@@ -201,95 +204,130 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
         decimal amount = 125m,
         decimal allocatedAmount = 0m,
         bool includeOpenPeriod = true,
-        string currencyCode = "ZAR"
+        string currencyCode = "ZAR",
+        DateOnly? receiptDate = null
     )
     {
         var receiptId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
         var invoiceId = Guid.NewGuid();
+        var effectiveReceiptDate = receiptDate ?? DaysFromToday(-4);
+        string customerCode = $"CUST-{customerId.ToString("N")[..8].ToUpperInvariant()}";
+        string bankName = $"Main Bank {bankAccountId.ToString("N")[..8].ToUpperInvariant()}";
+        string receiptDocNo = $"RCPT-{receiptId.ToString("N")[..8].ToUpperInvariant()}";
+        string invoiceDocNo = $"ARINV-{invoiceId.ToString("N")[..8].ToUpperInvariant()}";
 
         await WithDbAsync(async db =>
         {
-            db.Currencies.AddRange(
-                new Currency
-                {
-                    Code = "ZAR",
-                    NumericCode = 710,
-                    Name = "Rand",
-                    Symbol = "R",
-                    Decimals = 2,
-                    IsActive = true,
-                },
-                new Currency
-                {
-                    Code = "USD",
-                    NumericCode = 840,
-                    Name = "US Dollar",
-                    Symbol = "$",
-                    Decimals = 2,
-                    IsActive = true,
-                }
-            );
+            if (!await db.Currencies.AnyAsync(x => x.Code == "ZAR"))
+            {
+                db.Currencies.Add(
+                    new Currency
+                    {
+                        Code = "ZAR",
+                        NumericCode = 710,
+                        Name = "Rand",
+                        Symbol = "R",
+                        Decimals = 2,
+                        IsActive = true,
+                    }
+                );
+            }
 
-            db.GlAccounts.AddRange(
-                new GlAccount
-                {
-                    AccountNo = "1000",
-                    Name = "Bank",
-                    Type = GlAccountType.Asset,
-                    IsActive = true,
-                },
-                new GlAccount
-                {
-                    AccountNo = "1100",
-                    Name = "Accounts Receivable",
-                    Type = GlAccountType.Asset,
-                    IsActive = true,
-                    IsControl = true,
-                }
-            );
+            if (!await db.Currencies.AnyAsync(x => x.Code == "USD"))
+            {
+                db.Currencies.Add(
+                    new Currency
+                    {
+                        Code = "USD",
+                        NumericCode = 840,
+                        Name = "US Dollar",
+                        Symbol = "$",
+                        Decimals = 2,
+                        IsActive = true,
+                    }
+                );
+            }
 
-            db.AppSettings.Add(
-                new AppSetting
-                {
-                    Key = GlPostingSettingsKeys.Posting,
-                    ValueJson = JsonSerializer.Serialize(
-                        new GlPostingSettings(
-                            "ZAR",
-                            "1100",
-                            "2000",
-                            "4000",
-                            "5000",
-                            "1300",
-                            "5100",
-                            "2100",
-                            "2200"
-                        )
-                    ),
-                }
-            );
+            if (!await db.GlAccounts.AnyAsync(x => x.AccountNo == "1000"))
+            {
+                db.GlAccounts.Add(
+                    new GlAccount
+                    {
+                        AccountNo = "1000",
+                        Name = "Bank",
+                        Type = GlAccountType.Asset,
+                        IsActive = true,
+                    }
+                );
+            }
+
+            if (!await db.GlAccounts.AnyAsync(x => x.AccountNo == "1100"))
+            {
+                db.GlAccounts.Add(
+                    new GlAccount
+                    {
+                        AccountNo = "1100",
+                        Name = "Accounts Receivable",
+                        Type = GlAccountType.Asset,
+                        IsActive = true,
+                        IsControl = true,
+                    }
+                );
+            }
+
+            if (!await db.AppSettings.AnyAsync(x => x.Key == GlPostingSettingsKeys.Posting))
+            {
+                db.AppSettings.Add(
+                    new AppSetting
+                    {
+                        Key = GlPostingSettingsKeys.Posting,
+                        ValueJson = JsonSerializer.Serialize(
+                            new GlPostingSettings(
+                                "ZAR",
+                                "1100",
+                                "2000",
+                                "4000",
+                                "5000",
+                                "1300",
+                                "5100",
+                                "2100",
+                                "2200"
+                            )
+                        ),
+                    }
+                );
+            }
 
             if (includeOpenPeriod)
             {
-                db.FiscalPeriods.Add(
-                    new FiscalPeriod
-                    {
-                        Id = Guid.NewGuid(),
-                        FiscalYear = 2026,
-                        PeriodNo = 4,
-                        PeriodStart = new DateOnly(2026, 4, 1),
-                        PeriodEnd = new DateOnly(2026, 4, 30),
-                        Status = FiscalPeriodStatuses.Open,
-                    }
-                );
+                if (
+                    !await db.FiscalPeriods.AnyAsync(x =>
+                        x.FiscalYear == effectiveReceiptDate.Year
+                        && x.PeriodNo == effectiveReceiptDate.Month
+                    )
+                )
+                {
+                    db.FiscalPeriods.Add(
+                        new FiscalPeriod
+                        {
+                            Id = Guid.NewGuid(),
+                            FiscalYear = effectiveReceiptDate.Year,
+                            PeriodNo = effectiveReceiptDate.Month,
+                            PeriodStart = StartOfMonth(effectiveReceiptDate),
+                            PeriodEnd = EndOfMonth(effectiveReceiptDate),
+                            Status = FiscalPeriodStatuses.Open,
+                        }
+                    );
+                }
             }
 
             db.Customers.Add(
                 new Customer
                 {
                     Id = customerId,
-                    CustomerCode = "CUST-001",
+                    CustomerCode = customerCode,
                     Name = "Acme Customer",
                     IsActive = true,
                 }
@@ -299,7 +337,7 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
                 new BankAccount
                 {
                     Id = bankAccountId,
-                    Name = "Main Bank",
+                    Name = bankName,
                     GlAccountNo = "1000",
                     OpeningBalance = 0m,
                     CurrencyCode = currencyCode,
@@ -311,10 +349,10 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
                 new ArReceipt
                 {
                     Id = receiptId,
-                    DocNo = "RCPT-POST-1001",
+                    DocNo = receiptDocNo,
                     CustomerId = customerId,
                     BankAccountId = bankAccountId,
-                    ReceiptDate = new DateOnly(2026, 4, 5),
+                    ReceiptDate = effectiveReceiptDate,
                     Amount = amount,
                     CurrencyCode = currencyCode,
                     DocStatus = DocStatus.Draft,
@@ -327,11 +365,11 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
                     new ArInvoice
                     {
                         Id = invoiceId,
-                        DocNo = "ARINV-POST-1001",
+                        DocNo = invoiceDocNo,
                         CustomerId = customerId,
-                        InvoiceDate = new DateOnly(2026, 4, 1),
-                        DueDate = new DateOnly(2026, 5, 1),
-                        PostingDate = new DateOnly(2026, 4, 1),
+                        InvoiceDate = effectiveReceiptDate.AddDays(-4),
+                        DueDate = effectiveReceiptDate.AddDays(-4).AddDays(30),
+                        PostingDate = effectiveReceiptDate.AddDays(-4),
                         CurrencyCode = currencyCode,
                         TaxTotal = 0m,
                         DocTotal = allocatedAmount,
@@ -344,7 +382,7 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
                     {
                         ArReceiptId = receiptId,
                         ArInvoiceId = invoiceId,
-                        AllocationDate = new DateOnly(2026, 4, 5),
+                        AllocationDate = effectiveReceiptDate,
                         AmountApplied = allocatedAmount,
                     }
                 );

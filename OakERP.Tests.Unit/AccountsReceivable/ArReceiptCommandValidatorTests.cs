@@ -13,7 +13,7 @@ public sealed class ArReceiptCommandValidatorTests
             DocNo = "  rcpt-3001  ",
             CustomerId = Guid.NewGuid(),
             BankAccountId = Guid.NewGuid(),
-            ReceiptDate = new DateOnly(2026, 4, 5),
+            ReceiptDate = DaysFromToday(-4),
             Amount = 100m,
             CurrencyCode = "  zar ",
             Memo = "  first receipt  ",

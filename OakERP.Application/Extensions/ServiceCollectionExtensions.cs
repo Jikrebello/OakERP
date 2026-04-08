@@ -16,6 +16,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IApInvoiceService, ApInvoiceService>();
         services.AddScoped<IApPaymentService, ApPaymentService>();
+        services.AddScoped<IArInvoiceService, ArInvoiceService>();
         services.AddScoped<IArReceiptService, ArReceiptService>();
         services.AddScoped<IPostingService, PostingService>();
 

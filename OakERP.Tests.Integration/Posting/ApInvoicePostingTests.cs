@@ -20,7 +20,7 @@ public sealed class ApInvoicePostingTests : WebApiIntegrationTestBase
     public async Task PostAsync_Should_Post_ApInvoice_To_ApControl_Expense_And_TaxInput()
     {
         var invoiceId = await SeedInvoiceScenarioAsync(taxTotal: 15m);
-        var postingDate = new DateOnly(2026, 4, 10);
+        var postingDate = DaysFromToday(-2);
 
         PostResult result = await PostInvoiceAsync(invoiceId, postingDate);
 
@@ -114,7 +114,10 @@ public sealed class ApInvoicePostingTests : WebApiIntegrationTestBase
     [Test]
     public async Task PostAsync_Should_Reject_When_No_Open_Period_Exists()
     {
-        var invoiceId = await SeedInvoiceScenarioAsync(includeOpenPeriod: false);
+        var invoiceId = await SeedInvoiceScenarioAsync(
+            includeOpenPeriod: false,
+            invoiceDate: DaysFromToday(40)
+        );
 
         await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             PostInvoiceAsync(invoiceId)
@@ -192,109 +195,157 @@ public sealed class ApInvoicePostingTests : WebApiIntegrationTestBase
         bool includeOpenPeriod = true,
         string currencyCode = "ZAR",
         bool includeItemLine = false,
-        bool includeTaxRateLine = false
+        bool includeTaxRateLine = false,
+        DateOnly? invoiceDate = null
     )
     {
         var invoiceId = Guid.NewGuid();
         var vendorId = Guid.NewGuid();
         var itemId = Guid.NewGuid();
         var taxRateId = Guid.NewGuid();
+        var effectiveInvoiceDate = invoiceDate ?? DaysFromToday(-4);
+        string vendorCode = $"VEND-{vendorId.ToString("N")[..8].ToUpperInvariant()}";
+        string itemSku = $"ITEM-{itemId.ToString("N")[..8].ToUpperInvariant()}";
+        string taxRateName = $"Input VAT 15% {taxRateId.ToString("N")[..8].ToUpperInvariant()}";
+        string docNo = $"APINV-{invoiceId.ToString("N")[..8].ToUpperInvariant()}";
+        string invoiceNo = $"SUP-{invoiceId.ToString("N")[..8].ToUpperInvariant()}";
 
         await WithDbAsync(async db =>
         {
-            db.Currencies.AddRange(
-                new Currency
-                {
-                    Code = "ZAR",
-                    NumericCode = 710,
-                    Name = "Rand",
-                    Symbol = "R",
-                    Decimals = 2,
-                    IsActive = true,
-                },
-                new Currency
-                {
-                    Code = "USD",
-                    NumericCode = 840,
-                    Name = "US Dollar",
-                    Symbol = "$",
-                    Decimals = 2,
-                    IsActive = true,
-                }
-            );
+            if (!await db.Currencies.AnyAsync(x => x.Code == "ZAR"))
+            {
+                db.Currencies.Add(
+                    new Currency
+                    {
+                        Code = "ZAR",
+                        NumericCode = 710,
+                        Name = "Rand",
+                        Symbol = "R",
+                        Decimals = 2,
+                        IsActive = true,
+                    }
+                );
+            }
 
-            db.GlAccounts.AddRange(
-                new GlAccount
-                {
-                    AccountNo = "2000",
-                    Name = "Accounts Payable",
-                    Type = GlAccountType.Liability,
-                    IsActive = true,
-                    IsControl = true,
-                },
-                new GlAccount
-                {
-                    AccountNo = "2200",
-                    Name = "Input VAT",
-                    Type = GlAccountType.Asset,
-                    IsActive = true,
-                },
-                new GlAccount
-                {
-                    AccountNo = "5000",
-                    Name = "Office Expense",
-                    Type = GlAccountType.Expense,
-                    IsActive = true,
-                },
-                new GlAccount
-                {
-                    AccountNo = "5100",
-                    Name = "Travel Expense",
-                    Type = GlAccountType.Expense,
-                    IsActive = true,
-                }
-            );
+            if (!await db.Currencies.AnyAsync(x => x.Code == "USD"))
+            {
+                db.Currencies.Add(
+                    new Currency
+                    {
+                        Code = "USD",
+                        NumericCode = 840,
+                        Name = "US Dollar",
+                        Symbol = "$",
+                        Decimals = 2,
+                        IsActive = true,
+                    }
+                );
+            }
 
-            db.AppSettings.Add(
-                new AppSetting
-                {
-                    Key = GlPostingSettingsKeys.Posting,
-                    ValueJson = JsonSerializer.Serialize(
-                        new GlPostingSettings(
-                            "ZAR",
-                            "1100",
-                            "2000",
-                            "4000",
-                            "5000",
-                            "1300",
-                            "5100",
-                            "2100",
-                            "2200"
-                        )
-                    ),
-                }
-            );
+            if (!await db.GlAccounts.AnyAsync(x => x.AccountNo == "2000"))
+            {
+                db.GlAccounts.Add(
+                    new GlAccount
+                    {
+                        AccountNo = "2000",
+                        Name = "Accounts Payable",
+                        Type = GlAccountType.Liability,
+                        IsActive = true,
+                        IsControl = true,
+                    }
+                );
+            }
+
+            if (!await db.GlAccounts.AnyAsync(x => x.AccountNo == "2200"))
+            {
+                db.GlAccounts.Add(
+                    new GlAccount
+                    {
+                        AccountNo = "2200",
+                        Name = "Input VAT",
+                        Type = GlAccountType.Asset,
+                        IsActive = true,
+                    }
+                );
+            }
+
+            if (!await db.GlAccounts.AnyAsync(x => x.AccountNo == "5000"))
+            {
+                db.GlAccounts.Add(
+                    new GlAccount
+                    {
+                        AccountNo = "5000",
+                        Name = "Office Expense",
+                        Type = GlAccountType.Expense,
+                        IsActive = true,
+                    }
+                );
+            }
+
+            if (!await db.GlAccounts.AnyAsync(x => x.AccountNo == "5100"))
+            {
+                db.GlAccounts.Add(
+                    new GlAccount
+                    {
+                        AccountNo = "5100",
+                        Name = "Travel Expense",
+                        Type = GlAccountType.Expense,
+                        IsActive = true,
+                    }
+                );
+            }
+
+            if (!await db.AppSettings.AnyAsync(x => x.Key == GlPostingSettingsKeys.Posting))
+            {
+                db.AppSettings.Add(
+                    new AppSetting
+                    {
+                        Key = GlPostingSettingsKeys.Posting,
+                        ValueJson = JsonSerializer.Serialize(
+                            new GlPostingSettings(
+                                "ZAR",
+                                "1100",
+                                "2000",
+                                "4000",
+                                "5000",
+                                "1300",
+                                "5100",
+                                "2100",
+                                "2200"
+                            )
+                        ),
+                    }
+                );
+            }
 
             if (includeOpenPeriod)
             {
-                db.FiscalPeriods.Add(
-                    new FiscalPeriod
-                    {
-                        Id = Guid.NewGuid(),
-                        FiscalYear = 2026,
-                        PeriodNo = 4,
-                        PeriodStart = new DateOnly(2026, 4, 1),
-                        PeriodEnd = new DateOnly(2026, 4, 30),
-                        Status = FiscalPeriodStatuses.Open,
-                    }
-                );
+                if (
+                    !await db.FiscalPeriods.AnyAsync(x =>
+                        x.FiscalYear == effectiveInvoiceDate.Year
+                        && x.PeriodNo == effectiveInvoiceDate.Month
+                    )
+                )
+                {
+                    db.FiscalPeriods.Add(
+                        new FiscalPeriod
+                        {
+                            Id = Guid.NewGuid(),
+                            FiscalYear = effectiveInvoiceDate.Year,
+                            PeriodNo = effectiveInvoiceDate.Month,
+                            PeriodStart = StartOfMonth(effectiveInvoiceDate),
+                            PeriodEnd = EndOfMonth(effectiveInvoiceDate),
+                            Status = FiscalPeriodStatuses.Open,
+                        }
+                    );
+                }
             }
 
             db.Vendors.Add(
                 new Vendor
                 {
                     Id = vendorId,
-                    VendorCode = "VEND-001",
+                    VendorCode = vendorCode,
                     Name = "Acme Supplier",
                     IsActive = true,
                 }
@@ -306,7 +357,7 @@ public sealed class ApInvoicePostingTests : WebApiIntegrationTestBase
                     new Item
                     {
                         Id = itemId,
-                        Sku = "ITEM-001",
+                        Sku = itemSku,
                         Name = "Deferred Item",
                         Type = ItemType.Stock,
                         DefaultExpenseAccountNo = "5000",
@@ -321,10 +372,10 @@ public sealed class ApInvoicePostingTests : WebApiIntegrationTestBase
                     new TaxRate
                     {
                         Id = taxRateId,
-                        Name = "Input VAT 15%",
+                        Name = taxRateName,
                         RatePercent = 15m,
                         IsInput = true,
-                        EffectiveFrom = new DateOnly(2026, 1, 1),
+                        EffectiveFrom = DaysFromToday(-100),
                         IsActive = true,
                     }
                 );
@@ -334,11 +385,11 @@ public sealed class ApInvoicePostingTests : WebApiIntegrationTestBase
                 new ApInvoice
                 {
                     Id = invoiceId,
-                    DocNo = "APINV-POST-1001",
+                    DocNo = docNo,
                     VendorId = vendorId,
-                    InvoiceNo = "SUP-POST-1001",
-                    InvoiceDate = new DateOnly(2026, 4, 5),
-                    DueDate = new DateOnly(2026, 5, 5),
+                    InvoiceNo = invoiceNo,
+                    InvoiceDate = effectiveInvoiceDate,
+                    DueDate = effectiveInvoiceDate.AddDays(30),
                     CurrencyCode = currencyCode,
                     TaxTotal = taxTotal,
                     DocTotal = 100m + taxTotal,

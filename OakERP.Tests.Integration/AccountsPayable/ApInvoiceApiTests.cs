@@ -21,14 +21,16 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
         await AuthenticateAsync();
 
         var vendorId = Guid.NewGuid();
+        string docNo = $"APINV-{Guid.NewGuid():N}";
+        string invoiceNo = $"VEN-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(vendorId);
 
         var command = new CreateApInvoiceCommand
         {
-            DocNo = "APINV-4001",
+            DocNo = docNo,
             VendorId = vendorId,
-            InvoiceNo = "VEN-4001",
-            InvoiceDate = new DateOnly(2026, 4, 5),
+            InvoiceNo = invoiceNo,
+            InvoiceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-4)),
             CurrencyCode = "ZAR",
             TaxTotal = 15m,
             DocTotal = 115m,
@@ -84,15 +86,18 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
         await AuthenticateAsync();
 
         var vendorId = Guid.NewGuid();
+        string existingDocNo = $"APINV-{Guid.NewGuid():N}";
+        string duplicateInvoiceNo = $"VEN-{Guid.NewGuid():N}";
+        string docNo = $"APINV-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(vendorId);
-        await SeedExistingInvoiceAsync(vendorId, "APINV-EXIST", "VEN-DUP-1");
+        await SeedExistingInvoiceAsync(vendorId, existingDocNo, duplicateInvoiceNo);
 
         var command = new CreateApInvoiceCommand
         {
-            DocNo = "APINV-4002",
+            DocNo = docNo,
             VendorId = vendorId,
-            InvoiceNo = "VEN-DUP-1",
-            InvoiceDate = new DateOnly(2026, 4, 5),
+            InvoiceNo = duplicateInvoiceNo,
+            InvoiceDate = DaysFromToday(-4),
             CurrencyCode = "ZAR",
             TaxTotal = 0m,
             DocTotal = 40m,
@@ -120,7 +125,12 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
         await WithDbAsync(async db =>
         {
             (await db.ApInvoices.CountAsync(x => x.DocNo == command.DocNo)).ShouldBe(0);
-            (await db.ApInvoiceLines.CountAsync()).ShouldBe(0);
+            (
+                await db
+                    .ApInvoices.Where(x => x.DocNo == command.DocNo)
+                    .SelectMany(x => x.Lines)
+                    .CountAsync()
+            ).ShouldBe(0);
         });
     }
 
@@ -130,14 +140,16 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
         await AuthenticateAsync();
 
         var vendorId = Guid.NewGuid();
+        string docNo = $"APINV-{Guid.NewGuid():N}";
+        string invoiceNo = $"VEN-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(vendorId);
 
         var command = new CreateApInvoiceCommand
         {
-            DocNo = "APINV-4003",
+            DocNo = docNo,
             VendorId = vendorId,
-            InvoiceNo = "VEN-4003",
-            InvoiceDate = new DateOnly(2026, 4, 5),
+            InvoiceNo = invoiceNo,
+            InvoiceDate = DaysFromToday(-4),
             CurrencyCode = "ZAR",
             TaxTotal = 0m,
             DocTotal = 25m,
@@ -165,7 +177,12 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
         await WithDbAsync(async db =>
         {
             (await db.ApInvoices.CountAsync(x => x.DocNo == command.DocNo)).ShouldBe(0);
-            (await db.ApInvoiceLines.CountAsync()).ShouldBe(0);
+            (
+                await db
+                    .ApInvoices.Where(x => x.DocNo == command.DocNo)
+                    .SelectMany(x => x.Lines)
+                    .CountAsync()
+            ).ShouldBe(0);
         });
     }
 
@@ -175,14 +192,16 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
         await AuthenticateAsync();
 
         var vendorId = Guid.NewGuid();
+        string docNo = $"APINV-{Guid.NewGuid():N}";
+        string invoiceNo = $"VEN-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(vendorId, accountActive: false);
 
         var command = new CreateApInvoiceCommand
         {
-            DocNo = "APINV-4004",
+            DocNo = docNo,
             VendorId = vendorId,
-            InvoiceNo = "VEN-4004",
-            InvoiceDate = new DateOnly(2026, 4, 5),
+            InvoiceNo = invoiceNo,
+            InvoiceDate = DaysFromToday(-4),
             CurrencyCode = "ZAR",
             TaxTotal = 0m,
             DocTotal = 40m,
@@ -210,21 +229,28 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
         await WithDbAsync(async db =>
         {
             (await db.ApInvoices.CountAsync(x => x.DocNo == command.DocNo)).ShouldBe(0);
-            (await db.ApInvoiceLines.CountAsync()).ShouldBe(0);
+            (
+                await db
+                    .ApInvoices.Where(x => x.DocNo == command.DocNo)
+                    .SelectMany(x => x.Lines)
+                    .CountAsync()
+            ).ShouldBe(0);
         });
     }
 
     private async Task AuthenticateAsync()
     {
+        string authId = Guid.NewGuid().ToString("N")[..8];
+
         var registerDto = new RegisterDto
         {
-            Email = $"ap_invoice_api_{TestId}@oak.test",
+            Email = $"ap_invoice_api_{TestId}_{authId}@oak.test",
             Password = "TestPass123!",
             ConfirmPassword = "TestPass123!",
             FirstName = "AP",
             LastName = "Tester",
             PhoneNumber = "123456789",
-            TenantName = $"ApInvoiceTenant_{TestId}",
+            TenantName = $"ApInvoiceTenant_{TestId}_{authId}",
         };
 
         var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
@@ -252,35 +278,48 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
         bool accountActive = true
     )
     {
+        string vendorCode = $"VEND-{vendorId.ToString("N")[..8].ToUpperInvariant()}";
+
         await WithDbAsync(async db =>
         {
-            db.Currencies.Add(
-                new Currency
-                {
-                    Code = "ZAR",
-                    NumericCode = 710,
-                    Name = "Rand",
-                    Symbol = "R",
-                    Decimals = 2,
-                    IsActive = true,
-                }
-            );
+            if (!await db.Currencies.AnyAsync(x => x.Code == "ZAR"))
+            {
+                db.Currencies.Add(
+                    new Currency
+                    {
+                        Code = "ZAR",
+                        NumericCode = 710,
+                        Name = "Rand",
+                        Symbol = "R",
+                        Decimals = 2,
+                        IsActive = true,
+                    }
+                );
+            }
 
-            db.GlAccounts.Add(
-                new GlAccount
-                {
-                    AccountNo = "5000",
-                    Name = "Expense",
-                    Type = GlAccountType.Expense,
-                    IsActive = accountActive,
-                }
-            );
+            var account = await db.GlAccounts.SingleOrDefaultAsync(x => x.AccountNo == "5000");
+            if (account is null)
+            {
+                db.GlAccounts.Add(
+                    new GlAccount
+                    {
+                        AccountNo = "5000",
+                        Name = "Expense",
+                        Type = GlAccountType.Expense,
+                        IsActive = accountActive,
+                    }
+                );
+            }
+            else
+            {
+                account.IsActive = accountActive;
+            }
 
             db.Vendors.Add(
                 new Vendor
                 {
                     Id = vendorId,
-                    VendorCode = "VEND-001",
+                    VendorCode = vendorCode,
                     Name = "Acme Vendor",
                     TermsDays = 30,
                     IsActive = vendorActive,
@@ -302,8 +341,8 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
                     DocNo = docNo,
                     VendorId = vendorId,
                     InvoiceNo = invoiceNo,
-                    InvoiceDate = new DateOnly(2026, 4, 1),
-                    DueDate = new DateOnly(2026, 5, 1),
+                    InvoiceDate = DaysFromToday(-8),
+                    DueDate = DaysFromToday(-8).AddDays(30),
                     CurrencyCode = "ZAR",
                     TaxTotal = 0m,
                     DocTotal = 10m,

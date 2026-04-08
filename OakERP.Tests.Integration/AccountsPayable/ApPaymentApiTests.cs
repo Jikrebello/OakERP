@@ -25,14 +25,15 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
 
         var vendorId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string docNo = $"APPAY-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(vendorId, bankAccountId);
 
         var command = new CreateApPaymentCommand
         {
-            DocNo = "APPAY-3001",
+            DocNo = docNo,
             VendorId = vendorId,
             BankAccountId = bankAccountId,
-            PaymentDate = new DateOnly(2026, 4, 5),
+            PaymentDate = DaysFromToday(-4),
             Amount = 125m,
             Memo = "Unapplied vendor payment",
         };
@@ -66,17 +67,18 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
 
         var vendorId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string docNo = $"APPAY-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(vendorId, bankAccountId);
 
-        var invoiceA = await SeedPostedInvoiceAsync(vendorId, "APINV-3001", 100m);
-        var invoiceB = await SeedPostedInvoiceAsync(vendorId, "APINV-3002", 50m);
+        var invoiceA = await SeedPostedInvoiceAsync(vendorId, $"APINV-{Guid.NewGuid():N}", 100m);
+        var invoiceB = await SeedPostedInvoiceAsync(vendorId, $"APINV-{Guid.NewGuid():N}", 50m);
 
         var command = new CreateApPaymentCommand
         {
-            DocNo = "APPAY-3002",
+            DocNo = docNo,
             VendorId = vendorId,
             BankAccountId = bankAccountId,
-            PaymentDate = new DateOnly(2026, 4, 5),
+            PaymentDate = DaysFromToday(-4),
             Amount = 150m,
             Allocations =
             [
@@ -126,14 +128,16 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
 
         var vendorId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string seededInvoiceDocNo = $"APINV-{Guid.NewGuid():N}";
+        string paymentDocNo = $"APPAY-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(vendorId, bankAccountId);
 
-        var invoiceId = await SeedPostedInvoiceAsync(vendorId, "APINV-3003", 100m);
-        var paymentId = await SeedDraftPaymentAsync(vendorId, bankAccountId, "APPAY-3003", 90m);
+        var invoiceId = await SeedPostedInvoiceAsync(vendorId, seededInvoiceDocNo, 100m);
+        var paymentId = await SeedDraftPaymentAsync(vendorId, bankAccountId, paymentDocNo, 90m);
 
         var command = new AllocateApPaymentCommand
         {
-            AllocationDate = new DateOnly(2026, 4, 6),
+            AllocationDate = DaysFromToday(-3),
             Allocations =
             [
                 new ApPaymentAllocationInputDto { ApInvoiceId = invoiceId, AmountApplied = 60m },
@@ -176,16 +180,21 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
         var paymentVendorId = Guid.NewGuid();
         var invoiceVendorId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string docNo = $"APPAY-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(paymentVendorId, bankAccountId);
-        await SeedVendorAsync(invoiceVendorId, "VEND-002", "Other Vendor");
-        var invoiceId = await SeedPostedInvoiceAsync(invoiceVendorId, "APINV-3004", 80m);
+        await SeedVendorAsync(invoiceVendorId, $"VEND-{Guid.NewGuid():N}", "Other Vendor");
+        var invoiceId = await SeedPostedInvoiceAsync(
+            invoiceVendorId,
+            $"APINV-{Guid.NewGuid():N}",
+            80m
+        );
 
         var command = new CreateApPaymentCommand
         {
-            DocNo = "APPAY-3004",
+            DocNo = docNo,
             VendorId = paymentVendorId,
             BankAccountId = bankAccountId,
-            PaymentDate = new DateOnly(2026, 4, 5),
+            PaymentDate = DaysFromToday(-4),
             Amount = 80m,
             Allocations =
             [
@@ -204,7 +213,12 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
         await WithDbAsync(async db =>
         {
             (await db.ApPayments.CountAsync(x => x.DocNo == command.DocNo)).ShouldBe(0);
-            (await db.ApPaymentAllocations.CountAsync()).ShouldBe(0);
+            (
+                await db
+                    .ApPayments.Where(x => x.DocNo == command.DocNo)
+                    .SelectMany(x => x.Allocations)
+                    .CountAsync()
+            ).ShouldBe(0);
         });
     }
 
@@ -215,15 +229,16 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
 
         var vendorId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string docNo = $"APPAY-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(vendorId, bankAccountId);
-        var invoiceId = await SeedPostedInvoiceAsync(vendorId, "APINV-3005", 100m);
+        var invoiceId = await SeedPostedInvoiceAsync(vendorId, $"APINV-{Guid.NewGuid():N}", 100m);
 
         var command = new CreateApPaymentCommand
         {
-            DocNo = "APPAY-3005",
+            DocNo = docNo,
             VendorId = vendorId,
             BankAccountId = bankAccountId,
-            PaymentDate = new DateOnly(2026, 4, 5),
+            PaymentDate = DaysFromToday(-4),
             Amount = 80m,
             Allocations =
             [
@@ -242,7 +257,12 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
         await WithDbAsync(async db =>
         {
             (await db.ApPayments.CountAsync(x => x.DocNo == command.DocNo)).ShouldBe(0);
-            (await db.ApPaymentAllocations.CountAsync()).ShouldBe(0);
+            (
+                await db
+                    .ApPayments.Where(x => x.DocNo == command.DocNo)
+                    .SelectMany(x => x.Allocations)
+                    .CountAsync()
+            ).ShouldBe(0);
             (await db.ApInvoices.SingleAsync(x => x.Id == invoiceId)).DocStatus.ShouldBe(
                 DocStatus.Posted
             );
@@ -256,9 +276,11 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
 
         var vendorId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string invoiceDocNo = $"APINV-{Guid.NewGuid():N}";
+        string paymentDocNo = $"APPAY-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(vendorId, bankAccountId);
-        var invoiceId = await SeedPostedInvoiceAsync(vendorId, "APINV-3006", 100m);
-        var paymentId = await SeedDraftPaymentAsync(vendorId, bankAccountId, "APPAY-3006", 120m);
+        var invoiceId = await SeedPostedInvoiceAsync(vendorId, invoiceDocNo, 100m);
+        var paymentId = await SeedDraftPaymentAsync(vendorId, bankAccountId, paymentDocNo, 120m);
 
         var command = new AllocateApPaymentCommand
         {
@@ -295,14 +317,15 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
 
         var vendorId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string docNo = $"APPAY-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(vendorId, bankAccountId, bankCurrencyCode: "USD");
 
         var command = new CreateApPaymentCommand
         {
-            DocNo = "APPAY-3007",
+            DocNo = docNo,
             VendorId = vendorId,
             BankAccountId = bankAccountId,
-            PaymentDate = new DateOnly(2026, 4, 5),
+            PaymentDate = DaysFromToday(-4),
             Amount = 50m,
         };
 
@@ -322,15 +345,17 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
 
     private async Task AuthenticateAsync()
     {
+        string authId = Guid.NewGuid().ToString("N")[..8];
+
         var registerDto = new RegisterDto
         {
-            Email = $"ap_payment_api_{TestId}@oak.test",
+            Email = $"ap_payment_api_{TestId}_{authId}@oak.test",
             Password = "TestPass123!",
             ConfirmPassword = "TestPass123!",
             FirstName = "AP",
             LastName = "Tester",
             PhoneNumber = "123456789",
-            TenantName = $"ApPaymentTenant_{TestId}",
+            TenantName = $"ApPaymentTenant_{TestId}_{authId}",
         };
 
         var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
@@ -360,64 +385,82 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
         bool bankActive = true
     )
     {
+        string vendorCode = $"VEND-{vendorId.ToString("N")[..8].ToUpperInvariant()}";
+        string bankName = $"Main Bank {bankAccountId.ToString("N")[..8].ToUpperInvariant()}";
+
         await WithDbAsync(async db =>
         {
-            db.Currencies.AddRange(
-                new Currency
-                {
-                    Code = "ZAR",
-                    NumericCode = 710,
-                    Name = "Rand",
-                    Symbol = "R",
-                    Decimals = 2,
-                    IsActive = true,
-                },
-                new Currency
-                {
-                    Code = "USD",
-                    NumericCode = 840,
-                    Name = "US Dollar",
-                    Symbol = "$",
-                    Decimals = 2,
-                    IsActive = true,
-                }
-            );
+            if (!await db.Currencies.AnyAsync(x => x.Code == "ZAR"))
+            {
+                db.Currencies.Add(
+                    new Currency
+                    {
+                        Code = "ZAR",
+                        NumericCode = 710,
+                        Name = "Rand",
+                        Symbol = "R",
+                        Decimals = 2,
+                        IsActive = true,
+                    }
+                );
+            }
 
-            db.GlAccounts.Add(
-                new GlAccount
-                {
-                    AccountNo = "1000",
-                    Name = "Bank",
-                    Type = GlAccountType.Asset,
-                    IsActive = true,
-                }
-            );
+            if (!await db.Currencies.AnyAsync(x => x.Code == "USD"))
+            {
+                db.Currencies.Add(
+                    new Currency
+                    {
+                        Code = "USD",
+                        NumericCode = 840,
+                        Name = "US Dollar",
+                        Symbol = "$",
+                        Decimals = 2,
+                        IsActive = true,
+                    }
+                );
+            }
 
-            db.AppSettings.Add(
-                new AppSetting
-                {
-                    Key = GlPostingSettingsKeys.Posting,
-                    ValueJson = JsonSerializer.Serialize(
-                        new GlPostingSettings(
-                            "ZAR",
-                            "1100",
-                            "2000",
-                            "4000",
-                            "5000",
-                            "1300",
-                            "5100",
-                            "2100",
-                            "2200"
-                        )
-                    ),
-                }
-            );
+            if (!await db.GlAccounts.AnyAsync(x => x.AccountNo == "1000"))
+            {
+                db.GlAccounts.Add(
+                    new GlAccount
+                    {
+                        AccountNo = "1000",
+                        Name = "Bank",
+                        Type = GlAccountType.Asset,
+                        IsActive = true,
+                    }
+                );
+            }
+
+            if (!await db.AppSettings.AnyAsync(x => x.Key == GlPostingSettingsKeys.Posting))
+            {
+                db.AppSettings.Add(
+                    new AppSetting
+                    {
+                        Key = GlPostingSettingsKeys.Posting,
+                        ValueJson = JsonSerializer.Serialize(
+                            new GlPostingSettings(
+                                "ZAR",
+                                "1100",
+                                "2000",
+                                "4000",
+                                "5000",
+                                "1300",
+                                "5100",
+                                "2100",
+                                "2200"
+                            )
+                        ),
+                    }
+                );
+            }
 
             db.Vendors.Add(
                 new Vendor
                 {
                     Id = vendorId,
-                    VendorCode = "VEND-001",
+                    VendorCode = vendorCode,
                     Name = "Acme Vendor",
                     TermsDays = 30,
                     IsActive = vendorActive,
@@ -428,7 +471,7 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
                 new BankAccount
                 {
                     Id = bankAccountId,
-                    Name = "Main Bank",
+                    Name = bankName,
                     GlAccountNo = "1000",
                     OpeningBalance = 0m,
                     CurrencyCode = bankCurrencyCode,
@@ -471,9 +514,9 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
                     Id = invoiceId,
                     DocNo = docNo,
                     VendorId = vendorId,
-                    InvoiceNo = $"{docNo}-SUP",
-                    InvoiceDate = new DateOnly(2026, 4, 1),
-                    DueDate = new DateOnly(2026, 5, 1),
+                    InvoiceNo = $"SUP-{invoiceId:N}",
+                    InvoiceDate = DaysFromToday(-8),
+                    DueDate = DaysFromToday(-8).AddDays(30),
                     CurrencyCode = "ZAR",
                     TaxTotal = 0m,
                     DocTotal = docTotal,
@@ -505,7 +548,7 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
                     DocNo = docNo,
                     VendorId = vendorId,
                     BankAccountId = bankAccountId,
-                    PaymentDate = new DateOnly(2026, 4, 5),
+                    PaymentDate = DaysFromToday(-4),
                     Amount = amount,
                     DocStatus = DocStatus.Draft,
                 }

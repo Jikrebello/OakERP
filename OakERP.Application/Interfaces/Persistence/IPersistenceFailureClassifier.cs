@@ -10,6 +10,8 @@ public interface IPersistenceFailureClassifier
 
     bool IsApPaymentDocNoConflict(Exception exception);
 
+    bool IsArInvoiceDocNoConflict(Exception exception);
+
     bool IsArReceiptDocNoConflict(Exception exception);
 
     bool IsConcurrencyConflict(Exception exception);

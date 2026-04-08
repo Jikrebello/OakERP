@@ -25,14 +25,15 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
 
         var customerId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string docNo = $"RCPT-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(customerId, bankAccountId);
 
         var command = new CreateArReceiptCommand
         {
-            DocNo = "RCPT-3001",
+            DocNo = docNo,
             CustomerId = customerId,
             BankAccountId = bankAccountId,
-            ReceiptDate = new DateOnly(2026, 4, 5),
+            ReceiptDate = DaysFromToday(-4),
             Amount = 125m,
             CurrencyCode = "ZAR",
             Memo = "Unapplied cash",
@@ -67,17 +68,18 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
 
         var customerId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string docNo = $"RCPT-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(customerId, bankAccountId);
 
-        var invoiceA = await SeedPostedInvoiceAsync(customerId, "ARINV-3001", 100m);
-        var invoiceB = await SeedPostedInvoiceAsync(customerId, "ARINV-3002", 50m);
+        var invoiceA = await SeedPostedInvoiceAsync(customerId, $"ARINV-{Guid.NewGuid():N}", 100m);
+        var invoiceB = await SeedPostedInvoiceAsync(customerId, $"ARINV-{Guid.NewGuid():N}", 50m);
 
         var command = new CreateArReceiptCommand
         {
-            DocNo = "RCPT-3002",
+            DocNo = docNo,
             CustomerId = customerId,
             BankAccountId = bankAccountId,
-            ReceiptDate = new DateOnly(2026, 4, 5),
+            ReceiptDate = DaysFromToday(-4),
             Amount = 150m,
             CurrencyCode = "ZAR",
             Allocations =
@@ -128,14 +130,16 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
 
         var customerId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string seededInvoiceDocNo = $"ARINV-{Guid.NewGuid():N}";
+        string receiptDocNo = $"RCPT-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(customerId, bankAccountId);
 
-        var invoiceId = await SeedPostedInvoiceAsync(customerId, "ARINV-3003", 100m);
-        var receiptId = await SeedDraftReceiptAsync(customerId, bankAccountId, "RCPT-3003", 90m);
+        var invoiceId = await SeedPostedInvoiceAsync(customerId, seededInvoiceDocNo, 100m);
+        var receiptId = await SeedDraftReceiptAsync(customerId, bankAccountId, receiptDocNo, 90m);
 
         var command = new AllocateArReceiptCommand
         {
-            AllocationDate = new DateOnly(2026, 4, 6),
+            AllocationDate = DaysFromToday(-3),
             Allocations =
             [
                 new ArReceiptAllocationInputDto { ArInvoiceId = invoiceId, AmountApplied = 60m },
@@ -178,16 +182,21 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
         var receiptCustomerId = Guid.NewGuid();
         var invoiceCustomerId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string docNo = $"RCPT-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(receiptCustomerId, bankAccountId);
-        await SeedCustomerAsync(invoiceCustomerId, "CUST-002", "Other Customer");
-        var invoiceId = await SeedPostedInvoiceAsync(invoiceCustomerId, "ARINV-3004", 80m);
+        await SeedCustomerAsync(invoiceCustomerId, $"CUST-{Guid.NewGuid():N}", "Other Customer");
+        var invoiceId = await SeedPostedInvoiceAsync(
+            invoiceCustomerId,
+            $"ARINV-{Guid.NewGuid():N}",
+            80m
+        );
 
         var command = new CreateArReceiptCommand
         {
-            DocNo = "RCPT-3004",
+            DocNo = docNo,
             CustomerId = receiptCustomerId,
             BankAccountId = bankAccountId,
-            ReceiptDate = new DateOnly(2026, 4, 5),
+            ReceiptDate = DaysFromToday(-4),
             Amount = 80m,
             CurrencyCode = "ZAR",
             Allocations =
@@ -207,7 +216,12 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
         await WithDbAsync(async db =>
         {
             (await db.ArReceipts.CountAsync(x => x.DocNo == command.DocNo)).ShouldBe(0);
-            (await db.ArReceiptAllocations.CountAsync()).ShouldBe(0);
+            (
+                await db
+                    .ArReceipts.Where(x => x.DocNo == command.DocNo)
+                    .SelectMany(x => x.Allocations)
+                    .CountAsync()
+            ).ShouldBe(0);
         });
     }
 
@@ -218,15 +232,16 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
 
         var customerId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string docNo = $"RCPT-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(customerId, bankAccountId);
-        var invoiceId = await SeedPostedInvoiceAsync(customerId, "ARINV-3005", 100m);
+        var invoiceId = await SeedPostedInvoiceAsync(customerId, $"ARINV-{Guid.NewGuid():N}", 100m);
 
         var command = new CreateArReceiptCommand
         {
-            DocNo = "RCPT-3005",
+            DocNo = docNo,
             CustomerId = customerId,
             BankAccountId = bankAccountId,
-            ReceiptDate = new DateOnly(2026, 4, 5),
+            ReceiptDate = DaysFromToday(-4),
             Amount = 80m,
             CurrencyCode = "ZAR",
             Allocations =
@@ -246,7 +261,12 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
         await WithDbAsync(async db =>
         {
             (await db.ArReceipts.CountAsync(x => x.DocNo == command.DocNo)).ShouldBe(0);
-            (await db.ArReceiptAllocations.CountAsync()).ShouldBe(0);
+            (
+                await db
+                    .ArReceipts.Where(x => x.DocNo == command.DocNo)
+                    .SelectMany(x => x.Allocations)
+                    .CountAsync()
+            ).ShouldBe(0);
             (await db.ArInvoices.SingleAsync(x => x.Id == invoiceId)).DocStatus.ShouldBe(
                 DocStatus.Posted
             );
@@ -260,9 +280,11 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
 
         var customerId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string invoiceDocNo = $"ARINV-{Guid.NewGuid():N}";
+        string receiptDocNo = $"RCPT-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(customerId, bankAccountId);
-        var invoiceId = await SeedPostedInvoiceAsync(customerId, "ARINV-3006", 100m);
-        var receiptId = await SeedDraftReceiptAsync(customerId, bankAccountId, "RCPT-3006", 120m);
+        var invoiceId = await SeedPostedInvoiceAsync(customerId, invoiceDocNo, 100m);
+        var receiptId = await SeedDraftReceiptAsync(customerId, bankAccountId, receiptDocNo, 120m);
 
         var command = new AllocateArReceiptCommand
         {
@@ -299,14 +321,15 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
 
         var customerId = Guid.NewGuid();
         var bankAccountId = Guid.NewGuid();
+        string docNo = $"RCPT-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(customerId, bankAccountId, bankCurrencyCode: "USD");
 
         var command = new CreateArReceiptCommand
         {
-            DocNo = "RCPT-3007",
+            DocNo = docNo,
             CustomerId = customerId,
             BankAccountId = bankAccountId,
-            ReceiptDate = new DateOnly(2026, 4, 5),
+            ReceiptDate = DaysFromToday(-4),
             Amount = 50m,
             CurrencyCode = "USD",
         };
@@ -327,15 +350,17 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
 
     private async Task AuthenticateAsync()
     {
+        string authId = Guid.NewGuid().ToString("N")[..8];
+
         var registerDto = new RegisterDto
         {
-            Email = $"receipt_api_{TestId}@oak.test",
+            Email = $"receipt_api_{TestId}_{authId}@oak.test",
             Password = "TestPass123!",
             ConfirmPassword = "TestPass123!",
             FirstName = "Receipt",
             LastName = "Tester",
             PhoneNumber = "123456789",
-            TenantName = $"ReceiptTenant_{TestId}",
+            TenantName = $"ReceiptTenant_{TestId}_{authId}",
         };
 
         var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
@@ -365,64 +390,82 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
         bool bankActive = true
     )
     {
+        string customerCode = $"CUST-{customerId.ToString("N")[..8].ToUpperInvariant()}";
+        string bankName = $"Main Bank {bankAccountId.ToString("N")[..8].ToUpperInvariant()}";
+
         await WithDbAsync(async db =>
         {
-            db.Currencies.AddRange(
-                new Currency
-                {
-                    Code = "ZAR",
-                    NumericCode = 710,
-                    Name = "Rand",
-                    Symbol = "R",
-                    Decimals = 2,
-                    IsActive = true,
-                },
-                new Currency
-                {
-                    Code = "USD",
-                    NumericCode = 840,
-                    Name = "US Dollar",
-                    Symbol = "$",
-                    Decimals = 2,
-                    IsActive = true,
-                }
-            );
+            if (!await db.Currencies.AnyAsync(x => x.Code == "ZAR"))
+            {
+                db.Currencies.Add(
+                    new Currency
+                    {
+                        Code = "ZAR",
+                        NumericCode = 710,
+                        Name = "Rand",
+                        Symbol = "R",
+                        Decimals = 2,
+                        IsActive = true,
+                    }
+                );
+            }
 
-            db.GlAccounts.Add(
-                new GlAccount
-                {
-                    AccountNo = "1000",
-                    Name = "Bank",
-                    Type = GlAccountType.Asset,
-                    IsActive = true,
-                }
-            );
+            if (!await db.Currencies.AnyAsync(x => x.Code == "USD"))
+            {
+                db.Currencies.Add(
+                    new Currency
+                    {
+                        Code = "USD",
+                        NumericCode = 840,
+                        Name = "US Dollar",
+                        Symbol = "$",
+                        Decimals = 2,
+                        IsActive = true,
+                    }
+                );
+            }
 
-            db.AppSettings.Add(
-                new AppSetting
-                {
-                    Key = GlPostingSettingsKeys.Posting,
-                    ValueJson = JsonSerializer.Serialize(
-                        new GlPostingSettings(
-                            "ZAR",
-                            "1100",
-                            "2000",
-                            "4000",
-                            "5000",
-                            "1300",
-                            "5100",
-                            "2100",
-                            "2200"
-                        )
-                    ),
-                }
-            );
+            if (!await db.GlAccounts.AnyAsync(x => x.AccountNo == "1000"))
+            {
+                db.GlAccounts.Add(
+                    new GlAccount
+                    {
+                        AccountNo = "1000",
+                        Name = "Bank",
+                        Type = GlAccountType.Asset,
+                        IsActive = true,
+                    }
+                );
+            }
+
+            if (!await db.AppSettings.AnyAsync(x => x.Key == GlPostingSettingsKeys.Posting))
+            {
+                db.AppSettings.Add(
+                    new AppSetting
+                    {
+                        Key = GlPostingSettingsKeys.Posting,
+                        ValueJson = JsonSerializer.Serialize(
+                            new GlPostingSettings(
+                                "ZAR",
+                                "1100",
+                                "2000",
+                                "4000",
+                                "5000",
+                                "1300",
+                                "5100",
+                                "2100",
+                                "2200"
+                            )
+                        ),
+                    }
+                );
+            }
 
             db.Customers.Add(
                 new Customer
                 {
                     Id = customerId,
-                    CustomerCode = "CUST-001",
+                    CustomerCode = customerCode,
                     Name = "Acme Customer",
                     IsActive = customerActive,
                 }
@@ -432,7 +475,7 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
                 new BankAccount
                 {
                     Id = bankAccountId,
-                    Name = "Main Bank",
+                    Name = bankName,
                     GlAccountNo = "1000",
                     OpeningBalance = 0m,
                     CurrencyCode = bankCurrencyCode,
@@ -474,9 +517,9 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
                     Id = invoiceId,
                     DocNo = docNo,
                     CustomerId = customerId,
-                    InvoiceDate = new DateOnly(2026, 4, 1),
-                    DueDate = new DateOnly(2026, 5, 1),
-                    PostingDate = new DateOnly(2026, 4, 1),
+                    InvoiceDate = DaysFromToday(-8),
+                    DueDate = DaysFromToday(-8).AddDays(30),
+                    PostingDate = DaysFromToday(-8),
                     CurrencyCode = "ZAR",
                     TaxTotal = 0m,
                     DocTotal = docTotal,
@@ -508,7 +551,7 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
                     DocNo = docNo,
                     CustomerId = customerId,
                     BankAccountId = bankAccountId,
-                    ReceiptDate = new DateOnly(2026, 4, 5),
+                    ReceiptDate = DaysFromToday(-4),
                     Amount = amount,
                     CurrencyCode = "ZAR",
                     DocStatus = DocStatus.Draft,

@@ -22,9 +22,7 @@ public class AuthServiceTestFactory
         UnitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
         UnitOfWork.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
         UnitOfWork.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
-        Clock
-            .SetupGet(x => x.UtcNow)
-            .Returns(new DateTimeOffset(2026, 4, 8, 12, 0, 0, TimeSpan.Zero));
+        Clock.SetupGet(x => x.UtcNow).Returns(UtcAtHourDaysFromToday(0));
     }
 
     public AuthService CreateService() =>

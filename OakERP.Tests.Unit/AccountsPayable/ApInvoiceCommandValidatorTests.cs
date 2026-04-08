@@ -13,7 +13,7 @@ public sealed class ApInvoiceCommandValidatorTests
             DocNo = "APINV-2001",
             VendorId = Guid.NewGuid(),
             InvoiceNo = "VEN-2001",
-            InvoiceDate = new DateOnly(2026, 4, 5),
+            InvoiceDate = DaysFromToday(-4),
             DocTotal = 10m,
             Lines =
             [
@@ -43,7 +43,7 @@ public sealed class ApInvoiceCommandValidatorTests
             DocNo = "APINV-2002",
             VendorId = Guid.NewGuid(),
             InvoiceNo = "VEN-2002",
-            InvoiceDate = new DateOnly(2026, 4, 5),
+            InvoiceDate = DaysFromToday(-4),
             TaxTotal = 5m,
             DocTotal = 20m,
             Lines =

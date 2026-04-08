@@ -20,7 +20,7 @@ public sealed class ArReceiptServiceTests
             DocNo = "RCPT-2001",
             CustomerId = customer.Id,
             BankAccountId = bankAccount.Id,
-            ReceiptDate = new DateOnly(2026, 4, 5),
+            ReceiptDate = DaysFromToday(-4),
             Amount = 125m,
             CurrencyCode = "ZAR",
             Memo = "Customer payment",
@@ -86,7 +86,7 @@ public sealed class ArReceiptServiceTests
             DocNo = "RCPT-2002",
             CustomerId = customer.Id,
             BankAccountId = bankAccount.Id,
-            ReceiptDate = new DateOnly(2026, 4, 5),
+            ReceiptDate = DaysFromToday(-4),
             Amount = 150m,
             CurrencyCode = "ZAR",
             PerformedBy = "unit-user",
@@ -157,7 +157,7 @@ public sealed class ArReceiptServiceTests
         var command = new AllocateArReceiptCommand
         {
             ReceiptId = receipt.Id,
-            AllocationDate = new DateOnly(2026, 4, 6),
+            AllocationDate = DaysFromToday(-3),
             PerformedBy = "unit-user",
             Allocations =
             [
@@ -208,7 +208,7 @@ public sealed class ArReceiptServiceTests
             DocNo = "RCPT-2003",
             CustomerId = customer.Id,
             BankAccountId = bankAccount.Id,
-            ReceiptDate = new DateOnly(2026, 4, 5),
+            ReceiptDate = DaysFromToday(-4),
             Amount = 100m,
             CurrencyCode = "ZAR",
             Allocations =
@@ -357,7 +357,7 @@ public sealed class ArReceiptServiceTests
             DocNo = "RCPT-DUP",
             CustomerId = customer.Id,
             BankAccountId = bankAccount.Id,
-            ReceiptDate = new DateOnly(2026, 4, 5),
+            ReceiptDate = DaysFromToday(-4),
             Amount = 10m,
         };
 

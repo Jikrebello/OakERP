@@ -152,6 +152,7 @@ public static class ServiceCollectionExtensions
             options.SchemaFilter<CreateApInvoiceCommandExampleFilter>();
             options.SchemaFilter<CreateApPaymentCommandExampleFilter>();
             options.SchemaFilter<AllocateApPaymentCommandExampleFilter>();
+            options.SchemaFilter<CreateArInvoiceCommandExampleFilter>();
             options.SchemaFilter<CreateArReceiptCommandExampleFilter>();
             options.SchemaFilter<AllocateArReceiptCommandExampleFilter>();
             options.SchemaFilter<CurrentUserResponseExampleFilter>();

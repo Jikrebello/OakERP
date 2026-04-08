@@ -134,10 +134,13 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IBankAccountRepository, BankAccountRepository>();
         services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+        services.AddScoped<ITaxRateRepository, TaxRateRepository>();
         services.AddScoped<IFiscalPeriodRepository, FiscalPeriodRepository>();
         services.AddScoped<IGlAccountRepository, GlAccountRepository>();
         services.AddScoped<IGlEntryRepository, GlEntryRepository>();
         services.AddScoped<IInventoryLedgerRepository, InventoryLedgerRepository>();
+        services.AddScoped<IItemRepository, ItemRepository>();
+        services.AddScoped<ILocationRepository, LocationRepository>();
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<ILicenseRepository, LicenseRepository>();
         return services;
