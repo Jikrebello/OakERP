@@ -2,10 +2,36 @@ OakERP
 +-- .codex
 |   \-- skills
 |       +-- oakerp-architecture
+|       |   +-- agents
+|       |   |   \-- openai.yaml
+|       |   \-- SKILL.md
+|       +-- oakerp-auth-boundaries
+|       |   +-- agents
+|       |   |   \-- openai.yaml
+|       |   \-- SKILL.md
+|       +-- oakerp-client-host-boundaries
+|       |   +-- agents
+|       |   |   \-- openai.yaml
+|       |   \-- SKILL.md
+|       +-- oakerp-migration-seeding
+|       |   +-- agents
+|       |   |   \-- openai.yaml
+|       |   \-- SKILL.md
+|       +-- oakerp-posting
+|       |   +-- agents
+|       |   |   \-- openai.yaml
 |       |   \-- SKILL.md
 |       +-- oakerp-pr-workflow
+|       |   +-- agents
+|       |   |   \-- openai.yaml
 |       |   \-- SKILL.md
-|       \-- oakerp-tasking
+|       +-- oakerp-tasking
+|       |   +-- agents
+|       |   |   \-- openai.yaml
+|       |   \-- SKILL.md
+|       \-- oakerp-test-harness
+|           +-- agents
+|           |   \-- openai.yaml
 |           \-- SKILL.md
 +-- .github
 |   +-- ISSUE_TEMPLATE
@@ -50,6 +76,10 @@ OakERP
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- ar-receipt-posting
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- oakerp-skill-pack
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
