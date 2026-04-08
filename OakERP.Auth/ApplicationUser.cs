@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
+using OakERP.Domain.Entities.Users;
 
-namespace OakERP.Domain.Entities.Users;
+namespace OakERP.Auth;
 
 public class ApplicationUser : IdentityUser
 {

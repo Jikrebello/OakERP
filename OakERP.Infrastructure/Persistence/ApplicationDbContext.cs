@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using OakERP.Auth;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Accounts_Payable;
 using OakERP.Domain.Entities.Accounts_Receivable;

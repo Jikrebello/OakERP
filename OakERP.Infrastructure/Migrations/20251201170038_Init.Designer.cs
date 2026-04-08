@@ -2710,7 +2710,7 @@ namespace OakERP.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("OakERP.Domain.Entities.Users.ApplicationUser", b =>
+            modelBuilder.Entity("OakERP.Auth.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text")
@@ -3003,7 +3003,7 @@ namespace OakERP.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("OakERP.Domain.Entities.Users.ApplicationUser", null)
+                    b.HasOne("OakERP.Auth.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -3013,7 +3013,7 @@ namespace OakERP.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("OakERP.Domain.Entities.Users.ApplicationUser", null)
+                    b.HasOne("OakERP.Auth.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -3030,7 +3030,7 @@ namespace OakERP.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_asp_net_user_roles_asp_net_roles_role_id");
 
-                    b.HasOne("OakERP.Domain.Entities.Users.ApplicationUser", null)
+                    b.HasOne("OakERP.Auth.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -3040,7 +3040,7 @@ namespace OakERP.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("OakERP.Domain.Entities.Users.ApplicationUser", null)
+                    b.HasOne("OakERP.Auth.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -3539,7 +3539,7 @@ namespace OakERP.Infrastructure.Migrations
                     b.Navigation("StockCount");
                 });
 
-            modelBuilder.Entity("OakERP.Domain.Entities.Users.ApplicationUser", b =>
+            modelBuilder.Entity("OakERP.Auth.ApplicationUser", b =>
                 {
                     b.HasOne("OakERP.Domain.Entities.Users.Tenant", "Tenant")
                         .WithMany()

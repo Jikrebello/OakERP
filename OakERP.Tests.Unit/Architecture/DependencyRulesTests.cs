@@ -1,5 +1,6 @@
 using System.Xml.Linq;
 using OakERP.Application.AccountsPayable;
+using OakERP.Auth;
 using OakERP.Domain.Entities.Users;
 using Shouldly;
 
@@ -40,6 +41,21 @@ public sealed class DependencyRulesTests
         references.ShouldNotContain(
             name => name.Equals("OakERP.Infrastructure", StringComparison.Ordinal)
         );
+    }
+
+    [Fact]
+    public void Domain_Assembly_Should_Not_Define_ApplicationUser()
+    {
+        string[] exportedTypes = typeof(Tenant)
+            .Assembly.GetExportedTypes()
+            .Select(x => x.FullName ?? string.Empty)
+            .ToArray();
+
+        exportedTypes.ShouldNotContain(
+            name => name.EndsWith(".ApplicationUser", StringComparison.Ordinal)
+        );
+
+        typeof(ApplicationUser).FullName.ShouldBe("OakERP.Auth.ApplicationUser");
     }
 
     [Fact]
