@@ -147,8 +147,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddAccountsReceivableServices(this IServiceCollection services)
     {
-        services.AddScoped<ArReceiptCommandValidator>();
-        services.AddScoped<ArReceiptSnapshotFactory>();
+        services.AddScoped<ArReceiptServiceDependencies>();
         services.AddScoped<IArReceiptService, ArReceiptService>();
 
         return services;
@@ -156,10 +155,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddAccountsPayableServices(this IServiceCollection services)
     {
-        services.AddScoped<ApInvoiceCommandValidator>();
-        services.AddScoped<ApInvoiceSnapshotFactory>();
-        services.AddScoped<ApPaymentCommandValidator>();
-        services.AddScoped<ApPaymentSnapshotFactory>();
+        services.AddScoped<ApPaymentServiceDependencies>();
         services.AddScoped<IApInvoiceService, ApInvoiceService>();
         services.AddScoped<IApPaymentService, ApPaymentService>();
 
@@ -168,6 +164,10 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddPostingServices(this IServiceCollection services)
     {
+        services.AddScoped<PostingSourceRepositories>();
+        services.AddScoped<PostingPersistenceDependencies>();
+        services.AddScoped<PostingRuntimeDependencies>();
+        services.AddScoped<PostingContextBuilders>();
         services.AddScoped<IPostingService, PostingService>();
         services.AddScoped<IPostingEngine, PostingEngine>();
         services.AddScoped<IPostingRuleProvider, PostingRuleProvider>();

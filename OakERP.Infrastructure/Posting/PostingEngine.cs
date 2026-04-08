@@ -9,11 +9,13 @@ namespace OakERP.Infrastructure.Posting;
 
 public sealed class PostingEngine : IPostingEngine
 {
+    private const string PostingRuleRequiredMessage = "Posting rule is required.";
+
     public PostingEngineResult PostArInvoice(ArInvoicePostingContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var rule = context.Rule ?? throw new InvalidOperationException("Posting rule is required.");
+        var rule = context.Rule ?? throw new InvalidOperationException(PostingRuleRequiredMessage);
         var invoice = context.Invoice;
 
         var glEntries = new List<GlEntryModel>();
@@ -194,7 +196,7 @@ public sealed class PostingEngine : IPostingEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var rule = context.Rule ?? throw new InvalidOperationException("Posting rule is required.");
+        var rule = context.Rule ?? throw new InvalidOperationException(PostingRuleRequiredMessage);
         var receipt = context.Receipt;
 
         var bankRule = FindRuleLine(
@@ -246,7 +248,7 @@ public sealed class PostingEngine : IPostingEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var rule = context.Rule ?? throw new InvalidOperationException("Posting rule is required.");
+        var rule = context.Rule ?? throw new InvalidOperationException(PostingRuleRequiredMessage);
         var invoice = context.Invoice;
 
         var apRule = FindRuleLine(
@@ -329,7 +331,7 @@ public sealed class PostingEngine : IPostingEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var rule = context.Rule ?? throw new InvalidOperationException("Posting rule is required.");
+        var rule = context.Rule ?? throw new InvalidOperationException(PostingRuleRequiredMessage);
         var payment = context.Payment;
 
         var bankRule = FindRuleLine(

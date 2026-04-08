@@ -1,7 +1,7 @@
 using System.Net;
 using Microsoft.Extensions.Logging;
 using OakERP.Application.Interfaces.Persistence;
-using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Dtos.Auth;
 using OakERP.Common.Persistence;
 using OakERP.Domain.Entities.Users;
 using OakERP.Domain.Repository_Interfaces.Users;
@@ -44,6 +44,15 @@ public class AuthService(
     private const string AuditReasonTenantNotFound = "TenantNotFound";
     private const string AuditReasonLicenseNotFound = "LicenseNotFound";
     private const string AuditReasonLicenseExpired = "LicenseExpired";
+    private sealed record AuditContext(
+        string Action,
+        string Outcome,
+        string Email,
+        string? AuditReason = null,
+        string? UserId = null,
+        Guid? TenantId = null,
+        string? TenantName = null
+    );
 
     // Single mapping point from the Identity-backed ApplicationUser entity
     // into the minimal auth-local JWT input contract.
@@ -58,23 +67,23 @@ public class AuthService(
     /// tenant with a license valid for one year.</item> <item>Registers the user under the tenant and assigns the
     /// "TenantAdmin" role.</item> <item>Generates a JWT token for the newly registered user upon success.</item>
     /// </list> If any step fails, the operation is rolled back, and an appropriate error message is returned.</remarks>
-    /// <param name="dto">The registration details, including user information, tenant name, and password.</param>
-    /// <returns>An <see cref="AuthResultDTO"/> indicating the result of the registration process.  If successful, the result
+    /// <param name="Dto">The registration details, including user information, tenant name, and password.</param>
+    /// <returns>An <see cref="AuthResultDto"/> indicating the result of the registration process.  If successful, the result
     /// contains a JWT token and the user's full name.  If unsuccessful, the result contains an error message.</returns>
-    public async Task<AuthResultDTO> RegisterAsync(RegisterDTO dto)
+    public async Task<AuthResultDto> RegisterAsync(RegisterDto Dto)
     {
-        var email = dto.Email.Trim();
+        var email = Dto.Email.Trim();
         var normalizedEmail = email.ToUpperInvariant();
 
-        if (dto.Password != dto.ConfirmPassword)
+        if (Dto.Password != Dto.ConfirmPassword)
         {
             LogAuditWarning(
                 AuditActionRegistration,
                 email,
                 AuditReasonPasswordsDoNotMatch,
-                tenantName: dto.TenantName
+                tenantName: Dto.TenantName
             );
-            return AuthResultDTO.Fail("Passwords do not match.", HttpStatusCode.BadRequest);
+            return AuthResultDto.Fail("Passwords do not match.", HttpStatusCode.BadRequest);
         }
 
         var existingUser = await identityGateway.FindByEmailAsync(email);
@@ -84,9 +93,9 @@ public class AuthService(
                 AuditActionRegistration,
                 email,
                 AuditReasonEmailAlreadyExists,
-                tenantName: dto.TenantName
+                tenantName: Dto.TenantName
             );
-            return AuthResultDTO.Fail("Email already exists.", HttpStatusCode.Conflict);
+            return AuthResultDto.Fail("Email already exists.", HttpStatusCode.Conflict);
         }
 
         await unitOfWork.BeginTransactionAsync();
@@ -95,7 +104,7 @@ public class AuthService(
             // Create Tenant
             var tenant = new Tenant
             {
-                Name = dto.TenantName,
+                Name = Dto.TenantName,
                 License = new License
                 {
                     Key = Guid.NewGuid().ToString("N"),
@@ -115,14 +124,14 @@ public class AuthService(
                 NormalizedUserName = normalizedEmail,
                 Email = email,
                 NormalizedEmail = normalizedEmail,
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                PhoneNumber = dto.PhoneNumber,
+                FirstName = Dto.FirstName,
+                LastName = Dto.LastName,
+                PhoneNumber = Dto.PhoneNumber,
                 EmailConfirmed = true,
                 TenantId = tenant.Id,
             };
 
-            var createUserResult = await identityGateway.CreateAsync(user, dto.Password);
+            var createUserResult = await identityGateway.CreateAsync(user, Dto.Password);
             if (!createUserResult.Succeeded)
             {
                 await unitOfWork.RollbackAsync();
@@ -133,7 +142,7 @@ public class AuthService(
                     tenantId: tenant.Id,
                     tenantName: tenant.Name
                 );
-                return AuthResultDTO.Fail(
+                return AuthResultDto.Fail(
                     createUserResult.Errors.First().Description,
                     HttpStatusCode.BadRequest
                 );
@@ -151,7 +160,7 @@ public class AuthService(
                     tenantId: tenant.Id,
                     tenantName: tenant.Name
                 );
-                return AuthResultDTO.Fail(
+                return AuthResultDto.Fail(
                     "User created but failed to assign role.",
                     HttpStatusCode.InternalServerError
                 );
@@ -171,7 +180,7 @@ public class AuthService(
 
             var token = jwtGenerator.Generate(MapToJwtTokenInput(user));
 
-            return AuthResultDTO.SuccessWith(token, $"{user.FirstName} {user.LastName}");
+            return AuthResultDto.SuccessWith(token, $"{user.FirstName} {user.LastName}");
         }
         catch (Exception ex)
         {
@@ -181,9 +190,9 @@ public class AuthService(
                 AuditActionRegistration,
                 email,
                 AuditReasonUnexpectedError,
-                tenantName: dto.TenantName
+                tenantName: Dto.TenantName
             );
-            return AuthResultDTO.Fail(
+            return AuthResultDto.Fail(
                 "An unexpected error occurred during registration.",
                 HttpStatusCode.InternalServerError
             );
@@ -198,25 +207,25 @@ public class AuthService(
     /// <item><description>Ensures the user exists in the system.</description></item> <item><description>Validates the
     /// tenant associated with the user, including the presence and validity of a license.</description></item> </list>
     /// If any of these checks fail, the method returns a failure result with an appropriate error message.</remarks>
-    /// <param name="dto">The login data transfer object containing the user's email and password.</param>
-    /// <returns>An <see cref="AuthResultDTO"/> containing the authentication result. If successful, the result includes a JWT
+    /// <param name="Dto">The login data transfer object containing the user's email and password.</param>
+    /// <returns>An <see cref="AuthResultDto"/> containing the authentication result. If successful, the result includes a JWT
     /// token,  the user's username, and their primary role. If authentication fails, the result contains an error
     /// message.</returns>
-    public async Task<AuthResultDTO> LoginAsync(LoginDTO dto)
+    public async Task<AuthResultDto> LoginAsync(LoginDto Dto)
     {
-        var email = dto.Email.Trim();
+        var email = Dto.Email.Trim();
         var user = await identityGateway.FindByEmailAsync(email);
 
         if (user is null)
         {
             LogAuditWarning(AuditActionLogin, email, AuditReasonInvalidCredentials);
-            return AuthResultDTO.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
+            return AuthResultDto.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
         }
 
         // Check password WITHOUT signing in
         var pwdCheck = await identityGateway.CheckPasswordSignInAsync(
             user,
-            dto.Password,
+            Dto.Password,
             lockoutOnFailure: false // enable lockout if you want
         );
 
@@ -229,7 +238,7 @@ public class AuthService(
                 userId: user.Id,
                 tenantId: user.TenantId
             );
-            return AuthResultDTO.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
+            return AuthResultDto.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
         }
 
         // Load tenant (ideally include License in one query)
@@ -244,7 +253,7 @@ public class AuthService(
                 userId: user.Id,
                 tenantId: user.TenantId
             );
-            return AuthResultDTO.Fail("Tenant not found.", HttpStatusCode.NotFound);
+            return AuthResultDto.Fail("Tenant not found.", HttpStatusCode.NotFound);
         }
 
         if (tenant.License is null)
@@ -257,7 +266,7 @@ public class AuthService(
                 tenantId: tenant.Id,
                 tenantName: tenant.Name
             );
-            return AuthResultDTO.Fail("License not found for tenant.", HttpStatusCode.Forbidden);
+            return AuthResultDto.Fail("License not found for tenant.", HttpStatusCode.Forbidden);
         }
 
         if (tenant.License.ExpiryDate is not null && tenant.License.ExpiryDate <= DateTime.UtcNow)
@@ -270,12 +279,8 @@ public class AuthService(
                 tenantId: tenant.Id,
                 tenantName: tenant.Name
             );
-            return AuthResultDTO.Fail("License has expired.", HttpStatusCode.Forbidden);
+            return AuthResultDto.Fail("License has expired.", HttpStatusCode.Forbidden);
         }
-
-        // If you also need cookie auth for MVC endpoints, you could now:
-        // await signInManager.SignInAsync(user, isPersistent: false);
-
         var primaryRole = (await identityGateway.GetRolesAsync(user)).FirstOrDefault() ?? "User";
         var token = jwtGenerator.Generate(MapToJwtTokenInput(user));
 
@@ -287,7 +292,7 @@ public class AuthService(
             tenantName: tenant.Name
         );
 
-        return AuthResultDTO.SuccessWith(token, userName: user.UserName!, role: primaryRole);
+        return AuthResultDto.SuccessWith(token, userName: user.UserName!, role: primaryRole);
     }
 
     private void LogAuditInformation(
@@ -300,13 +305,7 @@ public class AuthService(
     {
         LogAudit(
             LogLevel.Information,
-            action,
-            AuditOutcomeSuccess,
-            email,
-            auditReason: null,
-            userId,
-            tenantId,
-            tenantName
+            new AuditContext(action, AuditOutcomeSuccess, email, null, userId, tenantId, tenantName)
         );
     }
 
@@ -321,13 +320,15 @@ public class AuthService(
     {
         LogAudit(
             LogLevel.Warning,
-            action,
-            AuditOutcomeFailure,
-            email,
-            auditReason,
-            userId,
-            tenantId,
-            tenantName
+            new AuditContext(
+                action,
+                AuditOutcomeFailure,
+                email,
+                auditReason,
+                userId,
+                tenantId,
+                tenantName
+            )
         );
     }
 
@@ -343,40 +344,32 @@ public class AuthService(
     {
         LogAudit(
             LogLevel.Error,
-            action,
-            AuditOutcomeFailure,
-            email,
-            auditReason,
-            userId,
-            tenantId,
-            tenantName,
+            new AuditContext(
+                action,
+                AuditOutcomeFailure,
+                email,
+                auditReason,
+                userId,
+                tenantId,
+                tenantName
+            ),
             exception
         );
     }
 
-    private void LogAudit(
-        LogLevel level,
-        string action,
-        string outcome,
-        string email,
-        string? auditReason,
-        string? userId,
-        Guid? tenantId,
-        string? tenantName,
-        Exception? exception = null
-    )
+    private void LogAudit(LogLevel level, AuditContext auditContext, Exception? exception = null)
     {
         logger.Log(
             level,
             exception,
             "Audit event {AuditAction} {AuditOutcome} for {Email}. Reason={AuditReason} UserId={UserId} TenantId={TenantId} TenantName={TenantName}",
-            action,
-            outcome,
-            email,
-            auditReason,
-            userId,
-            tenantId,
-            tenantName
+            auditContext.Action,
+            auditContext.Outcome,
+            auditContext.Email,
+            auditContext.AuditReason,
+            auditContext.UserId,
+            auditContext.TenantId,
+            auditContext.TenantName
         );
     }
 }

@@ -36,7 +36,7 @@ OakERP organizes its tests into two distinct projects:
 ### 🛠 How Do They Work?
 - **Libraries**: Use `xUnit` for test execution, `Moq` for mocking dependencies, and `Shouldly` for assertions.
 - **Setup**: Configure mocks in test class constructors or setup methods.
-- **Execution**: Call the service/logic and assert the results (e.g., DTOs, success/failure states).
+- **Execution**: Call the service/logic and assert the results (e.g., Dtos, success/failure states).
 - **No DB/network**: All external interactions are mocked to ensure speed and isolation.
 
 ### 🧑‍💻 Example
@@ -45,11 +45,11 @@ OakERP organizes its tests into two distinct projects:
 public async Task RegisterAsync_Should_Fail_When_Passwords_Do_Not_Match()
 {
     // Arrange
-    var dto = new RegisterDTO { Username = "test", Password = "pass1", ConfirmPassword = "pass2" };
+    var Dto = new RegisterDto { Username = "test", Password = "pass1", ConfirmPassword = "pass2" };
     var authService = new AuthService(/* mocked dependencies */);
 
     // Act
-    var result = await authService.RegisterAsync(dto);
+    var result = await authService.RegisterAsync(Dto);
 
     // Assert
     result.Success.ShouldBeFalse();
@@ -97,18 +97,18 @@ dotnet test OakERP.Tests.Unit
 public async Task Register_Endpoint_Should_Create_Tenant_And_License()
 {
     // Arrange
-    var dto = new RegisterDTO { TenantName = "TestTenant", Username = "test", Password = "pass" };
+    var Dto = new RegisterDto { TenantName = "TestTenant", Username = "test", Password = "pass" };
 
     // Act
-    var result = await PostAndMarkAsync<RegisterDTO, AuthResultDTO, Tenant>(
+    var result = await PostAndMarkAsync<RegisterDto, AuthResultDto, Tenant>(
         ApiRoutes.Auth.Register,
-        dto,
+        Dto,
         (req, res) => DbContext.Tenants.FirstOrDefault(t => t.Name == req.TenantName)
     );
 
     // Assert
     result.Success.ShouldBeTrue();
-    DbContext.Tenants.ShouldContain(t => t.Name == dto.TenantName);
+    DbContext.Tenants.ShouldContain(t => t.Name == Dto.TenantName);
 }
 ```
 
@@ -164,7 +164,7 @@ This ensures tests are isolated and the database remains clean.
 | Test `AuthService.LoginAsync()` | Unit | Pure logic; mock `SignInManager`, `UserManager`. |
 | Test `/api/auth/login` endpoint | Integration | Validates real API, DB, and JWT token. |
 | Check DB cascade behavior | Integration | Requires real DB; avoid mocks. |
-| Validate DTO validation rules | Unit or Integration | Unit for logic-only; Integration for API-returned DTOs. |
+| Validate Dto validation rules | Unit or Integration | Unit for logic-only; Integration for API-returned Dtos. |
 | Test EF Core queries | Integration | Use real PostgreSQL; avoid mocking `DbSet`. |
 
 ---

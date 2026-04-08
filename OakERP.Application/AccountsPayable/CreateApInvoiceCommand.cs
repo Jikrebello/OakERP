@@ -13,7 +13,7 @@ public sealed class CreateApInvoiceCommand
     public string? Memo { get; set; }
     public decimal TaxTotal { get; set; }
     public decimal DocTotal { get; set; }
-    public IReadOnlyList<ApInvoiceLineInputDTO> Lines { get; set; } = [];
+    public IReadOnlyList<ApInvoiceLineInputDto> Lines { get; set; } = [];
 
     [JsonIgnore]
     public string? PerformedBy { get; set; }

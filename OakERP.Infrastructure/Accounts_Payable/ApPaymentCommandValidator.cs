@@ -3,16 +3,16 @@ using OakERP.Application.AccountsPayable;
 
 namespace OakERP.Infrastructure.Accounts_Payable;
 
-public sealed class ApPaymentCommandValidator
+public static class ApPaymentCommandValidator
 {
-    public ApPaymentCreateValidationResult ValidateCreate(CreateApPaymentCommand command)
+    public static ApPaymentCreateValidationResult ValidateCreate(CreateApPaymentCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
 
         string docNo = command.DocNo.Trim();
         string? memo = NormalizeOptional(command.Memo);
         string performedBy = GetPerformedBy(command.PerformedBy);
-        IReadOnlyList<ApPaymentAllocationInputDTO> allocations = command.Allocations ?? [];
+        IReadOnlyList<ApPaymentAllocationInputDto> allocations = command.Allocations ?? [];
 
         return new ApPaymentCreateValidationResult(
             ValidateCreateRequest(command, docNo, memo, allocations),
@@ -23,11 +23,13 @@ public sealed class ApPaymentCommandValidator
         );
     }
 
-    public ApPaymentAllocateValidationResult ValidateAllocate(AllocateApPaymentCommand command)
+    public static ApPaymentAllocateValidationResult ValidateAllocate(
+        AllocateApPaymentCommand command
+    )
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        IReadOnlyList<ApPaymentAllocationInputDTO> allocations = command.Allocations ?? [];
+        IReadOnlyList<ApPaymentAllocationInputDto> allocations = command.Allocations ?? [];
 
         return new ApPaymentAllocateValidationResult(
             ValidateAllocateRequest(command, allocations),
@@ -36,16 +38,16 @@ public sealed class ApPaymentCommandValidator
         );
     }
 
-    private static ApPaymentCommandResultDTO? ValidateCreateRequest(
+    private static ApPaymentCommandResultDto? ValidateCreateRequest(
         CreateApPaymentCommand command,
         string docNo,
         string? memo,
-        IReadOnlyList<ApPaymentAllocationInputDTO> allocations
+        IReadOnlyList<ApPaymentAllocationInputDto> allocations
     )
     {
         if (string.IsNullOrWhiteSpace(docNo))
         {
-            return ApPaymentCommandResultDTO.Fail(
+            return ApPaymentCommandResultDto.Fail(
                 "Document number is required.",
                 HttpStatusCode.BadRequest
             );
@@ -53,7 +55,7 @@ public sealed class ApPaymentCommandValidator
 
         if (docNo.Length > 40)
         {
-            return ApPaymentCommandResultDTO.Fail(
+            return ApPaymentCommandResultDto.Fail(
                 "Document number may not exceed 40 characters.",
                 HttpStatusCode.BadRequest
             );
@@ -61,7 +63,7 @@ public sealed class ApPaymentCommandValidator
 
         if (command.VendorId == Guid.Empty)
         {
-            return ApPaymentCommandResultDTO.Fail(
+            return ApPaymentCommandResultDto.Fail(
                 "Vendor id is required.",
                 HttpStatusCode.BadRequest
             );
@@ -69,7 +71,7 @@ public sealed class ApPaymentCommandValidator
 
         if (command.BankAccountId == Guid.Empty)
         {
-            return ApPaymentCommandResultDTO.Fail(
+            return ApPaymentCommandResultDto.Fail(
                 "Bank account id is required.",
                 HttpStatusCode.BadRequest
             );
@@ -77,7 +79,7 @@ public sealed class ApPaymentCommandValidator
 
         if (command.PaymentDate == default)
         {
-            return ApPaymentCommandResultDTO.Fail(
+            return ApPaymentCommandResultDto.Fail(
                 "Payment date is required.",
                 HttpStatusCode.BadRequest
             );
@@ -85,7 +87,7 @@ public sealed class ApPaymentCommandValidator
 
         if (command.Amount <= 0m)
         {
-            return ApPaymentCommandResultDTO.Fail(
+            return ApPaymentCommandResultDto.Fail(
                 "Payment amount must be greater than zero.",
                 HttpStatusCode.BadRequest
             );
@@ -93,7 +95,7 @@ public sealed class ApPaymentCommandValidator
 
         if (memo is not null && memo.Length > 512)
         {
-            return ApPaymentCommandResultDTO.Fail(
+            return ApPaymentCommandResultDto.Fail(
                 "Payment memo may not exceed 512 characters.",
                 HttpStatusCode.BadRequest
             );
@@ -102,14 +104,14 @@ public sealed class ApPaymentCommandValidator
         return ValidateAllocationInputs(allocations, allowEmpty: true);
     }
 
-    private static ApPaymentCommandResultDTO? ValidateAllocateRequest(
+    private static ApPaymentCommandResultDto? ValidateAllocateRequest(
         AllocateApPaymentCommand command,
-        IReadOnlyList<ApPaymentAllocationInputDTO> allocations
+        IReadOnlyList<ApPaymentAllocationInputDto> allocations
     )
     {
         if (command.PaymentId == Guid.Empty)
         {
-            return ApPaymentCommandResultDTO.Fail(
+            return ApPaymentCommandResultDto.Fail(
                 "Payment id is required.",
                 HttpStatusCode.BadRequest
             );
@@ -118,14 +120,14 @@ public sealed class ApPaymentCommandValidator
         return ValidateAllocationInputs(allocations, allowEmpty: false);
     }
 
-    private static ApPaymentCommandResultDTO? ValidateAllocationInputs(
-        IReadOnlyList<ApPaymentAllocationInputDTO> allocations,
+    private static ApPaymentCommandResultDto? ValidateAllocationInputs(
+        IReadOnlyList<ApPaymentAllocationInputDto> allocations,
         bool allowEmpty
     )
     {
         if (!allowEmpty && allocations.Count == 0)
         {
-            return ApPaymentCommandResultDTO.Fail(
+            return ApPaymentCommandResultDto.Fail(
                 "At least one allocation is required.",
                 HttpStatusCode.BadRequest
             );
@@ -133,11 +135,11 @@ public sealed class ApPaymentCommandValidator
 
         HashSet<Guid> invoiceIds = [];
 
-        foreach (ApPaymentAllocationInputDTO allocation in allocations)
+        foreach (ApPaymentAllocationInputDto allocation in allocations)
         {
             if (allocation.ApInvoiceId == Guid.Empty)
             {
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "Allocation invoice id is required.",
                     HttpStatusCode.BadRequest
                 );
@@ -145,7 +147,7 @@ public sealed class ApPaymentCommandValidator
 
             if (!invoiceIds.Add(allocation.ApInvoiceId))
             {
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "Each invoice may appear only once per allocation request.",
                     HttpStatusCode.BadRequest
                 );
@@ -153,7 +155,7 @@ public sealed class ApPaymentCommandValidator
 
             if (allocation.AmountApplied <= 0m)
             {
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "Allocation amount must be greater than zero.",
                     HttpStatusCode.BadRequest
                 );
@@ -171,15 +173,15 @@ public sealed class ApPaymentCommandValidator
 }
 
 public sealed record ApPaymentCreateValidationResult(
-    ApPaymentCommandResultDTO? Failure,
+    ApPaymentCommandResultDto? Failure,
     string DocNo,
     string? Memo,
     string PerformedBy,
-    IReadOnlyList<ApPaymentAllocationInputDTO> Allocations
+    IReadOnlyList<ApPaymentAllocationInputDto> Allocations
 );
 
 public sealed record ApPaymentAllocateValidationResult(
-    ApPaymentCommandResultDTO? Failure,
+    ApPaymentCommandResultDto? Failure,
     string PerformedBy,
-    IReadOnlyList<ApPaymentAllocationInputDTO> Allocations
+    IReadOnlyList<ApPaymentAllocationInputDto> Allocations
 );

@@ -19,29 +19,25 @@ public sealed class ApPaymentService(
     IApInvoiceRepository apInvoiceRepository,
     IVendorRepository vendorRepository,
     IBankAccountRepository bankAccountRepository,
-    IGlSettingsProvider glSettingsProvider,
-    ApPaymentCommandValidator commandValidator,
-    ApPaymentSnapshotFactory snapshotFactory,
-    IUnitOfWork unitOfWork,
+    ApPaymentServiceDependencies dependencies,
     ILogger<ApPaymentService> logger
 ) : IApPaymentService
 {
-    public async Task<ApPaymentCommandResultDTO> CreateAsync(
+    public async Task<ApPaymentCommandResultDto> CreateAsync(
         CreateApPaymentCommand command,
         CancellationToken cancellationToken = default
     )
     {
         try
         {
-            ApPaymentCreateValidationResult validatedCommand = commandValidator.ValidateCreate(
-                command
-            );
+            ApPaymentCreateValidationResult validatedCommand =
+                ApPaymentCommandValidator.ValidateCreate(command);
             if (validatedCommand.Failure is not null)
             {
                 return validatedCommand.Failure;
             }
 
-            GlPostingSettings settings = await glSettingsProvider.GetSettingsAsync(
+            GlPostingSettings settings = await dependencies.GlSettingsProvider.GetSettingsAsync(
                 cancellationToken
             );
 
@@ -51,7 +47,7 @@ public sealed class ApPaymentService(
             );
             if (vendor is null)
             {
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "Vendor was not found.",
                     HttpStatusCode.NotFound
                 );
@@ -59,7 +55,7 @@ public sealed class ApPaymentService(
 
             if (!vendor.IsActive)
             {
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "AP payments can be created only for active vendors.",
                     HttpStatusCode.BadRequest
                 );
@@ -71,7 +67,7 @@ public sealed class ApPaymentService(
             );
             if (bankAccount is null)
             {
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "Bank account was not found.",
                     HttpStatusCode.NotFound
                 );
@@ -79,7 +75,7 @@ public sealed class ApPaymentService(
 
             if (!bankAccount.IsActive)
             {
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "AP payments can be created only against active bank accounts.",
                     HttpStatusCode.BadRequest
                 );
@@ -92,7 +88,7 @@ public sealed class ApPaymentService(
                 )
             )
             {
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "AP payment capture currently supports only the base currency.",
                     HttpStatusCode.BadRequest
                 );
@@ -104,13 +100,13 @@ public sealed class ApPaymentService(
             );
             if (docNoExists)
             {
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "An AP payment with this document number already exists.",
                     HttpStatusCode.Conflict
                 );
             }
 
-            await unitOfWork.BeginTransactionAsync();
+            await dependencies.UnitOfWork.BeginTransactionAsync();
 
             try
             {
@@ -131,72 +127,77 @@ public sealed class ApPaymentService(
 
                 await apPaymentRepository.AddAsync(payment);
 
-                var invoiceLoad = await LoadTrackedInvoicesAsync(
-                    validatedCommand.Allocations.Select(x => x.ApInvoiceId).ToArray(),
+                var (invoiceLoadInvoices, invoiceLoadFailure) = await LoadTrackedInvoicesAsync(
+                    [.. validatedCommand.Allocations.Select(x => x.ApInvoiceId)],
                     payment.VendorId,
                     settings.BaseCurrencyCode,
                     cancellationToken
                 );
-                if (invoiceLoad.failure is not null)
+                if (invoiceLoadFailure is not null)
                 {
-                    await unitOfWork.RollbackAsync();
-                    return invoiceLoad.failure;
+                    await dependencies.UnitOfWork.RollbackAsync();
+                    return invoiceLoadFailure;
                 }
 
-                var allocationResult = await ApplyAllocationsAsync(
+                var (
+                    allocationFailure,
+                    settledAmounts,
+                    paymentAllocations
+                ) = await ApplyAllocationsAsync(
                     payment,
-                    invoiceLoad.invoices!,
+                    invoiceLoadInvoices!,
                     validatedCommand.Allocations,
                     command.AllocationDate ?? command.PaymentDate,
                     validatedCommand.PerformedBy
                 );
-                if (allocationResult.failure is not null)
+                if (allocationFailure is not null)
                 {
-                    await unitOfWork.RollbackAsync();
-                    return allocationResult.failure;
+                    await dependencies.UnitOfWork.RollbackAsync();
+                    return allocationFailure;
                 }
 
-                await unitOfWork.SaveChangesAsync(cancellationToken);
-                await unitOfWork.CommitAsync();
+                await dependencies.UnitOfWork.SaveChangesAsync(cancellationToken);
+                await dependencies.UnitOfWork.CommitAsync();
 
-                return snapshotFactory.BuildSuccess(
+                return ApPaymentSnapshotFactory.BuildSuccess(
                     payment,
-                    invoiceLoad.invoices!.Values,
+                    invoiceLoadInvoices!.Values,
                     "AP payment created successfully.",
-                    allocationResult.settledAmounts,
-                    allocationResult.paymentAllocations
+                    settledAmounts,
+                    paymentAllocations
                 );
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                await unitOfWork.RollbackAsync();
+                await dependencies.UnitOfWork.RollbackAsync();
                 logger.LogWarning(
+                    ex,
                     "Concurrency failure while creating AP payment {DocNo}. Entries: {Entries}",
                     validatedCommand.DocNo,
                     string.Join(", ", ex.Entries.Select(x => x.Entity.GetType().Name))
                 );
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "The payment or one of its invoices was modified during allocation.",
                     HttpStatusCode.Conflict
                 );
             }
             catch (DbUpdateException ex) when (IsUniqueDocNoViolation(ex))
             {
-                await unitOfWork.RollbackAsync();
-                return ApPaymentCommandResultDTO.Fail(
+                await dependencies.UnitOfWork.RollbackAsync();
+                return ApPaymentCommandResultDto.Fail(
                     "An AP payment with this document number already exists.",
                     HttpStatusCode.Conflict
                 );
             }
             catch (Exception ex)
             {
-                await unitOfWork.RollbackAsync();
+                await dependencies.UnitOfWork.RollbackAsync();
                 logger.LogError(
                     ex,
                     "Unexpected failure while creating AP payment {DocNo}",
                     validatedCommand.DocNo
                 );
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "An unexpected error occurred while creating the AP payment.",
                     HttpStatusCode.InternalServerError
                 );
@@ -205,29 +206,28 @@ public sealed class ApPaymentService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected failure before creating AP payment.");
-            return ApPaymentCommandResultDTO.Fail(
+            return ApPaymentCommandResultDto.Fail(
                 "An unexpected error occurred while creating the AP payment.",
                 HttpStatusCode.InternalServerError
             );
         }
     }
 
-    public async Task<ApPaymentCommandResultDTO> AllocateAsync(
+    public async Task<ApPaymentCommandResultDto> AllocateAsync(
         AllocateApPaymentCommand command,
         CancellationToken cancellationToken = default
     )
     {
         try
         {
-            ApPaymentAllocateValidationResult validatedCommand = commandValidator.ValidateAllocate(
-                command
-            );
+            ApPaymentAllocateValidationResult validatedCommand =
+                ApPaymentCommandValidator.ValidateAllocate(command);
             if (validatedCommand.Failure is not null)
             {
                 return validatedCommand.Failure;
             }
 
-            await unitOfWork.BeginTransactionAsync();
+            await dependencies.UnitOfWork.BeginTransactionAsync();
 
             try
             {
@@ -237,8 +237,8 @@ public sealed class ApPaymentService(
                 );
                 if (payment is null)
                 {
-                    await unitOfWork.RollbackAsync();
-                    return ApPaymentCommandResultDTO.Fail(
+                    await dependencies.UnitOfWork.RollbackAsync();
+                    return ApPaymentCommandResultDto.Fail(
                         "AP payment was not found.",
                         HttpStatusCode.NotFound
                     );
@@ -246,14 +246,14 @@ public sealed class ApPaymentService(
 
                 if (payment.DocStatus != DocStatus.Draft)
                 {
-                    await unitOfWork.RollbackAsync();
-                    return ApPaymentCommandResultDTO.Fail(
+                    await dependencies.UnitOfWork.RollbackAsync();
+                    return ApPaymentCommandResultDto.Fail(
                         "Only draft AP payments can be allocated in this slice.",
                         HttpStatusCode.BadRequest
                     );
                 }
 
-                GlPostingSettings settings = await glSettingsProvider.GetSettingsAsync(
+                GlPostingSettings settings = await dependencies.GlSettingsProvider.GetSettingsAsync(
                     cancellationToken
                 );
                 if (
@@ -263,71 +263,76 @@ public sealed class ApPaymentService(
                     )
                 )
                 {
-                    await unitOfWork.RollbackAsync();
-                    return ApPaymentCommandResultDTO.Fail(
+                    await dependencies.UnitOfWork.RollbackAsync();
+                    return ApPaymentCommandResultDto.Fail(
                         "AP payment allocation currently supports only payments in the base currency.",
                         HttpStatusCode.BadRequest
                     );
                 }
 
-                var invoiceLoad = await LoadTrackedInvoicesAsync(
-                    validatedCommand.Allocations.Select(x => x.ApInvoiceId).ToArray(),
+                var (invoiceLoadInvoices, invoiceLoadFailure) = await LoadTrackedInvoicesAsync(
+                    [.. validatedCommand.Allocations.Select(x => x.ApInvoiceId)],
                     payment.VendorId,
                     settings.BaseCurrencyCode,
                     cancellationToken
                 );
-                if (invoiceLoad.failure is not null)
+                if (invoiceLoadFailure is not null)
                 {
-                    await unitOfWork.RollbackAsync();
-                    return invoiceLoad.failure;
+                    await dependencies.UnitOfWork.RollbackAsync();
+                    return invoiceLoadFailure;
                 }
 
-                var allocationResult = await ApplyAllocationsAsync(
+                var (
+                    allocationFailure,
+                    settledAmounts,
+                    paymentAllocations
+                ) = await ApplyAllocationsAsync(
                     payment,
-                    invoiceLoad.invoices!,
+                    invoiceLoadInvoices!,
                     validatedCommand.Allocations,
                     command.AllocationDate ?? payment.PaymentDate,
                     validatedCommand.PerformedBy
                 );
-                if (allocationResult.failure is not null)
+                if (allocationFailure is not null)
                 {
-                    await unitOfWork.RollbackAsync();
-                    return allocationResult.failure;
+                    await dependencies.UnitOfWork.RollbackAsync();
+                    return allocationFailure;
                 }
 
-                await unitOfWork.SaveChangesAsync(cancellationToken);
-                await unitOfWork.CommitAsync();
+                await dependencies.UnitOfWork.SaveChangesAsync(cancellationToken);
+                await dependencies.UnitOfWork.CommitAsync();
 
-                return snapshotFactory.BuildSuccess(
+                return ApPaymentSnapshotFactory.BuildSuccess(
                     payment,
-                    invoiceLoad.invoices!.Values,
+                    invoiceLoadInvoices!.Values,
                     "AP payment allocations saved successfully.",
-                    allocationResult.settledAmounts,
-                    allocationResult.paymentAllocations
+                    settledAmounts,
+                    paymentAllocations
                 );
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                await unitOfWork.RollbackAsync();
+                await dependencies.UnitOfWork.RollbackAsync();
                 logger.LogWarning(
+                    ex,
                     "Concurrency failure while allocating AP payment {PaymentId}. Entries: {Entries}",
                     command.PaymentId,
                     string.Join(", ", ex.Entries.Select(x => x.Entity.GetType().Name))
                 );
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "The payment or one of its invoices was modified during allocation.",
                     HttpStatusCode.Conflict
                 );
             }
             catch (Exception ex)
             {
-                await unitOfWork.RollbackAsync();
+                await dependencies.UnitOfWork.RollbackAsync();
                 logger.LogError(
                     ex,
                     "Unexpected failure while allocating AP payment {PaymentId}",
                     command.PaymentId
                 );
-                return ApPaymentCommandResultDTO.Fail(
+                return ApPaymentCommandResultDto.Fail(
                     "An unexpected error occurred while allocating the AP payment.",
                     HttpStatusCode.InternalServerError
                 );
@@ -340,7 +345,7 @@ public sealed class ApPaymentService(
                 "Unexpected failure before allocating AP payment {PaymentId}",
                 command.PaymentId
             );
-            return ApPaymentCommandResultDTO.Fail(
+            return ApPaymentCommandResultDto.Fail(
                 "An unexpected error occurred while allocating the AP payment.",
                 HttpStatusCode.InternalServerError
             );
@@ -349,7 +354,7 @@ public sealed class ApPaymentService(
 
     private async Task<(
         Dictionary<Guid, ApInvoice>? invoices,
-        ApPaymentCommandResultDTO? failure
+        ApPaymentCommandResultDto? failure
     )> LoadTrackedInvoicesAsync(
         IReadOnlyCollection<Guid> invoiceIds,
         Guid vendorId,
@@ -359,7 +364,7 @@ public sealed class ApPaymentService(
     {
         if (invoiceIds.Count == 0)
         {
-            return (new Dictionary<Guid, ApInvoice>(), null);
+            return ([], null);
         }
 
         IReadOnlyList<ApInvoice> invoices = await apInvoiceRepository.GetTrackedForSettlementAsync(
@@ -371,7 +376,7 @@ public sealed class ApPaymentService(
         {
             return (
                 null,
-                ApPaymentCommandResultDTO.Fail(
+                ApPaymentCommandResultDto.Fail(
                     "One or more AP invoices were not found.",
                     HttpStatusCode.NotFound
                 )
@@ -384,7 +389,7 @@ public sealed class ApPaymentService(
             {
                 return (
                     null,
-                    ApPaymentCommandResultDTO.Fail(
+                    ApPaymentCommandResultDto.Fail(
                         "Only posted AP invoices can be allocated in this slice.",
                         HttpStatusCode.BadRequest
                     )
@@ -395,7 +400,7 @@ public sealed class ApPaymentService(
             {
                 return (
                     null,
-                    ApPaymentCommandResultDTO.Fail(
+                    ApPaymentCommandResultDto.Fail(
                         "AP payment allocations must reference invoices for the same vendor.",
                         HttpStatusCode.BadRequest
                     )
@@ -406,7 +411,7 @@ public sealed class ApPaymentService(
             {
                 return (
                     null,
-                    ApPaymentCommandResultDTO.Fail(
+                    ApPaymentCommandResultDto.Fail(
                         "AP payment allocation currently supports only invoices in the base currency.",
                         HttpStatusCode.BadRequest
                     )
@@ -417,7 +422,7 @@ public sealed class ApPaymentService(
             {
                 return (
                     null,
-                    ApPaymentCommandResultDTO.Fail(
+                    ApPaymentCommandResultDto.Fail(
                         $"AP invoice {invoice.DocNo} has no remaining balance to allocate.",
                         HttpStatusCode.BadRequest
                     )
@@ -429,13 +434,13 @@ public sealed class ApPaymentService(
     }
 
     private async Task<(
-        ApPaymentCommandResultDTO? failure,
+        ApPaymentCommandResultDto? failure,
         IReadOnlyDictionary<Guid, decimal> settledAmounts,
         IReadOnlyList<ApPaymentAllocation> paymentAllocations
     )> ApplyAllocationsAsync(
         ApPayment payment,
-        IReadOnlyDictionary<Guid, ApInvoice> invoices,
-        IReadOnlyList<ApPaymentAllocationInputDTO> allocations,
+        Dictionary<Guid, ApInvoice> invoices,
+        IReadOnlyList<ApPaymentAllocationInputDto> allocations,
         DateOnly allocationDate,
         string performedBy
     )
@@ -452,13 +457,13 @@ public sealed class ApPaymentService(
             return (null, settledAmounts, paymentAllocations);
         }
 
-        decimal requestedTotal = allocations.Sum(x => x.AmountApplied);
+        decimal requesteDtotal = allocations.Sum(x => x.AmountApplied);
         decimal paymentUnappliedAmount = ApSettlementCalculator.GetPaymentUnappliedAmount(payment);
 
-        if (requestedTotal > paymentUnappliedAmount)
+        if (requesteDtotal > paymentUnappliedAmount)
         {
             return (
-                ApPaymentCommandResultDTO.Fail(
+                ApPaymentCommandResultDto.Fail(
                     "Allocation total exceeds the payment's unapplied amount.",
                     HttpStatusCode.BadRequest
                 ),
@@ -470,12 +475,12 @@ public sealed class ApPaymentService(
         payment.UpdatedAt = updatedAt;
         payment.UpdatedBy = performedBy;
 
-        foreach (ApPaymentAllocationInputDTO input in allocations)
+        foreach (ApPaymentAllocationInputDto input in allocations)
         {
             if (!invoices.TryGetValue(input.ApInvoiceId, out ApInvoice? invoice))
             {
                 return (
-                    ApPaymentCommandResultDTO.Fail(
+                    ApPaymentCommandResultDto.Fail(
                         "AP invoice was not found.",
                         HttpStatusCode.NotFound
                     ),
@@ -489,7 +494,7 @@ public sealed class ApPaymentService(
             if (input.AmountApplied > invoiceRemainingAmount)
             {
                 return (
-                    ApPaymentCommandResultDTO.Fail(
+                    ApPaymentCommandResultDto.Fail(
                         $"Allocation amount exceeds the remaining balance for invoice {invoice.DocNo}.",
                         HttpStatusCode.BadRequest
                     ),

@@ -2,7 +2,7 @@ using OakERP.Common.Enums;
 
 namespace OakERP.Application.AccountsPayable;
 
-public sealed class ApInvoiceSnapshotDTO
+public sealed class ApInvoiceSnapshotDto
 {
     public Guid InvoiceId { get; set; }
     public string DocNo { get; set; } = string.Empty;
@@ -15,5 +15,5 @@ public sealed class ApInvoiceSnapshotDTO
     public string? Memo { get; set; }
     public decimal TaxTotal { get; set; }
     public decimal DocTotal { get; set; }
-    public IReadOnlyList<ApInvoiceLineSnapshotDTO> Lines { get; set; } = [];
+    public IReadOnlyList<ApInvoiceLineSnapshotDto> Lines { get; set; } = [];
 }

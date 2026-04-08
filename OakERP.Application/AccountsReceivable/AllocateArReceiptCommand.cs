@@ -8,7 +8,7 @@ public sealed class AllocateArReceiptCommand
     public Guid ReceiptId { get; set; }
 
     public DateOnly? AllocationDate { get; set; }
-    public IReadOnlyList<ArReceiptAllocationInputDTO> Allocations { get; set; } = [];
+    public IReadOnlyList<ArReceiptAllocationInputDto> Allocations { get; set; } = [];
 
     [JsonIgnore]
     public string? PerformedBy { get; set; }

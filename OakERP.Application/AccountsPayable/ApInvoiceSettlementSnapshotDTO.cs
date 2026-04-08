@@ -2,7 +2,7 @@ using OakERP.Common.Enums;
 
 namespace OakERP.Application.AccountsPayable;
 
-public sealed class ApInvoiceSettlementSnapshotDTO
+public sealed class ApInvoiceSettlementSnapshotDto
 {
     public Guid InvoiceId { get; set; }
     public string DocNo { get; set; } = string.Empty;

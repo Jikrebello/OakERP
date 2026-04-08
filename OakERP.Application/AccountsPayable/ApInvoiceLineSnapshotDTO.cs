@@ -1,6 +1,6 @@
 namespace OakERP.Application.AccountsPayable;
 
-public sealed class ApInvoiceLineSnapshotDTO
+public sealed class ApInvoiceLineSnapshotDto
 {
     public Guid LineId { get; set; }
     public int LineNo { get; set; }

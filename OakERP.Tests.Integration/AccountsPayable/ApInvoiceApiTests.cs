@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using OakERP.Application.AccountsPayable;
-using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Dtos.Auth;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Accounts_Payable;
 using OakERP.Domain.Entities.Common;
@@ -37,7 +37,7 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
             Memo = "April supplier invoice",
             Lines =
             [
-                new ApInvoiceLineInputDTO
+                new ApInvoiceLineInputDto
                 {
                     Description = "Rent",
                     AccountNo = "5000",
@@ -45,7 +45,7 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
                     UnitPrice = 50m,
                     LineTotal = 50m,
                 },
-                new ApInvoiceLineInputDTO
+                new ApInvoiceLineInputDto
                 {
                     Description = "Utilities",
                     AccountNo = "5000",
@@ -56,7 +56,7 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
             ],
         };
 
-        var result = await PostAsync<CreateApInvoiceCommand, ApInvoiceCommandResultDTO>(
+        var result = await PostAsync<CreateApInvoiceCommand, ApInvoiceCommandResultDto>(
             ApiRoutes.ApInvoices.Create,
             command
         );
@@ -100,7 +100,7 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
             DocTotal = 40m,
             Lines =
             [
-                new ApInvoiceLineInputDTO
+                new ApInvoiceLineInputDto
                 {
                     Description = "Services",
                     AccountNo = "5000",
@@ -114,7 +114,7 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
         var response = await Client.PostAsJsonAsync(ApiRoutes.ApInvoices.Create, command);
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
 
-        var result = await response.Content.ReadFromJsonAsync<ApInvoiceCommandResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<ApInvoiceCommandResultDto>();
         result.ShouldNotBeNull();
         result!.Success.ShouldBeFalse();
         result.Message.ShouldContain("vendor");
@@ -145,7 +145,7 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
             DocTotal = 25m,
             Lines =
             [
-                new ApInvoiceLineInputDTO
+                new ApInvoiceLineInputDto
                 {
                     AccountNo = "5000",
                     ItemId = Guid.NewGuid(),
@@ -159,7 +159,7 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
         var response = await Client.PostAsJsonAsync(ApiRoutes.ApInvoices.Create, command);
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
-        var result = await response.Content.ReadFromJsonAsync<ApInvoiceCommandResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<ApInvoiceCommandResultDto>();
         result.ShouldNotBeNull();
         result!.Success.ShouldBeFalse();
         result.Message.ShouldContain("Item-based");
@@ -190,7 +190,7 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
             DocTotal = 40m,
             Lines =
             [
-                new ApInvoiceLineInputDTO
+                new ApInvoiceLineInputDto
                 {
                     Description = "Services",
                     AccountNo = "5000",
@@ -204,7 +204,7 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
         var response = await Client.PostAsJsonAsync(ApiRoutes.ApInvoices.Create, command);
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
-        var result = await response.Content.ReadFromJsonAsync<ApInvoiceCommandResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<ApInvoiceCommandResultDto>();
         result.ShouldNotBeNull();
         result!.Success.ShouldBeFalse();
         result.Message.ShouldContain("inactive");
@@ -218,7 +218,7 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
 
     private async Task AuthenticateAsync()
     {
-        var registerDto = new RegisterDTO
+        var registerDto = new RegisterDto
         {
             Email = $"ap_invoice_api_{TestId}@oak.test",
             Password = "TestPass123!",
@@ -229,15 +229,15 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
             TenantName = $"ApInvoiceTenant_{TestId}",
         };
 
-        var registerResult = await PostAsync<RegisterDTO, AuthResultDTO>(
+        var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
             ApiRoutes.Auth.Register,
             registerDto
         );
         registerResult.Success.ShouldBeTrue();
 
-        var loginResult = await PostAsync<LoginDTO, AuthResultDTO>(
+        var loginResult = await PostAsync<LoginDto, AuthResultDto>(
             ApiRoutes.Auth.Login,
-            new LoginDTO { Email = registerDto.Email, Password = registerDto.Password }
+            new LoginDto { Email = registerDto.Email, Password = registerDto.Password }
         );
 
         loginResult.Success.ShouldBeTrue();

@@ -8,7 +8,7 @@ public sealed class AllocateApPaymentCommand
     public Guid PaymentId { get; set; }
 
     public DateOnly? AllocationDate { get; set; }
-    public IReadOnlyList<ApPaymentAllocationInputDTO> Allocations { get; set; } = [];
+    public IReadOnlyList<ApPaymentAllocationInputDto> Allocations { get; set; } = [];
 
     [JsonIgnore]
     public string? PerformedBy { get; set; }

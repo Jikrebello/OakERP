@@ -1,16 +1,16 @@
 using System.Net;
-using OakERP.Common.DTOs.Base;
+using OakERP.Common.Dtos.Base;
 
 namespace OakERP.Application.AccountsReceivable;
 
-public sealed class ArReceiptCommandResultDTO : BaseResultDTO
+public sealed class ArReceiptCommandResultDto : BaseResultDto
 {
-    public ArReceiptSnapshotDTO? Receipt { get; set; }
-    public IReadOnlyList<ArInvoiceSettlementSnapshotDTO> Invoices { get; set; } = [];
+    public ArReceiptSnapshotDto? Receipt { get; set; }
+    public IReadOnlyList<ArInvoiceSettlementSnapshotDto> Invoices { get; set; } = [];
 
-    public static ArReceiptCommandResultDTO SuccessWith(
-        ArReceiptSnapshotDTO receipt,
-        IReadOnlyList<ArInvoiceSettlementSnapshotDTO> invoices,
+    public static ArReceiptCommandResultDto SuccessWith(
+        ArReceiptSnapshotDto receipt,
+        IReadOnlyList<ArInvoiceSettlementSnapshotDto> invoices,
         string message
     ) =>
         new()
@@ -21,6 +21,6 @@ public sealed class ArReceiptCommandResultDTO : BaseResultDTO
             Message = message,
         };
 
-    public static ArReceiptCommandResultDTO Fail(string message, HttpStatusCode statusCode) =>
-        Fail<ArReceiptCommandResultDTO>(message, statusCode);
+    public static ArReceiptCommandResultDto Fail(string message, HttpStatusCode statusCode) =>
+        Fail<ArReceiptCommandResultDto>(message, statusCode);
 }

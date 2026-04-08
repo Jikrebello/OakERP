@@ -47,10 +47,7 @@ public sealed class ArReceiptServiceTestFactory
             ArInvoiceRepository.Object,
             CustomerRepository.Object,
             BankAccountRepository.Object,
-            GlSettingsProvider.Object,
-            new ArReceiptCommandValidator(),
-            new ArReceiptSnapshotFactory(),
-            UnitOfWork.Object,
+            new ArReceiptServiceDependencies(GlSettingsProvider.Object, UnitOfWork.Object),
             Logger.Object
         );
 

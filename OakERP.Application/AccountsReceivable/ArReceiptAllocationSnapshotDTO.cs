@@ -1,6 +1,6 @@
 namespace OakERP.Application.AccountsReceivable;
 
-public sealed class ArReceiptAllocationSnapshotDTO
+public sealed class ArReceiptAllocationSnapshotDto
 {
     public Guid AllocationId { get; set; }
     public Guid ArInvoiceId { get; set; }

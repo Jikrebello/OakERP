@@ -1,7 +1,7 @@
 ﻿using System.Net;
-using OakERP.Common.DTOs.Base;
+using OakERP.Common.Dtos.Base;
 
-namespace OakERP.Common.DTOs.Auth;
+namespace OakERP.Common.Dtos.Auth;
 
 /// <summary>
 /// Represents the result of an authentication operation, including the authentication token, user information, and role
@@ -10,7 +10,7 @@ namespace OakERP.Common.DTOs.Auth;
 /// <remarks>This class is typically used to encapsulate the outcome of a login or authentication process. It
 /// provides both success and failure results, along with relevant metadata such as the token and user
 /// details.</remarks>
-public class AuthResultDTO : BaseResultDTO
+public class AuthResultDto : BaseResultDto
 {
     public string? Token { get; set; }
 
@@ -18,7 +18,7 @@ public class AuthResultDTO : BaseResultDTO
 
     public string? Role { get; set; }
 
-    public static AuthResultDTO SuccessWith(
+    public static AuthResultDto SuccessWith(
         string token,
         string? userName = null,
         string? role = null
@@ -32,6 +32,6 @@ public class AuthResultDTO : BaseResultDTO
             Message = "Login successful",
         };
 
-    public static AuthResultDTO Fail(string message, HttpStatusCode statusCode) =>
-        Fail<AuthResultDTO>(message, statusCode);
+    public static AuthResultDto Fail(string message, HttpStatusCode statusCode) =>
+        Fail<AuthResultDto>(message, statusCode);
 }

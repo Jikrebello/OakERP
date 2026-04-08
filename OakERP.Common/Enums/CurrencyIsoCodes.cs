@@ -1,6 +1,6 @@
 ﻿namespace OakERP.Common.Enums;
 
-public enum CurrencyISOCodes
+public enum CurrencyIsoCodes
 {
     /// <summary>
     /// Represents the currency code for the South African Rand.

@@ -4,22 +4,22 @@ using OakERP.Domain.Entities.Accounts_Payable;
 
 namespace OakERP.Infrastructure.Accounts_Payable;
 
-public sealed class ApPaymentSnapshotFactory
+public static class ApPaymentSnapshotFactory
 {
-    public ApPaymentCommandResultDTO BuildSuccess(
+    public static ApPaymentCommandResultDto BuildSuccess(
         ApPayment payment,
         IEnumerable<ApInvoice> invoices,
         string message,
         IReadOnlyDictionary<Guid, decimal>? settledAmountOverrides = null,
         IReadOnlyCollection<ApPaymentAllocation>? allocationOverrides = null
     ) =>
-        ApPaymentCommandResultDTO.SuccessWith(
+        ApPaymentCommandResultDto.SuccessWith(
             BuildPaymentSnapshot(payment, allocationOverrides),
             BuildInvoiceSnapshots(invoices, settledAmountOverrides),
             message
         );
 
-    public ApPaymentSnapshotDTO BuildPaymentSnapshot(
+    public static ApPaymentSnapshotDto BuildPaymentSnapshot(
         ApPayment payment,
         IReadOnlyCollection<ApPaymentAllocation>? allocationOverrides = null
     )
@@ -29,7 +29,7 @@ public sealed class ApPaymentSnapshotFactory
         IEnumerable<ApPaymentAllocation> allocations =
             allocationOverrides ?? [.. payment.Allocations];
 
-        return new ApPaymentSnapshotDTO
+        return new ApPaymentSnapshotDto
         {
             PaymentId = payment.Id,
             DocNo = payment.DocNo,
@@ -47,46 +47,51 @@ public sealed class ApPaymentSnapshotFactory
                 payment,
                 allocations
             ),
-            Allocations = allocations
-                .OrderBy(x => x.AllocationDate)
-                .ThenBy(x => x.Id)
-                .Select(x => new ApPaymentAllocationSnapshotDTO
-                {
-                    AllocationId = x.Id,
-                    ApInvoiceId = x.ApInvoiceId,
-                    AllocationDate = x.AllocationDate,
-                    AmountApplied = x.AmountApplied,
-                })
-                .ToList(),
+            Allocations =
+            [
+                .. allocations
+                    .OrderBy(x => x.AllocationDate)
+                    .ThenBy(x => x.Id)
+                    .Select(x => new ApPaymentAllocationSnapshotDto
+                    {
+                        AllocationId = x.Id,
+                        ApInvoiceId = x.ApInvoiceId,
+                        AllocationDate = x.AllocationDate,
+                        AmountApplied = x.AmountApplied,
+                    }),
+            ],
         };
     }
 
-    public IReadOnlyList<ApInvoiceSettlementSnapshotDTO> BuildInvoiceSnapshots(
+    public static IReadOnlyList<ApInvoiceSettlementSnapshotDto> BuildInvoiceSnapshots(
         IEnumerable<ApInvoice> invoices,
         IReadOnlyDictionary<Guid, decimal>? settledAmountOverrides = null
     )
     {
         ArgumentNullException.ThrowIfNull(invoices);
 
-        return invoices
-            .OrderBy(x => x.DocNo, StringComparer.Ordinal)
-            .Select(x =>
-            {
-                decimal settledAmount =
-                    settledAmountOverrides?.TryGetValue(x.Id, out decimal overrideAmount) == true
-                        ? overrideAmount
-                        : ApSettlementCalculator.GetInvoiceSettledAmount(x);
-
-                return new ApInvoiceSettlementSnapshotDTO
+        return
+        [
+            .. invoices
+                .OrderBy(x => x.DocNo, StringComparer.Ordinal)
+                .Select(x =>
                 {
-                    InvoiceId = x.Id,
-                    DocNo = x.DocNo,
-                    DocStatus = x.DocStatus,
-                    DocTotal = x.DocTotal,
-                    SettledAmount = settledAmount,
-                    RemainingAmount = x.DocTotal - settledAmount,
-                };
-            })
-            .ToList();
+                    decimal settledAmount =
+                        settledAmountOverrides?.TryGetValue(x.Id, out decimal overrideAmount)
+                        == true
+                            ? overrideAmount
+                            : ApSettlementCalculator.GetInvoiceSettledAmount(x);
+
+                    return new ApInvoiceSettlementSnapshotDto
+                    {
+                        InvoiceId = x.Id,
+                        DocNo = x.DocNo,
+                        DocStatus = x.DocStatus,
+                        DocTotal = x.DocTotal,
+                        SettledAmount = settledAmount,
+                        RemainingAmount = x.DocTotal - settledAmount,
+                    };
+                }),
+        ];
     }
 }

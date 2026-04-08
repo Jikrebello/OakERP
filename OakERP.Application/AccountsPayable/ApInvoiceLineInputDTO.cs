@@ -1,6 +1,6 @@
 namespace OakERP.Application.AccountsPayable;
 
-public sealed class ApInvoiceLineInputDTO
+public sealed class ApInvoiceLineInputDto
 {
     public string? Description { get; set; }
     public string? AccountNo { get; set; }

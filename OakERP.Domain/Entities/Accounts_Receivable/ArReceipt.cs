@@ -18,7 +18,7 @@ public sealed class ArReceipt
     public DateOnly? ClearedDate { get; set; } // bank reconciliation date (optional)
 
     public decimal Amount { get; set; }
-    public string CurrencyCode { get; set; } = CurrencyISOCodes.ZAR.ToString();
+    public string CurrencyCode { get; set; } = CurrencyIsoCodes.ZAR.ToString();
     public decimal? AmountForeign { get; set; } // amount in receipt currency
     public decimal? ExchangeRate { get; set; } // to functional currency for posting
     public Currency Currency { get; set; } = default!;

@@ -1,16 +1,16 @@
 using System.Net;
-using OakERP.Common.DTOs.Base;
+using OakERP.Common.Dtos.Base;
 
 namespace OakERP.Application.AccountsPayable;
 
-public sealed class ApPaymentCommandResultDTO : BaseResultDTO
+public sealed class ApPaymentCommandResultDto : BaseResultDto
 {
-    public ApPaymentSnapshotDTO? Payment { get; set; }
-    public IReadOnlyList<ApInvoiceSettlementSnapshotDTO> Invoices { get; set; } = [];
+    public ApPaymentSnapshotDto? Payment { get; set; }
+    public IReadOnlyList<ApInvoiceSettlementSnapshotDto> Invoices { get; set; } = [];
 
-    public static ApPaymentCommandResultDTO SuccessWith(
-        ApPaymentSnapshotDTO payment,
-        IReadOnlyList<ApInvoiceSettlementSnapshotDTO> invoices,
+    public static ApPaymentCommandResultDto SuccessWith(
+        ApPaymentSnapshotDto payment,
+        IReadOnlyList<ApInvoiceSettlementSnapshotDto> invoices,
         string message
     ) =>
         new()
@@ -21,6 +21,6 @@ public sealed class ApPaymentCommandResultDTO : BaseResultDTO
             Message = message,
         };
 
-    public static ApPaymentCommandResultDTO Fail(string message, HttpStatusCode statusCode) =>
-        Fail<ApPaymentCommandResultDTO>(message, statusCode);
+    public static ApPaymentCommandResultDto Fail(string message, HttpStatusCode statusCode) =>
+        Fail<ApPaymentCommandResultDto>(message, statusCode);
 }

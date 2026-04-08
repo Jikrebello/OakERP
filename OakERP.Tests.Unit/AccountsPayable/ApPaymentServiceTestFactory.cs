@@ -47,10 +47,7 @@ public sealed class ApPaymentServiceTestFactory
             ApInvoiceRepository.Object,
             VendorRepository.Object,
             BankAccountRepository.Object,
-            GlSettingsProvider.Object,
-            new ApPaymentCommandValidator(),
-            new ApPaymentSnapshotFactory(),
-            UnitOfWork.Object,
+            new ApPaymentServiceDependencies(GlSettingsProvider.Object, UnitOfWork.Object),
             Logger.Object
         );
 

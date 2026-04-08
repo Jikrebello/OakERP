@@ -26,20 +26,14 @@ public class UsersController : ControllerBase
     /// if not available.</description> </item> <item> <description><c>tenantId</c>: The tenant ID associated with the
     /// user, or "Unknown" if not available.</description> </item> </list></returns>
     [HttpGet("whoami")]
+    [ProducesResponseType(typeof(CurrentUserResponse), StatusCodes.Status200OK)]
     public IActionResult WhoAmI()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Unknown";
         var email = User.FindFirstValue(ClaimTypes.Email) ?? "Unknown";
         var tenantId = User.FindFirstValue("tenantId") ?? "Unknown";
 
-        return Ok(
-            new
-            {
-                userId,
-                email,
-                tenantId,
-            }
-        );
+        return Ok(new CurrentUserResponse(userId, email, tenantId));
     }
 
     /// <summary>
@@ -51,6 +45,7 @@ public class UsersController : ControllerBase
     /// <returns>An <see cref="IActionResult"/> containing a success response with a welcome message for administrators.</returns>
     [HttpGet("admin-only")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public IActionResult AdminOnly()
     {
         return Ok("Welcome, Admin 🎩.");
@@ -64,8 +59,11 @@ public class UsersController : ControllerBase
     /// <returns>An <see cref="IActionResult"/> containing a success response with a welcome message for authorized users.</returns>
     [HttpGet("user-only")]
     [Authorize(Roles = "User")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public IActionResult UserOnly()
     {
         return Ok("Welcome, user 🧰.");
     }
+
+    public sealed record CurrentUserResponse(string UserId, string Email, string TenantId);
 }

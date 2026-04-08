@@ -17,7 +17,7 @@ public sealed class BankAccount
     public string GlAccountNo { get; set; } = default!;
     public decimal OpeningBalance { get; set; }
 
-    public string CurrencyCode { get; set; } = CurrencyISOCodes.ZAR.ToString();
+    public string CurrencyCode { get; set; } = CurrencyIsoCodes.ZAR.ToString();
     public Currency Currency { get; set; } = default!;
 
     public bool IsActive { get; set; } = true;

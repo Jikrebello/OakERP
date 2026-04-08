@@ -12,7 +12,7 @@ public sealed class CreateArReceiptCommand
     public decimal Amount { get; set; }
     public string? CurrencyCode { get; set; }
     public string? Memo { get; set; }
-    public IReadOnlyList<ArReceiptAllocationInputDTO> Allocations { get; set; } = [];
+    public IReadOnlyList<ArReceiptAllocationInputDto> Allocations { get; set; } = [];
 
     [JsonIgnore]
     public string? PerformedBy { get; set; }

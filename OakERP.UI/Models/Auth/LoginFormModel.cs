@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Dtos.Auth;
 
 namespace OakERP.UI.Models.Auth;
 
@@ -12,8 +12,8 @@ public class LoginFormModel
     [Required(ErrorMessage = "Password is required.")]
     public string Password { get; set; } = string.Empty;
 
-    public static implicit operator LoginDTO(LoginFormModel form)
+    public static implicit operator LoginDto(LoginFormModel form)
     {
-        return new LoginDTO { Email = form.Email, Password = form.Password };
+        return new LoginDto { Email = form.Email, Password = form.Password };
     }
 }

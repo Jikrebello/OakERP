@@ -11,5 +11,5 @@ These files will be deployed with your package and will be accessible using Esse
         using var stream = await FileSystem.OpenAppPackageFileAsync("AboutAssets.txt");
         using var reader = new StreamReader(stream);
 
-        var contents = reader.ReadToEnd();
+        var contents = reader.ReaDtoEnd();
     }

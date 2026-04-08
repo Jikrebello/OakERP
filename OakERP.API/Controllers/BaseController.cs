@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using OakERP.Common.DTOs.Base;
+using OakERP.Common.Dtos.Base;
 
 namespace OakERP.API.Controllers;
 
 /// <summary>
-/// Base API controller that standardizes response formatting using BaseResultDTO.
+/// Base API controller that standardizes response formatting using BaseResultDto.
 /// </summary>
 [ApiController]
 public abstract class BaseApiController : ControllerBase
@@ -12,14 +12,18 @@ public abstract class BaseApiController : ControllerBase
     /// <summary>
     /// Returns a standardized API response based on success.
     /// </summary>
-    /// <typeparam name="T">Any type inheriting from BaseResultDTO</typeparam>
-    /// <param name="result">The result DTO from a service</param>
+    /// <typeparam name="T">Any type inheriting from BaseResultDto</typeparam>
+    /// <param name="result">The result Dto from a service</param>
     /// <returns>Properly formatted IActionResult</returns>
     protected IActionResult ApiResult<T>(T result)
-        where T : BaseResultDTO
+        where T : BaseResultDto
     {
-        var statusCode = result.StatusCode == 0 ? 500 : result.StatusCode;
+        var statusCode = result.StatusCode.GetValueOrDefault();
+        if (statusCode == 0)
+        {
+            statusCode = 500;
+        }
 
-        return result.Success ? Ok(result) : StatusCode((int)statusCode, result);
+        return result.Success ? Ok(result) : StatusCode(statusCode, result);
     }
 }

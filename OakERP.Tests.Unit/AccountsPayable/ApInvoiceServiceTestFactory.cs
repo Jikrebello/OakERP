@@ -34,8 +34,6 @@ public sealed class ApInvoiceServiceTestFactory
             VendorRepository.Object,
             CurrencyRepository.Object,
             GlAccountRepository.Object,
-            new ApInvoiceCommandValidator(),
-            new ApInvoiceSnapshotFactory(),
             UnitOfWork.Object,
             Logger.Object
         );
@@ -86,7 +84,7 @@ public sealed class ApInvoiceServiceTestFactory
             PerformedBy = "unit-user",
             Lines =
             [
-                new ApInvoiceLineInputDTO
+                new ApInvoiceLineInputDto
                 {
                     Description = "Office rent",
                     AccountNo = accountNo,

@@ -1,11 +1,11 @@
 using OakERP.Client.Services.Api;
-using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Dtos.Auth;
 
 namespace OakERP.Client.Services.Auth;
 
 public interface IAuthService
 {
-    Task<ApiResult<AuthResultDTO>> LoginAsync(LoginDTO loginDTO);
+    Task<ApiResult<AuthResultDto>> LoginAsync(LoginDto loginDto);
 
-    Task<ApiResult<AuthResultDTO>> RegisterAsync(RegisterDTO registerDTO);
+    Task<ApiResult<AuthResultDto>> RegisterAsync(RegisterDto registerDto);
 }

@@ -2,7 +2,7 @@ namespace OakERP.Application.AccountsPayable;
 
 public interface IApInvoiceService
 {
-    Task<ApInvoiceCommandResultDTO> CreateAsync(
+    Task<ApInvoiceCommandResultDto> CreateAsync(
         CreateApInvoiceCommand command,
         CancellationToken cancellationToken = default
     );

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
-using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Dtos.Auth;
 using OakERP.Domain.Entities.Users;
 using OakERP.Tests.Integration.TestSetup;
 using Shouldly;
@@ -31,7 +31,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Register_Endpoint_Should_Create_Tenant_And_License()
     {
         // Arrange
-        var dto = new RegisterDTO
+        var Dto = new RegisterDto
         {
             Email = $"apiuser_{TestId}@oak.test",
             Password = "TestPass123!",
@@ -43,7 +43,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
         };
 
         // Act
-        var result = await PostAsync<RegisterDTO, AuthResultDTO>(ApiRoutes.Auth.Register, dto);
+        var result = await PostAsync<RegisterDto, AuthResultDto>(ApiRoutes.Auth.Register, Dto);
 
         // Assert (API)
         result.ShouldNotBeNull();
@@ -52,7 +52,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
         // Assert (DB)
         await WithDbAsync(async db =>
         {
-            var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Name == dto.TenantName);
+            var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Name == Dto.TenantName);
             tenant.ShouldNotBeNull("Tenant should be created by Register endpoint.");
 
             var license = await db.Licenses.FirstOrDefaultAsync(l => l.TenantId == tenant!.Id);
@@ -72,7 +72,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Register_Endpoint_Should_Fail_If_Passwords_Do_Not_Match()
     {
         // Arrange
-        var dto = new RegisterDTO
+        var Dto = new RegisterDto
         {
             Email = $"badpw_{TestId}@oak.test",
             FirstName = "TestFirstname",
@@ -84,9 +84,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         };
 
         // Act
-        var result = await PostAllowingErrorAsync<RegisterDTO, AuthResultDTO>(
+        var result = await PostAllowingErrorAsync<RegisterDto, AuthResultDto>(
             ApiRoutes.Auth.Register,
-            dto
+            Dto
         );
 
         // Assert
@@ -107,7 +107,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Register_Endpoint_Should_Fail_If_Email_Already_Exists()
     {
         // Arrange (first registration)
-        var dto = new RegisterDTO
+        var Dto = new RegisterDto
         {
             Email = $"duplicate_{TestId}@oak.test",
             Password = "TestPass123!",
@@ -119,20 +119,20 @@ public class AuthApiTests : WebApiIntegrationTestBase
         };
 
         // Act 1: create initial user/tenant
-        var first = await PostAsync<RegisterDTO, AuthResultDTO>(ApiRoutes.Auth.Register, dto);
+        var first = await PostAsync<RegisterDto, AuthResultDto>(ApiRoutes.Auth.Register, Dto);
         first.Success.ShouldBeTrue();
 
         // Sanity check: tenant exists
         await WithDbAsync(async db =>
         {
-            var t = await db.Tenants.FirstOrDefaultAsync(x => x.Name == dto.TenantName);
+            var t = await db.Tenants.FirstOrDefaultAsync(x => x.Name == Dto.TenantName);
             t.ShouldNotBeNull();
         });
 
         // Arrange (second registration with SAME email, different tenant)
-        var dto2 = new RegisterDTO
+        var Dto2 = new RegisterDto
         {
-            Email = dto.Email, // duplicate email
+            Email = Dto.Email, // duplicate email
             Password = "TestPass123!",
             ConfirmPassword = "TestPass123!",
             FirstName = "TestFirstname2",
@@ -142,9 +142,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         };
 
         // Act 2: attempt duplicate email
-        var result2 = await PostAllowingErrorAsync<RegisterDTO, AuthResultDTO>(
+        var result2 = await PostAllowingErrorAsync<RegisterDto, AuthResultDto>(
             ApiRoutes.Auth.Register,
-            dto2
+            Dto2
         );
 
         // Assert
@@ -155,7 +155,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
         // Optional: verify that the second tenant did NOT get created
         await WithDbAsync(async db =>
         {
-            var t2 = await db.Tenants.FirstOrDefaultAsync(x => x.Name == dto2.TenantName);
+            var t2 = await db.Tenants.FirstOrDefaultAsync(x => x.Name == Dto2.TenantName);
             t2.ShouldBeNull();
         });
     }
@@ -170,7 +170,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Login_Endpoint_Should_Succeed_With_Valid_Credentials()
     {
         // Arrange: first register a user
-        var registerDto = new RegisterDTO
+        var registerDto = new RegisterDto
         {
             Email = $"api_login_{TestId}@oak.test",
             Password = "TestPass123!",
@@ -181,7 +181,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
             TenantName = $"ApiTenant_{TestId}",
         };
 
-        var registerResult = await PostAsync<RegisterDTO, AuthResultDTO>(
+        var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
             ApiRoutes.Auth.Register,
             registerDto
         );
@@ -190,9 +190,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         registerResult.Success.ShouldBeTrue();
 
         // Act: attempt login with the same credentials
-        var loginDto = new LoginDTO { Email = registerDto.Email, Password = registerDto.Password };
+        var loginDto = new LoginDto { Email = registerDto.Email, Password = registerDto.Password };
 
-        var loginResult = await PostAsync<LoginDTO, AuthResultDTO>(ApiRoutes.Auth.Login, loginDto);
+        var loginResult = await PostAsync<LoginDto, AuthResultDto>(ApiRoutes.Auth.Login, loginDto);
 
         // Assert
         loginResult.ShouldNotBeNull();
@@ -212,7 +212,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Login_Endpoint_Should_Fail_With_Invalid_Password()
     {
         // Arrange: create a valid user first
-        var registerDto = new RegisterDTO
+        var registerDto = new RegisterDto
         {
             Email = $"api_badpass_{TestId}@oak.test",
             Password = "TestPass123!",
@@ -223,7 +223,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
             TenantName = $"ApiTenant_{TestId}",
         };
 
-        var registerResult = await PostAsync<RegisterDTO, AuthResultDTO>(
+        var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
             ApiRoutes.Auth.Register,
             registerDto
         );
@@ -232,9 +232,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         registerResult.Success.ShouldBeTrue();
 
         // Attempt login with wrong password
-        var loginDto = new LoginDTO { Email = registerDto.Email, Password = "WrongPassword!" };
+        var loginDto = new LoginDto { Email = registerDto.Email, Password = "WrongPassword!" };
 
-        var loginResult = await PostAllowingErrorAsync<LoginDTO, AuthResultDTO>(
+        var loginResult = await PostAllowingErrorAsync<LoginDto, AuthResultDto>(
             ApiRoutes.Auth.Login,
             loginDto
         );
@@ -257,14 +257,14 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Login_Endpoint_Should_Fail_With_Nonexistent_Email()
     {
         // Arrange
-        var loginDto = new LoginDTO
+        var loginDto = new LoginDto
         {
             Email = $"doesnotexist_{TestId}@oak.test",
             Password = "AnyPassword123!",
         };
 
         // Act
-        var loginResult = await PostAllowingErrorAsync<LoginDTO, AuthResultDTO>(
+        var loginResult = await PostAllowingErrorAsync<LoginDto, AuthResultDto>(
             ApiRoutes.Auth.Login,
             loginDto
         );
@@ -285,7 +285,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Login_Endpoint_Should_Fail_If_License_Expired()
     {
         // Arrange: register a user/tenant
-        var registerDto = new RegisterDTO
+        var registerDto = new RegisterDto
         {
             Email = $"api_expired_{TestId}@oak.test",
             FirstName = "TestFirstname",
@@ -296,7 +296,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
             TenantName = $"ApiTenant_{TestId}",
         };
 
-        var registerResult = await PostAsync<RegisterDTO, AuthResultDTO>(
+        var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
             ApiRoutes.Auth.Register,
             registerDto
         );
@@ -319,9 +319,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         });
 
         // Act: try to log in
-        var loginDto = new LoginDTO { Email = registerDto.Email, Password = registerDto.Password };
+        var loginDto = new LoginDto { Email = registerDto.Email, Password = registerDto.Password };
 
-        var loginResult = await PostAllowingErrorAsync<LoginDTO, AuthResultDTO>(
+        var loginResult = await PostAllowingErrorAsync<LoginDto, AuthResultDto>(
             ApiRoutes.Auth.Login,
             loginDto
         );
@@ -344,7 +344,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
     public async Task Login_Endpoint_Should_Fail_If_No_License_Assigned()
     {
         // Arrange: register a user/tenant
-        var registerDto = new RegisterDTO
+        var registerDto = new RegisterDto
         {
             Email = $"api_nolicense_{TestId}@oak.test",
             Password = "TestPass123!",
@@ -355,7 +355,7 @@ public class AuthApiTests : WebApiIntegrationTestBase
             TenantName = $"ApiTenant_{TestId}",
         };
 
-        var registerResult = await PostAsync<RegisterDTO, AuthResultDTO>(
+        var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
             ApiRoutes.Auth.Register,
             registerDto
         );
@@ -380,9 +380,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
         });
 
         // Act: try to log in
-        var loginDto = new LoginDTO { Email = registerDto.Email, Password = registerDto.Password };
+        var loginDto = new LoginDto { Email = registerDto.Email, Password = registerDto.Password };
 
-        var loginResult = await PostAllowingErrorAsync<LoginDTO, AuthResultDTO>(
+        var loginResult = await PostAllowingErrorAsync<LoginDto, AuthResultDto>(
             ApiRoutes.Auth.Login,
             loginDto
         );

@@ -2,12 +2,12 @@ namespace OakERP.Application.AccountsPayable;
 
 public interface IApPaymentService
 {
-    Task<ApPaymentCommandResultDTO> CreateAsync(
+    Task<ApPaymentCommandResultDto> CreateAsync(
         CreateApPaymentCommand command,
         CancellationToken cancellationToken = default
     );
 
-    Task<ApPaymentCommandResultDTO> AllocateAsync(
+    Task<ApPaymentCommandResultDto> AllocateAsync(
         AllocateApPaymentCommand command,
         CancellationToken cancellationToken = default
     );

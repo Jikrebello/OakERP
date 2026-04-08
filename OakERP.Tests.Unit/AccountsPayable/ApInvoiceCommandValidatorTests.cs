@@ -7,8 +7,6 @@ namespace OakERP.Tests.Unit.AccountsPayable;
 
 public sealed class ApInvoiceCommandValidatorTests
 {
-    private readonly ApInvoiceCommandValidator _validator = new();
-
     [Fact]
     public void ValidateCreate_Should_Reject_Item_Based_Lines()
     {
@@ -21,7 +19,7 @@ public sealed class ApInvoiceCommandValidatorTests
             DocTotal = 10m,
             Lines =
             [
-                new ApInvoiceLineInputDTO
+                new ApInvoiceLineInputDto
                 {
                     AccountNo = "5000",
                     ItemId = Guid.NewGuid(),
@@ -32,7 +30,7 @@ public sealed class ApInvoiceCommandValidatorTests
             ],
         };
 
-        var result = _validator.ValidateCreate(command);
+        var result = ApInvoiceCommandValidator.ValidateCreate(command);
 
         result.Failure.ShouldNotBeNull();
         result.Failure!.StatusCode.ShouldBe((int)HttpStatusCode.BadRequest);
@@ -52,7 +50,7 @@ public sealed class ApInvoiceCommandValidatorTests
             DocTotal = 20m,
             Lines =
             [
-                new ApInvoiceLineInputDTO
+                new ApInvoiceLineInputDto
                 {
                     AccountNo = "5000",
                     Qty = 1m,
@@ -62,7 +60,7 @@ public sealed class ApInvoiceCommandValidatorTests
             ],
         };
 
-        var result = _validator.ValidateCreate(command);
+        var result = ApInvoiceCommandValidator.ValidateCreate(command);
 
         result.Failure.ShouldNotBeNull();
         result.Failure!.StatusCode.ShouldBe((int)HttpStatusCode.BadRequest);

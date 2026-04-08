@@ -19,7 +19,7 @@ using NUnit.Framework;
 using OakERP.API.Extensions;
 using OakERP.API.Runtime;
 using OakERP.Auth;
-using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Dtos.Auth;
 using OakERP.Infrastructure.Persistence;
 using OakERP.Tests.Integration.TestSetup;
 using Shouldly;
@@ -56,7 +56,7 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, ApiRoutes.Auth.Login)
         {
             Content = JsonContent.Create(
-                new LoginDTO { Email = "missing@example.com", Password = "bad-password" }
+                new LoginDto { Email = "missing@example.com", Password = "bad-password" }
             ),
         };
 
@@ -68,7 +68,7 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
         response.Content.Headers.ContentType?.MediaType.ShouldBe("application/json");
         response.Headers.GetValues(CorrelationHeaderName).Single().ShouldBe(correlationId);
 
-        var result = await response.Content.ReadFromJsonAsync<AuthResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<AuthResultDto>();
         result.ShouldNotBeNull();
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("Invalid login credentials.");
@@ -94,7 +94,7 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, ApiRoutes.Auth.Login)
         {
             Content = JsonContent.Create(
-                new LoginDTO { Email = "missing@example.com", Password = "bad-password" }
+                new LoginDto { Email = "missing@example.com", Password = "bad-password" }
             ),
         };
 
@@ -140,7 +140,7 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, ApiRoutes.Auth.Login)
         {
             Content = JsonContent.Create(
-                new LoginDTO { Email = "missing@example.com", Password = "bad-password" }
+                new LoginDto { Email = "missing@example.com", Password = "bad-password" }
             ),
         };
 
@@ -196,7 +196,7 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, ApiRoutes.Auth.Login)
         {
             Content = JsonContent.Create(
-                new LoginDTO { Email = "boom@example.com", Password = "ignored" }
+                new LoginDto { Email = "boom@example.com", Password = "ignored" }
             ),
         };
 
@@ -218,12 +218,12 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
 
     private sealed class ThrowingAuthService : IAuthService
     {
-        public Task<AuthResultDTO> RegisterAsync(RegisterDTO dto)
+        public Task<AuthResultDto> RegisterAsync(RegisterDto Dto)
         {
             throw new InvalidOperationException("Simulated registration failure");
         }
 
-        public Task<AuthResultDTO> LoginAsync(LoginDTO dto)
+        public Task<AuthResultDto> LoginAsync(LoginDto Dto)
         {
             throw new InvalidOperationException("Simulated login failure");
         }
@@ -366,7 +366,7 @@ public class RateLimitingTests : WebApiIntegrationTestBase
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         response.Content.Headers.ContentType?.MediaType.ShouldBe("application/json");
 
-        var result = await response.Content.ReadFromJsonAsync<AuthResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<AuthResultDto>();
         result.ShouldNotBeNull();
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("Invalid login credentials.");
@@ -403,7 +403,7 @@ public class RateLimitingTests : WebApiIntegrationTestBase
         using var registerRequest = new HttpRequestMessage(HttpMethod.Post, ApiRoutes.Auth.Register)
         {
             Content = JsonContent.Create(
-                new RegisterDTO
+                new RegisterDto
                 {
                     Email = $"ratelimit_{TestId}@oak.test",
                     Password = "TestPass123!",
@@ -421,7 +421,7 @@ public class RateLimitingTests : WebApiIntegrationTestBase
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         response.Content.Headers.ContentType?.MediaType.ShouldBe("application/json");
 
-        var result = await response.Content.ReadFromJsonAsync<AuthResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<AuthResultDto>();
         result.ShouldNotBeNull();
         result.Success.ShouldBeFalse();
         result.Message.ShouldContain("Passwords do not match");
@@ -454,7 +454,7 @@ public class RateLimitingTests : WebApiIntegrationTestBase
         return new HttpRequestMessage(HttpMethod.Post, ApiRoutes.Auth.Login)
         {
             Content = JsonContent.Create(
-                new LoginDTO { Email = "missing@example.com", Password = "bad-password" }
+                new LoginDto { Email = "missing@example.com", Password = "bad-password" }
             ),
         };
     }
@@ -507,7 +507,7 @@ internal sealed class InMemoryLoggerProvider : ILoggerProvider, ISupportExternal
     private readonly ConcurrentQueue<CapturedLogEntry> entries = new();
     private IExternalScopeProvider scopeProvider = new LoggerExternalScopeProvider();
 
-    public IReadOnlyCollection<CapturedLogEntry> Entries => entries.ToArray();
+    public IReadOnlyCollection<CapturedLogEntry> Entries => [.. entries];
 
     public ILogger CreateLogger(string categoryName)
     {

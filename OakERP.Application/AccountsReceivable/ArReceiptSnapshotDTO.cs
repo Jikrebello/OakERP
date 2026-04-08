@@ -2,7 +2,7 @@ using OakERP.Common.Enums;
 
 namespace OakERP.Application.AccountsReceivable;
 
-public sealed class ArReceiptSnapshotDTO
+public sealed class ArReceiptSnapshotDto
 {
     public Guid ReceiptId { get; set; }
     public string DocNo { get; set; } = string.Empty;
@@ -15,5 +15,5 @@ public sealed class ArReceiptSnapshotDTO
     public string? Memo { get; set; }
     public decimal AllocatedAmount { get; set; }
     public decimal UnappliedAmount { get; set; }
-    public IReadOnlyList<ArReceiptAllocationSnapshotDTO> Allocations { get; set; } = [];
+    public IReadOnlyList<ArReceiptAllocationSnapshotDto> Allocations { get; set; } = [];
 }

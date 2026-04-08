@@ -3,16 +3,16 @@ using OakERP.Domain.Entities.Accounts_Payable;
 
 namespace OakERP.Infrastructure.Accounts_Payable;
 
-public sealed class ApInvoiceSnapshotFactory
+public static class ApInvoiceSnapshotFactory
 {
-    public ApInvoiceCommandResultDTO BuildSuccess(ApInvoice invoice, string message) =>
-        ApInvoiceCommandResultDTO.SuccessWith(BuildInvoiceSnapshot(invoice), message);
+    public static ApInvoiceCommandResultDto BuildSuccess(ApInvoice invoice, string message) =>
+        ApInvoiceCommandResultDto.SuccessWith(BuildInvoiceSnapshot(invoice), message);
 
-    public ApInvoiceSnapshotDTO BuildInvoiceSnapshot(ApInvoice invoice)
+    public static ApInvoiceSnapshotDto BuildInvoiceSnapshot(ApInvoice invoice)
     {
         ArgumentNullException.ThrowIfNull(invoice);
 
-        return new ApInvoiceSnapshotDTO
+        return new ApInvoiceSnapshotDto
         {
             InvoiceId = invoice.Id,
             DocNo = invoice.DocNo,
@@ -25,19 +25,21 @@ public sealed class ApInvoiceSnapshotFactory
             Memo = invoice.Memo,
             TaxTotal = invoice.TaxTotal,
             DocTotal = invoice.DocTotal,
-            Lines = invoice
-                .Lines.OrderBy(x => x.LineNo)
-                .Select(x => new ApInvoiceLineSnapshotDTO
-                {
-                    LineId = x.Id,
-                    LineNo = x.LineNo,
-                    Description = x.Description,
-                    AccountNo = x.AccountNo ?? string.Empty,
-                    Qty = x.Qty,
-                    UnitPrice = x.UnitPrice,
-                    LineTotal = x.LineTotal,
-                })
-                .ToList(),
+            Lines =
+            [
+                .. invoice
+                    .Lines.OrderBy(x => x.LineNo)
+                    .Select(x => new ApInvoiceLineSnapshotDto
+                    {
+                        LineId = x.Id,
+                        LineNo = x.LineNo,
+                        Description = x.Description,
+                        AccountNo = x.AccountNo ?? string.Empty,
+                        Qty = x.Qty,
+                        UnitPrice = x.UnitPrice,
+                        LineTotal = x.LineTotal,
+                    }),
+            ],
         };
     }
 }

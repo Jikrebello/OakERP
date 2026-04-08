@@ -91,8 +91,8 @@ public sealed class ApPaymentServiceTests
             PerformedBy = "unit-user",
             Allocations =
             [
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoiceA.Id, AmountApplied = 100m },
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoiceB.Id, AmountApplied = 50m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoiceA.Id, AmountApplied = 100m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoiceB.Id, AmountApplied = 50m },
             ],
         };
 
@@ -160,7 +160,7 @@ public sealed class ApPaymentServiceTests
             PerformedBy = "unit-user",
             Allocations =
             [
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoice.Id, AmountApplied = 60m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoice.Id, AmountApplied = 60m },
             ],
         };
 
@@ -211,7 +211,7 @@ public sealed class ApPaymentServiceTests
             Amount = 100m,
             Allocations =
             [
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoice.Id, AmountApplied = 50m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoice.Id, AmountApplied = 50m },
             ],
         };
 
@@ -273,7 +273,7 @@ public sealed class ApPaymentServiceTests
             PaymentId = payment.Id,
             Allocations =
             [
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoice.Id, AmountApplied = 25m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoice.Id, AmountApplied = 25m },
             ],
         };
 
@@ -318,7 +318,7 @@ public sealed class ApPaymentServiceTests
             PaymentId = payment.Id,
             Allocations =
             [
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoice.Id, AmountApplied = 15m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoice.Id, AmountApplied = 15m },
             ],
         };
 
@@ -402,7 +402,7 @@ public sealed class ApPaymentServiceTests
             PaymentId = payment.Id,
             Allocations =
             [
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoice.Id, AmountApplied = 50m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoice.Id, AmountApplied = 50m },
             ],
         };
 

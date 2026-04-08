@@ -93,8 +93,8 @@ public sealed class ArReceiptServiceTests
             PerformedBy = "unit-user",
             Allocations =
             [
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoiceA.Id, AmountApplied = 100m },
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoiceB.Id, AmountApplied = 50m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoiceA.Id, AmountApplied = 100m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoiceB.Id, AmountApplied = 50m },
             ],
         };
 
@@ -162,7 +162,7 @@ public sealed class ArReceiptServiceTests
             PerformedBy = "unit-user",
             Allocations =
             [
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoice.Id, AmountApplied = 60m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoice.Id, AmountApplied = 60m },
             ],
         };
 
@@ -214,7 +214,7 @@ public sealed class ArReceiptServiceTests
             CurrencyCode = "ZAR",
             Allocations =
             [
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoice.Id, AmountApplied = 50m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoice.Id, AmountApplied = 50m },
             ],
         };
 
@@ -276,7 +276,7 @@ public sealed class ArReceiptServiceTests
             ReceiptId = receipt.Id,
             Allocations =
             [
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoice.Id, AmountApplied = 25m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoice.Id, AmountApplied = 25m },
             ],
         };
 
@@ -321,7 +321,7 @@ public sealed class ArReceiptServiceTests
             ReceiptId = receipt.Id,
             Allocations =
             [
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoice.Id, AmountApplied = 15m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoice.Id, AmountApplied = 15m },
             ],
         };
 
@@ -405,7 +405,7 @@ public sealed class ArReceiptServiceTests
             ReceiptId = receipt.Id,
             Allocations =
             [
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoice.Id, AmountApplied = 50m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoice.Id, AmountApplied = 50m },
             ],
         };
 

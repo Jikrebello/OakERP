@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using OakERP.Common.DTOs.Base;
+using OakERP.Common.Dtos.Base;
 
 namespace OakERP.Client.Services.Api;
 
@@ -81,7 +81,7 @@ public class ApiClient : IApiClient
                     Data = fallback,
                     Success = false,
                     StatusCode = statusCode,
-                    Message = (fallback as BaseResultDTO)?.Message ?? "Request failed",
+                    Message = (fallback as BaseResultDto)?.Message ?? "Request failed",
                 };
             }
         }

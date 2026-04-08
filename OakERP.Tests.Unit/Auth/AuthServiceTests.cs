@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OakERP.Auth;
-using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Dtos.Auth;
 using OakERP.Common.Persistence;
 using OakERP.Domain.Entities.Users;
 using Shouldly;
@@ -29,7 +29,7 @@ public class AuthServiceTests
     [Fact]
     public async Task RegisterAsync_Should_Fail_When_Passwords_Do_Not_Match()
     {
-        var dto = new RegisterDTO
+        var Dto = new RegisterDto
         {
             Email = "test@example.com",
             Password = "123456",
@@ -38,7 +38,7 @@ public class AuthServiceTests
         };
         var service = _factory.CreateService();
 
-        var result = await service.RegisterAsync(dto);
+        var result = await service.RegisterAsync(Dto);
 
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("Passwords do not match.");
@@ -47,7 +47,7 @@ public class AuthServiceTests
     [Fact]
     public async Task RegisterAsync_Should_Fail_When_Email_Already_Exists()
     {
-        var dto = new RegisterDTO
+        var Dto = new RegisterDto
         {
             Email = "existing@example.com",
             Password = "123456",
@@ -56,12 +56,12 @@ public class AuthServiceTests
         };
 
         _factory
-            .IdentityGateway.Setup(m => m.FindByEmailAsync(dto.Email))
+            .IdentityGateway.Setup(m => m.FindByEmailAsync(Dto.Email))
             .ReturnsAsync(new ApplicationUser());
 
         var service = _factory.CreateService();
 
-        var result = await service.RegisterAsync(dto);
+        var result = await service.RegisterAsync(Dto);
 
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("Email already exists.");
@@ -70,7 +70,7 @@ public class AuthServiceTests
     [Fact]
     public async Task RegisterAsync_Should_Fail_When_User_Creation_Fails()
     {
-        var dto = new RegisterDTO
+        var Dto = new RegisterDto
         {
             Email = "failuser@example.com",
             Password = "bad",
@@ -79,11 +79,11 @@ public class AuthServiceTests
         };
 
         _factory
-            .IdentityGateway.Setup(m => m.FindByEmailAsync(dto.Email))
+            .IdentityGateway.Setup(m => m.FindByEmailAsync(Dto.Email))
             .ReturnsAsync((ApplicationUser)null!);
 
         _factory
-            .IdentityGateway.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), dto.Password))
+            .IdentityGateway.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), Dto.Password))
             .ReturnsAsync(
                 IdentityResult.Failed(new IdentityError { Description = "Invalid password." })
             );
@@ -98,7 +98,7 @@ public class AuthServiceTests
 
         var service = _factory.CreateService();
 
-        var result = await service.RegisterAsync(dto);
+        var result = await service.RegisterAsync(Dto);
 
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("Invalid password.");
@@ -107,7 +107,7 @@ public class AuthServiceTests
     [Fact]
     public async Task RegisterAsync_Should_Succeed_When_Data_Is_Valid()
     {
-        var dto = new RegisterDTO
+        var Dto = new RegisterDto
         {
             Email = "newuser@example.com",
             Password = "goodpassword",
@@ -116,11 +116,11 @@ public class AuthServiceTests
         };
 
         _factory
-            .IdentityGateway.Setup(m => m.FindByEmailAsync(dto.Email))
+            .IdentityGateway.Setup(m => m.FindByEmailAsync(Dto.Email))
             .ReturnsAsync((ApplicationUser)null!);
 
         _factory
-            .IdentityGateway.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), dto.Password))
+            .IdentityGateway.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), Dto.Password))
             .ReturnsAsync(IdentityResult.Success);
 
         _factory
@@ -139,7 +139,7 @@ public class AuthServiceTests
 
         var service = _factory.CreateService();
 
-        var result = await service.RegisterAsync(dto);
+        var result = await service.RegisterAsync(Dto);
 
         result.Success.ShouldBeTrue();
         result.Token.ShouldBe("mock-token");
@@ -148,7 +148,7 @@ public class AuthServiceTests
     [Fact]
     public async Task RegisterAsync_Should_Write_Audit_Log_On_Success()
     {
-        var dto = new RegisterDTO
+        var Dto = new RegisterDto
         {
             Email = "audit_register@example.com",
             Password = "goodpassword",
@@ -157,11 +157,11 @@ public class AuthServiceTests
         };
 
         _factory
-            .IdentityGateway.Setup(m => m.FindByEmailAsync(dto.Email))
+            .IdentityGateway.Setup(m => m.FindByEmailAsync(Dto.Email))
             .ReturnsAsync((ApplicationUser)null!);
 
         _factory
-            .IdentityGateway.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), dto.Password))
+            .IdentityGateway.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), Dto.Password))
             .ReturnsAsync(IdentityResult.Success);
 
         _factory
@@ -180,7 +180,7 @@ public class AuthServiceTests
 
         var service = _factory.CreateService();
 
-        await service.RegisterAsync(dto);
+        await service.RegisterAsync(Dto);
 
         _factory.Logger.Verify(
             logger =>
@@ -191,8 +191,8 @@ public class AuthServiceTests
                         (state, _) =>
                             HasStructuredProperty(state, "AuditAction", "UserRegistration")
                             && HasStructuredProperty(state, "AuditOutcome", "Success")
-                            && HasStructuredProperty(state, "Email", dto.Email)
-                            && HasStructuredProperty(state, "TenantName", dto.TenantName)
+                            && HasStructuredProperty(state, "Email", Dto.Email)
+                            && HasStructuredProperty(state, "TenantName", Dto.TenantName)
                     ),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()
@@ -204,18 +204,18 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_Should_Fail_When_Credentials_Are_Invalid()
     {
-        var dto = new LoginDTO { Email = "test@example.com", Password = "wrongpass" };
+        var Dto = new LoginDto { Email = "test@example.com", Password = "wrongpass" };
 
-        var user = new ApplicationUser { Email = dto.Email, UserName = dto.Email };
+        var user = new ApplicationUser { Email = Dto.Email, UserName = Dto.Email };
 
-        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(Dto.Email)).ReturnsAsync(user);
         _factory
-            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(user, dto.Password, false))
+            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(user, Dto.Password, false))
             .ReturnsAsync(SignInResult.Failed);
 
         var service = _factory.CreateService();
 
-        var result = await service.LoginAsync(dto);
+        var result = await service.LoginAsync(Dto);
 
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("Invalid login credentials.");
@@ -224,18 +224,18 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_Should_Write_Audit_Log_When_Credentials_Are_Invalid()
     {
-        var dto = new LoginDTO { Email = "audit_login@example.com", Password = "wrongpass" };
+        var Dto = new LoginDto { Email = "audit_login@example.com", Password = "wrongpass" };
 
-        var user = new ApplicationUser { Email = dto.Email, UserName = dto.Email };
+        var user = new ApplicationUser { Email = Dto.Email, UserName = Dto.Email };
 
-        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(Dto.Email)).ReturnsAsync(user);
         _factory
-            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(user, dto.Password, false))
+            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(user, Dto.Password, false))
             .ReturnsAsync(SignInResult.Failed);
 
         var service = _factory.CreateService();
 
-        await service.LoginAsync(dto);
+        await service.LoginAsync(Dto);
 
         _factory.Logger.Verify(
             logger =>
@@ -247,7 +247,7 @@ public class AuthServiceTests
                             HasStructuredProperty(state, "AuditAction", "UserLogin")
                             && HasStructuredProperty(state, "AuditOutcome", "Failure")
                             && HasStructuredProperty(state, "AuditReason", "InvalidCredentials")
-                            && HasStructuredProperty(state, "Email", dto.Email)
+                            && HasStructuredProperty(state, "Email", Dto.Email)
                     ),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()
@@ -259,15 +259,15 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_Should_Fail_When_User_Not_Found()
     {
-        var dto = new LoginDTO { Email = "missing@example.com", Password = "correctpass" };
+        var Dto = new LoginDto { Email = "missing@example.com", Password = "correctpass" };
 
         _factory
-            .IdentityGateway.Setup(u => u.FindByEmailAsync(dto.Email))
+            .IdentityGateway.Setup(u => u.FindByEmailAsync(Dto.Email))
             .ReturnsAsync((ApplicationUser)null!);
 
         var service = _factory.CreateService();
 
-        var result = await service.LoginAsync(dto);
+        var result = await service.LoginAsync(Dto);
 
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("Invalid login credentials.");
@@ -276,21 +276,21 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_Should_Fail_When_Tenant_Not_Found()
     {
-        var dto = new LoginDTO { Email = "user@example.com", Password = "correctpass" };
+        var Dto = new LoginDto { Email = "user@example.com", Password = "correctpass" };
         var fakeUser = new ApplicationUser
         {
             Id = Guid.NewGuid().ToString(),
-            Email = dto.Email,
+            Email = Dto.Email,
             TenantId = Guid.NewGuid(),
-            UserName = dto.Email,
+            UserName = Dto.Email,
         };
 
         _factory
-            .IdentityGateway.Setup(u => u.FindByEmailAsync(dto.Email.Trim()))
+            .IdentityGateway.Setup(u => u.FindByEmailAsync(Dto.Email.Trim()))
             .ReturnsAsync(fakeUser);
 
         _factory
-            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(fakeUser, dto.Password, false))
+            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(fakeUser, Dto.Password, false))
             .ReturnsAsync(SignInResult.Success);
 
         _factory
@@ -301,13 +301,13 @@ public class AuthServiceTests
 
         var service = _factory.CreateService();
 
-        var result = await service.LoginAsync(dto);
+        var result = await service.LoginAsync(Dto);
 
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("Tenant not found.");
         _factory.JwtGenerator.Verify(j => j.Generate(It.IsAny<JwtTokenInput>()), Times.Never);
         _factory.IdentityGateway.Verify(
-            s => s.CheckPasswordSignInAsync(fakeUser, dto.Password, false),
+            s => s.CheckPasswordSignInAsync(fakeUser, Dto.Password, false),
             Times.Once
         );
     }
@@ -315,20 +315,20 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_Should_Fail_When_License_Not_Found_For_Tenant()
     {
-        var dto = new LoginDTO { Email = "user@example.com", Password = "correctpass" };
+        var Dto = new LoginDto { Email = "user@example.com", Password = "correctpass" };
         var tenantId = Guid.NewGuid();
         var fakeUser = new ApplicationUser
         {
             Id = Guid.NewGuid().ToString(),
-            Email = dto.Email,
+            Email = Dto.Email,
             TenantId = tenantId,
         };
         var tenant = new Tenant { Id = tenantId, Name = "NoLicenseTenant" };
 
-        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
+        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(Dto.Email)).ReturnsAsync(fakeUser);
 
         _factory
-            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(fakeUser, dto.Password, false))
+            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(fakeUser, Dto.Password, false))
             .ReturnsAsync(SignInResult.Success);
 
         _factory
@@ -339,7 +339,7 @@ public class AuthServiceTests
 
         var service = _factory.CreateService();
 
-        var result = await service.LoginAsync(dto);
+        var result = await service.LoginAsync(Dto);
 
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("License not found for tenant.");
@@ -348,7 +348,7 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_Should_Fail_When_License_Expired()
     {
-        var dto = new LoginDTO { Email = "expired@example.com", Password = "correctpass" };
+        var Dto = new LoginDto { Email = "expired@example.com", Password = "correctpass" };
         var tenantId = Guid.NewGuid();
         var expiredLicense = new License
         {
@@ -365,14 +365,14 @@ public class AuthServiceTests
         var fakeUser = new ApplicationUser
         {
             Id = Guid.NewGuid().ToString(),
-            Email = dto.Email,
+            Email = Dto.Email,
             TenantId = tenantId,
         };
 
-        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(dto.Email)).ReturnsAsync(fakeUser);
+        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(Dto.Email)).ReturnsAsync(fakeUser);
 
         _factory
-            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(fakeUser, dto.Password, false))
+            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(fakeUser, Dto.Password, false))
             .ReturnsAsync(SignInResult.Success);
 
         _factory
@@ -383,7 +383,7 @@ public class AuthServiceTests
 
         var service = _factory.CreateService();
 
-        var result = await service.LoginAsync(dto);
+        var result = await service.LoginAsync(Dto);
 
         result.Success.ShouldBeFalse();
         result.Message.ShouldBe("License has expired.");
@@ -392,7 +392,7 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_Should_Succeed_And_Return_Token()
     {
-        var dto = new LoginDTO { Email = "valid@example.com", Password = "validpass" };
+        var Dto = new LoginDto { Email = "valid@example.com", Password = "validpass" };
         var tenantId = Guid.NewGuid();
         var validLicense = new License { Key = "abc123", ExpiryDate = DateTime.UtcNow.AddDays(10) };
         var tenant = new Tenant
@@ -405,14 +405,14 @@ public class AuthServiceTests
         var user = new ApplicationUser
         {
             Id = Guid.NewGuid().ToString(),
-            Email = dto.Email,
+            Email = Dto.Email,
             TenantId = tenantId,
-            UserName = dto.Email,
+            UserName = Dto.Email,
         };
 
-        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+        _factory.IdentityGateway.Setup(s => s.FindByEmailAsync(Dto.Email)).ReturnsAsync(user);
         _factory
-            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(user, dto.Password, false))
+            .IdentityGateway.Setup(s => s.CheckPasswordSignInAsync(user, Dto.Password, false))
             .ReturnsAsync(SignInResult.Success);
         _factory.IdentityGateway.Setup(s => s.GetRolesAsync(user)).ReturnsAsync(["User"]);
 
@@ -424,7 +424,7 @@ public class AuthServiceTests
 
         var service = _factory.CreateService();
 
-        var result = await service.LoginAsync(dto);
+        var result = await service.LoginAsync(Dto);
 
         result.Success.ShouldBeTrue();
         result.Token.ShouldNotBeNullOrWhiteSpace();

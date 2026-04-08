@@ -6,8 +6,6 @@ namespace OakERP.Tests.Unit.AccountsReceivable;
 
 public sealed class ArReceiptSnapshotFactoryTests
 {
-    private readonly ArReceiptSnapshotFactory _factory = new();
-
     [Fact]
     public void BuildReceiptSnapshot_Should_Order_Allocations_And_Use_Overrides()
     {
@@ -29,7 +27,10 @@ public sealed class ArReceiptSnapshotFactoryTests
             AmountApplied = 30m,
         };
 
-        var snapshot = _factory.BuildReceiptSnapshot(receipt, [laterAllocation, earlierAllocation]);
+        var snapshot = ArReceiptSnapshotFactory.BuildReceiptSnapshot(
+            receipt,
+            [laterAllocation, earlierAllocation]
+        );
 
         snapshot.AllocatedAmount.ShouldBe(50m);
         snapshot.UnappliedAmount.ShouldBe(50m);
@@ -46,7 +47,7 @@ public sealed class ArReceiptSnapshotFactoryTests
             docNo: "ARINV-3001"
         );
 
-        var snapshots = _factory.BuildInvoiceSnapshots(
+        var snapshots = ArReceiptSnapshotFactory.BuildInvoiceSnapshots(
             [invoice],
             new Dictionary<Guid, decimal> { [invoice.Id] = 45m }
         );

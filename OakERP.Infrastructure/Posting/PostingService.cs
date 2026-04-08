@@ -11,6 +11,7 @@ using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.Accounts_Payable;
 using OakERP.Domain.Posting.Accounts_Receivable;
 using OakERP.Domain.Posting.General_Ledger;
+using OakERP.Domain.Posting.Inventory;
 using OakERP.Domain.Repository_Interfaces.Accounts_Payable;
 using OakERP.Domain.Repository_Interfaces.Accounts_Receivable;
 using OakERP.Domain.Repository_Interfaces.General_Ledger;
@@ -19,24 +20,35 @@ using OakERP.Domain.Repository_Interfaces.Inventory;
 namespace OakERP.Infrastructure.Posting;
 
 public sealed class PostingService(
-    IApPaymentRepository apPaymentRepository,
-    IApInvoiceRepository apInvoiceRepository,
-    IArInvoiceRepository arInvoiceRepository,
-    IArReceiptRepository arReceiptRepository,
-    IFiscalPeriodRepository fiscalPeriodRepository,
-    IGlAccountRepository glAccountRepository,
-    IGlEntryRepository glEntryRepository,
-    IInventoryLedgerRepository inventoryLedgerRepository,
-    IGlSettingsProvider glSettingsProvider,
-    IPostingRuleProvider postingRuleProvider,
-    IApPaymentPostingContextBuilder apPaymentPostingContextBuilder,
-    IApInvoicePostingContextBuilder apInvoicePostingContextBuilder,
-    IArInvoicePostingContextBuilder arInvoicePostingContextBuilder,
-    IArReceiptPostingContextBuilder arReceiptPostingContextBuilder,
-    IPostingEngine postingEngine,
-    IUnitOfWork unitOfWork
+    PostingSourceRepositories sourceRepositories,
+    PostingPersistenceDependencies persistenceDependencies,
+    PostingRuntimeDependencies runtimeDependencies,
+    PostingContextBuilders contextBuilders
 ) : IPostingService
 {
+    private IApPaymentRepository apPaymentRepository => sourceRepositories.ApPaymentRepository;
+    private IApInvoiceRepository apInvoiceRepository => sourceRepositories.ApInvoiceRepository;
+    private IArInvoiceRepository arInvoiceRepository => sourceRepositories.ArInvoiceRepository;
+    private IArReceiptRepository arReceiptRepository => sourceRepositories.ArReceiptRepository;
+    private IFiscalPeriodRepository fiscalPeriodRepository =>
+        persistenceDependencies.FiscalPeriodRepository;
+    private IGlAccountRepository glAccountRepository => persistenceDependencies.GlAccountRepository;
+    private IGlEntryRepository glEntryRepository => persistenceDependencies.GlEntryRepository;
+    private IInventoryLedgerRepository inventoryLedgerRepository =>
+        persistenceDependencies.InventoryLedgerRepository;
+    private IUnitOfWork unitOfWork => persistenceDependencies.UnitOfWork;
+    private IGlSettingsProvider glSettingsProvider => runtimeDependencies.GlSettingsProvider;
+    private IPostingRuleProvider postingRuleProvider => runtimeDependencies.PostingRuleProvider;
+    private IPostingEngine postingEngine => runtimeDependencies.PostingEngine;
+    private IApPaymentPostingContextBuilder apPaymentPostingContextBuilder =>
+        contextBuilders.ApPaymentPostingContextBuilder;
+    private IApInvoicePostingContextBuilder apInvoicePostingContextBuilder =>
+        contextBuilders.ApInvoicePostingContextBuilder;
+    private IArInvoicePostingContextBuilder arInvoicePostingContextBuilder =>
+        contextBuilders.ArInvoicePostingContextBuilder;
+    private IArReceiptPostingContextBuilder arReceiptPostingContextBuilder =>
+        contextBuilders.ArReceiptPostingContextBuilder;
+
     public Task<PostResult> PostAsync(
         PostCommand command,
         CancellationToken cancellationToken = default
@@ -235,7 +247,7 @@ public sealed class PostingService(
                     $"No open fiscal period exists for posting date {postingDate:yyyy-MM-dd}."
                 );
 
-            IReadOnlyList<ApInvoiceLine> lines = invoice.Lines.OrderBy(x => x.LineNo).ToList();
+            IReadOnlyList<ApInvoiceLine> lines = [.. invoice.Lines.OrderBy(x => x.LineNo)];
             if (lines.Count == 0)
             {
                 throw new InvalidOperationException(
@@ -357,7 +369,7 @@ public sealed class PostingService(
                     $"No open fiscal period exists for posting date {postingDate:yyyy-MM-dd}."
                 );
 
-            IReadOnlyList<ArInvoiceLine> lines = invoice.Lines.OrderBy(x => x.LineNo).ToList();
+            IReadOnlyList<ArInvoiceLine> lines = [.. invoice.Lines.OrderBy(x => x.LineNo)];
 
             decimal expectedDocTotal = lines.Sum(x => x.LineTotal) + invoice.TaxTotal;
             if (expectedDocTotal != invoice.DocTotal)
@@ -636,7 +648,23 @@ public sealed class PostingService(
         bool inventoryRowsAllowed
     )
     {
-        if (postingResult.GlEntries.Count == 0)
+        ValidateGlEntries(postingResult.GlEntries, expectedSourceType);
+
+        if (!inventoryRowsAllowed)
+        {
+            EnsureNoUnexpectedInventoryMovements(postingResult.InventoryMovements);
+            return;
+        }
+
+        ValidateInventoryMovements(postingResult.InventoryMovements, expectedSourceType);
+    }
+
+    private static void ValidateGlEntries(
+        IReadOnlyCollection<GlEntryModel> glEntries,
+        string expectedSourceType
+    )
+    {
+        if (glEntries.Count == 0)
         {
             throw new InvalidOperationException("Posting did not produce any GL entries.");
         }
@@ -644,7 +672,7 @@ public sealed class PostingService(
         decimal debit = 0m;
         decimal credit = 0m;
 
-        foreach (GlEntryModel entry in postingResult.GlEntries)
+        foreach (GlEntryModel entry in glEntries)
         {
             ValidateTraceability(
                 entry.SourceType,
@@ -652,21 +680,7 @@ public sealed class PostingService(
                 entry.SourceNo,
                 expectedSourceType
             );
-
-            if (entry.Debit < 0m || entry.Credit < 0m)
-            {
-                throw new InvalidOperationException("Posting produced negative GL amounts.");
-            }
-
-            bool validOneSided =
-                (entry.Debit > 0m && entry.Credit == 0m)
-                || (entry.Credit > 0m && entry.Debit == 0m);
-            if (!validOneSided)
-            {
-                throw new InvalidOperationException(
-                    "Posting produced a GL row that is not one-sided and positive."
-                );
-            }
+            ValidateGlEntryAmounts(entry);
 
             debit += entry.Debit;
             credit += entry.Credit;
@@ -676,20 +690,44 @@ public sealed class PostingService(
         {
             throw new InvalidOperationException("Posting produced unbalanced GL entries.");
         }
+    }
 
-        if (!inventoryRowsAllowed)
+    private static void ValidateGlEntryAmounts(GlEntryModel entry)
+    {
+        if (entry.Debit < 0m || entry.Credit < 0m)
         {
-            if (postingResult.InventoryMovements.Count > 0)
-            {
-                throw new InvalidOperationException(
-                    "Posting produced unexpected inventory movements."
-                );
-            }
-
-            return;
+            throw new InvalidOperationException("Posting produced negative GL amounts.");
         }
 
-        foreach (var movement in postingResult.InventoryMovements)
+        bool validOneSided =
+            (entry.Debit > 0m && entry.Credit == 0m)
+            || (entry.Credit > 0m && entry.Debit == 0m);
+        if (!validOneSided)
+        {
+            throw new InvalidOperationException(
+                "Posting produced a GL row that is not one-sided and positive."
+            );
+        }
+    }
+
+    private static void EnsureNoUnexpectedInventoryMovements(
+        IReadOnlyCollection<InventoryMovementModel> inventoryMovements
+    )
+    {
+        if (inventoryMovements.Count > 0)
+        {
+            throw new InvalidOperationException(
+                "Posting produced unexpected inventory movements."
+            );
+        }
+    }
+
+    private static void ValidateInventoryMovements(
+        IReadOnlyCollection<InventoryMovementModel> inventoryMovements,
+        string expectedSourceType
+    )
+    {
+        foreach (InventoryMovementModel movement in inventoryMovements)
         {
             ValidateTraceability(
                 movement.SourceType,
@@ -697,46 +735,50 @@ public sealed class PostingService(
                 movement.Note,
                 expectedSourceType
             );
+            ValidateInventoryMovement(movement);
+        }
+    }
 
-            if (movement.TransactionType != InventoryTransactionType.SalesCogs)
-            {
-                throw new InvalidOperationException(
-                    "Posting produced an inventory movement with an unexpected transaction type."
-                );
-            }
-
-            if (movement.Qty >= 0m)
-            {
-                throw new InvalidOperationException(
-                    "Posting produced a non-negative inventory movement."
-                );
-            }
-
-            if (movement.UnitCost < 0m)
-            {
-                throw new InvalidOperationException(
-                    "Posting produced a negative inventory unit cost."
-                );
-            }
-
-            decimal expectedValueChange = Math.Round(
-                movement.Qty * movement.UnitCost,
-                2,
-                MidpointRounding.AwayFromZero
+    private static void ValidateInventoryMovement(InventoryMovementModel movement)
+    {
+        if (movement.TransactionType != InventoryTransactionType.SalesCogs)
+        {
+            throw new InvalidOperationException(
+                "Posting produced an inventory movement with an unexpected transaction type."
             );
-            if (movement.ValueChange != expectedValueChange)
-            {
-                throw new InvalidOperationException(
-                    "Posting produced an inventory value change that does not match quantity and unit cost."
-                );
-            }
+        }
 
-            if (movement.ValueChange >= 0m)
-            {
-                throw new InvalidOperationException(
-                    "Posting produced a non-negative inventory value change."
-                );
-            }
+        if (movement.Qty >= 0m)
+        {
+            throw new InvalidOperationException(
+                "Posting produced a non-negative inventory movement."
+            );
+        }
+
+        if (movement.UnitCost < 0m)
+        {
+            throw new InvalidOperationException(
+                "Posting produced a negative inventory unit cost."
+            );
+        }
+
+        decimal expectedValueChange = Math.Round(
+            movement.Qty * movement.UnitCost,
+            2,
+            MidpointRounding.AwayFromZero
+        );
+        if (movement.ValueChange != expectedValueChange)
+        {
+            throw new InvalidOperationException(
+                "Posting produced an inventory value change that does not match quantity and unit cost."
+            );
+        }
+
+        if (movement.ValueChange >= 0m)
+        {
+            throw new InvalidOperationException(
+                "Posting produced a non-negative inventory value change."
+            );
         }
     }
 

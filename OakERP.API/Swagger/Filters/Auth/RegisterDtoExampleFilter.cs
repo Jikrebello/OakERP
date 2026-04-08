@@ -1,21 +1,21 @@
 ﻿using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
-using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Dtos.Auth;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace OakERP.API.Swagger.Filters.Auth;
 
 /// <summary>
-/// Provides an example schema for the <see cref="RegisterDTO"/> type in OpenAPI documentation.
+/// Provides an example schema for the <see cref="RegisterDto"/> type in OpenAPI documentation.
 /// </summary>
-/// <remarks>This filter populates the OpenAPI schema with a sample object for the <see cref="RegisterDTO"/> type,
+/// <remarks>This filter populates the OpenAPI schema with a sample object for the <see cref="RegisterDto"/> type,
 /// demonstrating typical values for its properties. The example includes fields such as tenant name, first name, last
 /// name, phone number, email, password, and confirm password.</remarks>
 public class RegisterDtoExampleFilter : ISchemaFilter
 {
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)
     {
-        if (context.Type == typeof(RegisterDTO))
+        if (context.Type == typeof(RegisterDto))
         {
             schema.Example = new OpenApiObject
             {

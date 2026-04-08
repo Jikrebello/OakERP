@@ -5,7 +5,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using OakERP.Application.AccountsPayable;
-using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Dtos.Auth;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Accounts_Payable;
 using OakERP.Domain.Entities.Bank;
@@ -39,7 +39,7 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
             Memo = "Unapplied vendor payment",
         };
 
-        var result = await PostAsync<CreateApPaymentCommand, ApPaymentCommandResultDTO>(
+        var result = await PostAsync<CreateApPaymentCommand, ApPaymentCommandResultDto>(
             ApiRoutes.ApPayments.Create,
             command
         );
@@ -82,12 +82,12 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
             Amount = 150m,
             Allocations =
             [
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoiceA, AmountApplied = 100m },
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoiceB, AmountApplied = 50m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoiceA, AmountApplied = 100m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoiceB, AmountApplied = 50m },
             ],
         };
 
-        var result = await PostAsync<CreateApPaymentCommand, ApPaymentCommandResultDTO>(
+        var result = await PostAsync<CreateApPaymentCommand, ApPaymentCommandResultDto>(
             ApiRoutes.ApPayments.Create,
             command
         );
@@ -138,11 +138,11 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
             AllocationDate = new DateOnly(2026, 4, 6),
             Allocations =
             [
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoiceId, AmountApplied = 60m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoiceId, AmountApplied = 60m },
             ],
         };
 
-        var result = await PostAsync<AllocateApPaymentCommand, ApPaymentCommandResultDTO>(
+        var result = await PostAsync<AllocateApPaymentCommand, ApPaymentCommandResultDto>(
             ApiRoutes.ApPayments.Allocate(paymentId),
             command
         );
@@ -191,14 +191,14 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
             Amount = 80m,
             Allocations =
             [
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoiceId, AmountApplied = 50m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoiceId, AmountApplied = 50m },
             ],
         };
 
         var response = await Client.PostAsJsonAsync(ApiRoutes.ApPayments.Create, command);
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
-        var result = await response.Content.ReadFromJsonAsync<ApPaymentCommandResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<ApPaymentCommandResultDto>();
         result.ShouldNotBeNull();
         result!.Success.ShouldBeFalse();
         result.Message.ShouldContain("same vendor");
@@ -229,14 +229,14 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
             Amount = 80m,
             Allocations =
             [
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoiceId, AmountApplied = 90m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoiceId, AmountApplied = 90m },
             ],
         };
 
         var response = await Client.PostAsJsonAsync(ApiRoutes.ApPayments.Create, command);
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
-        var result = await response.Content.ReadFromJsonAsync<ApPaymentCommandResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<ApPaymentCommandResultDto>();
         result.ShouldNotBeNull();
         result!.Success.ShouldBeFalse();
         result.Message.ShouldContain("unapplied amount");
@@ -266,7 +266,7 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
         {
             Allocations =
             [
-                new ApPaymentAllocationInputDTO { ApInvoiceId = invoiceId, AmountApplied = 110m },
+                new ApPaymentAllocationInputDto { ApInvoiceId = invoiceId, AmountApplied = 110m },
             ],
         };
 
@@ -276,7 +276,7 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
         );
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
-        var result = await response.Content.ReadFromJsonAsync<ApPaymentCommandResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<ApPaymentCommandResultDto>();
         result.ShouldNotBeNull();
         result!.Success.ShouldBeFalse();
         result.Message.ShouldContain("remaining balance");
@@ -311,7 +311,7 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
         var response = await Client.PostAsJsonAsync(ApiRoutes.ApPayments.Create, command);
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
-        var result = await response.Content.ReadFromJsonAsync<ApPaymentCommandResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<ApPaymentCommandResultDto>();
         result.ShouldNotBeNull();
         result!.Success.ShouldBeFalse();
         result.Message.ShouldContain("base currency");
@@ -324,7 +324,7 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
 
     private async Task AuthenticateAsync()
     {
-        var registerDto = new RegisterDTO
+        var registerDto = new RegisterDto
         {
             Email = $"ap_payment_api_{TestId}@oak.test",
             Password = "TestPass123!",
@@ -335,15 +335,15 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
             TenantName = $"ApPaymentTenant_{TestId}",
         };
 
-        var registerResult = await PostAsync<RegisterDTO, AuthResultDTO>(
+        var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
             ApiRoutes.Auth.Register,
             registerDto
         );
         registerResult.Success.ShouldBeTrue();
 
-        var loginResult = await PostAsync<LoginDTO, AuthResultDTO>(
+        var loginResult = await PostAsync<LoginDto, AuthResultDto>(
             ApiRoutes.Auth.Login,
-            new LoginDTO { Email = registerDto.Email, Password = registerDto.Password }
+            new LoginDto { Email = registerDto.Email, Password = registerDto.Password }
         );
 
         loginResult.Success.ShouldBeTrue();

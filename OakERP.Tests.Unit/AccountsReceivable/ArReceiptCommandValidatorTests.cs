@@ -7,8 +7,6 @@ namespace OakERP.Tests.Unit.AccountsReceivable;
 
 public sealed class ArReceiptCommandValidatorTests
 {
-    private readonly ArReceiptCommandValidator _validator = new();
-
     [Fact]
     public void ValidateCreate_Should_Normalize_Fields_And_Default_PerformedBy()
     {
@@ -23,7 +21,7 @@ public sealed class ArReceiptCommandValidatorTests
             Memo = "  first receipt  ",
         };
 
-        var result = _validator.ValidateCreate(
+        var result = ArReceiptCommandValidator.ValidateCreate(
             command,
             ArReceiptServiceTestFactory.CreateSettings()
         );
@@ -44,12 +42,12 @@ public sealed class ArReceiptCommandValidatorTests
             ReceiptId = Guid.NewGuid(),
             Allocations =
             [
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoiceId, AmountApplied = 10m },
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoiceId, AmountApplied = 15m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoiceId, AmountApplied = 10m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoiceId, AmountApplied = 15m },
             ],
         };
 
-        var result = _validator.ValidateAllocate(command);
+        var result = ArReceiptCommandValidator.ValidateAllocate(command);
 
         result.Failure.ShouldNotBeNull();
         result.Failure!.StatusCode.ShouldBe((int)HttpStatusCode.BadRequest);

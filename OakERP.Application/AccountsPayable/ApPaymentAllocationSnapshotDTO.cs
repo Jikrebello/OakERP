@@ -1,6 +1,6 @@
 namespace OakERP.Application.AccountsPayable;
 
-public sealed class ApPaymentAllocationSnapshotDTO
+public sealed class ApPaymentAllocationSnapshotDto
 {
     public Guid AllocationId { get; set; }
     public Guid ApInvoiceId { get; set; }

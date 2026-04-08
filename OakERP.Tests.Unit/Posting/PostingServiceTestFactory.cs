@@ -53,22 +53,30 @@ public sealed class PostingServiceTestFactory
 
     public PostingService CreateService() =>
         new(
-            ApPaymentRepository.Object,
-            ApInvoiceRepository.Object,
-            ArInvoiceRepository.Object,
-            ArReceiptRepository.Object,
-            FiscalPeriodRepository.Object,
-            GlAccountRepository.Object,
-            GlEntryRepository.Object,
-            InventoryLedgerRepository.Object,
-            GlSettingsProvider.Object,
-            PostingRuleProvider.Object,
-            ApPaymentPostingContextBuilder.Object,
-            ApInvoicePostingContextBuilder.Object,
-            PostingContextBuilder.Object,
-            ReceiptPostingContextBuilder.Object,
-            PostingEngine.Object,
-            UnitOfWork.Object
+            new PostingSourceRepositories(
+                ApPaymentRepository.Object,
+                ApInvoiceRepository.Object,
+                ArInvoiceRepository.Object,
+                ArReceiptRepository.Object
+            ),
+            new PostingPersistenceDependencies(
+                FiscalPeriodRepository.Object,
+                GlAccountRepository.Object,
+                GlEntryRepository.Object,
+                InventoryLedgerRepository.Object,
+                UnitOfWork.Object
+            ),
+            new PostingRuntimeDependencies(
+                GlSettingsProvider.Object,
+                PostingRuleProvider.Object,
+                PostingEngine.Object
+            ),
+            new PostingContextBuilders(
+                ApPaymentPostingContextBuilder.Object,
+                ApInvoicePostingContextBuilder.Object,
+                PostingContextBuilder.Object,
+                ReceiptPostingContextBuilder.Object
+            )
         );
 
     public static GlPostingSettings CreateSettings() =>

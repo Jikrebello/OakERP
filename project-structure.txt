@@ -197,26 +197,26 @@
 +-- OakERP.Application
 |   +-- AccountsPayable
 |   |   +-- AllocateApPaymentCommand.cs
-|   |   +-- ApInvoiceCommandResultDTO.cs
-|   |   +-- ApInvoiceLineInputDTO.cs
-|   |   +-- ApInvoiceLineSnapshotDTO.cs
-|   |   +-- ApInvoiceSettlementSnapshotDTO.cs
-|   |   +-- ApInvoiceSnapshotDTO.cs
-|   |   +-- ApPaymentAllocationInputDTO.cs
-|   |   +-- ApPaymentAllocationSnapshotDTO.cs
-|   |   +-- ApPaymentCommandResultDTO.cs
-|   |   +-- ApPaymentSnapshotDTO.cs
+|   |   +-- ApInvoiceCommandResultDto.cs
+|   |   +-- ApInvoiceLineInputDto.cs
+|   |   +-- ApInvoiceLineSnapshotDto.cs
+|   |   +-- ApInvoiceSettlementSnapshotDto.cs
+|   |   +-- ApInvoiceSnapshotDto.cs
+|   |   +-- ApPaymentAllocationInputDto.cs
+|   |   +-- ApPaymentAllocationSnapshotDto.cs
+|   |   +-- ApPaymentCommandResultDto.cs
+|   |   +-- ApPaymentSnapshotDto.cs
 |   |   +-- CreateApInvoiceCommand.cs
 |   |   +-- CreateApPaymentCommand.cs
 |   |   +-- IApInvoiceService.cs
 |   |   \-- IApPaymentService.cs
 |   +-- AccountsReceivable
 |   |   +-- AllocateArReceiptCommand.cs
-|   |   +-- ArInvoiceSettlementSnapshotDTO.cs
-|   |   +-- ArReceiptAllocationInputDTO.cs
-|   |   +-- ArReceiptAllocationSnapshotDTO.cs
-|   |   +-- ArReceiptCommandResultDTO.cs
-|   |   +-- ArReceiptSnapshotDTO.cs
+|   |   +-- ArInvoiceSettlementSnapshotDto.cs
+|   |   +-- ArReceiptAllocationInputDto.cs
+|   |   +-- ArReceiptAllocationSnapshotDto.cs
+|   |   +-- ArReceiptCommandResultDto.cs
+|   |   +-- ArReceiptSnapshotDto.cs
 |   |   +-- CreateArReceiptCommand.cs
 |   |   \-- IArReceiptService.cs
 |   +-- Interfaces
@@ -263,13 +263,13 @@
 |   |   +-- ICurrentUserService.cs
 |   |   +-- IPlatformService.cs
 |   |   \-- ITokenStore.cs
-|   +-- DTOs
+|   +-- Dtos
 |   |   +-- Auth
-|   |   |   +-- AuthResultDTO.cs
-|   |   |   +-- LoginDTO.cs
-|   |   |   \-- RegisterDTO.cs
+|   |   |   +-- AuthResultDto.cs
+|   |   |   +-- LoginDto.cs
+|   |   |   \-- RegisterDto.cs
 |   |   \-- Base
-|   |       \-- BaseResultDTO.cs
+|   |       \-- BaseResultDto.cs
 |   +-- Enums
 |   |   +-- AccountKey.cs
 |   |   +-- AmountSource.cs

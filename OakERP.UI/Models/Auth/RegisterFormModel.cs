@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Dtos.Auth;
 
 namespace OakERP.UI.Models.Auth;
 
@@ -32,9 +32,9 @@ public class RegisterFormModel
     [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
     public string ConfirmPassword { get; set; } = default!;
 
-    public static implicit operator RegisterDTO(RegisterFormModel form)
+    public static implicit operator RegisterDto(RegisterFormModel form)
     {
-        return new RegisterDTO
+        return new RegisterDto
         {
             FirstName = form.FirstName,
             LastName = form.LastName,

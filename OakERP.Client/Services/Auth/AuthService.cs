@@ -1,18 +1,18 @@
 using OakERP.Client.ApiRoutes;
 using OakERP.Client.Services.Api;
-using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Dtos.Auth;
 
 namespace OakERP.Client.Services.Auth;
 
 public class AuthService(IApiClient api) : IAuthService
 {
-    public async Task<ApiResult<AuthResultDTO>> LoginAsync(LoginDTO loginDTO)
+    public async Task<ApiResult<AuthResultDto>> LoginAsync(LoginDto loginDto)
     {
-        return await api.PostAsync<LoginDTO, AuthResultDTO>(AuthRoutes.Login, loginDTO);
+        return await api.PostAsync<LoginDto, AuthResultDto>(AuthRoutes.Login, loginDto);
     }
 
-    public async Task<ApiResult<AuthResultDTO>> RegisterAsync(RegisterDTO registerDTO)
+    public async Task<ApiResult<AuthResultDto>> RegisterAsync(RegisterDto registerDto)
     {
-        return await api.PostAsync<RegisterDTO, AuthResultDTO>(AuthRoutes.Register, registerDTO);
+        return await api.PostAsync<RegisterDto, AuthResultDto>(AuthRoutes.Register, registerDto);
     }
 }

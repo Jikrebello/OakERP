@@ -11,7 +11,7 @@ public sealed class CreateApPaymentCommand
     public DateOnly? AllocationDate { get; set; }
     public decimal Amount { get; set; }
     public string? Memo { get; set; }
-    public IReadOnlyList<ApPaymentAllocationInputDTO> Allocations { get; set; } = [];
+    public IReadOnlyList<ApPaymentAllocationInputDto> Allocations { get; set; } = [];
 
     [JsonIgnore]
     public string? PerformedBy { get; set; }

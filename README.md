@@ -39,7 +39,7 @@ OakERP is being built module-by-module. Initial release will include:
 ```plaintext
 /OakERP.Solution
 ├── Apps/              → Desktop, Web, Mobile, API
-├── Core/              → Domain, Application Logic, Shared DTOs
+├── Core/              → Domain, Application Logic, Shared Dtos
 ├── Infrastructure/    → EF Core, Auth
 ├── UI/                → Shared Razor Components
 ├── Reports/           → Printable/exportable Razor reports

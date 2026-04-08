@@ -4,22 +4,22 @@ using OakERP.Domain.Entities.Accounts_Receivable;
 
 namespace OakERP.Infrastructure.Accounts_Receivable;
 
-public sealed class ArReceiptSnapshotFactory
+public static class ArReceiptSnapshotFactory
 {
-    public ArReceiptCommandResultDTO BuildSuccess(
+    public static ArReceiptCommandResultDto BuildSuccess(
         ArReceipt receipt,
         IEnumerable<ArInvoice> invoices,
         string message,
         IReadOnlyDictionary<Guid, decimal>? settledAmountOverrides = null,
         IReadOnlyCollection<ArReceiptAllocation>? allocationOverrides = null
     ) =>
-        ArReceiptCommandResultDTO.SuccessWith(
+        ArReceiptCommandResultDto.SuccessWith(
             BuildReceiptSnapshot(receipt, allocationOverrides),
             BuildInvoiceSnapshots(invoices, settledAmountOverrides),
             message
         );
 
-    public ArReceiptSnapshotDTO BuildReceiptSnapshot(
+    public static ArReceiptSnapshotDto BuildReceiptSnapshot(
         ArReceipt receipt,
         IReadOnlyCollection<ArReceiptAllocation>? allocationOverrides = null
     )
@@ -29,7 +29,7 @@ public sealed class ArReceiptSnapshotFactory
         IEnumerable<ArReceiptAllocation> allocations =
             allocationOverrides ?? [.. receipt.Allocations];
 
-        return new ArReceiptSnapshotDTO
+        return new ArReceiptSnapshotDto
         {
             ReceiptId = receipt.Id,
             DocNo = receipt.DocNo,
@@ -48,46 +48,51 @@ public sealed class ArReceiptSnapshotFactory
                 receipt,
                 allocations
             ),
-            Allocations = allocations
-                .OrderBy(x => x.AllocationDate)
-                .ThenBy(x => x.Id)
-                .Select(x => new ArReceiptAllocationSnapshotDTO
-                {
-                    AllocationId = x.Id,
-                    ArInvoiceId = x.ArInvoiceId,
-                    AllocationDate = x.AllocationDate,
-                    AmountApplied = x.AmountApplied,
-                })
-                .ToList(),
+            Allocations =
+            [
+                .. allocations
+                    .OrderBy(x => x.AllocationDate)
+                    .ThenBy(x => x.Id)
+                    .Select(x => new ArReceiptAllocationSnapshotDto
+                    {
+                        AllocationId = x.Id,
+                        ArInvoiceId = x.ArInvoiceId,
+                        AllocationDate = x.AllocationDate,
+                        AmountApplied = x.AmountApplied,
+                    }),
+            ],
         };
     }
 
-    public IReadOnlyList<ArInvoiceSettlementSnapshotDTO> BuildInvoiceSnapshots(
+    public static IReadOnlyList<ArInvoiceSettlementSnapshotDto> BuildInvoiceSnapshots(
         IEnumerable<ArInvoice> invoices,
         IReadOnlyDictionary<Guid, decimal>? settledAmountOverrides = null
     )
     {
         ArgumentNullException.ThrowIfNull(invoices);
 
-        return invoices
-            .OrderBy(x => x.DocNo, StringComparer.Ordinal)
-            .Select(x =>
-            {
-                decimal settledAmount =
-                    settledAmountOverrides?.TryGetValue(x.Id, out decimal overrideAmount) == true
-                        ? overrideAmount
-                        : ArSettlementCalculator.GetInvoiceSettledAmount(x);
-
-                return new ArInvoiceSettlementSnapshotDTO
+        return
+        [
+            .. invoices
+                .OrderBy(x => x.DocNo, StringComparer.Ordinal)
+                .Select(x =>
                 {
-                    InvoiceId = x.Id,
-                    DocNo = x.DocNo,
-                    DocStatus = x.DocStatus,
-                    DocTotal = x.DocTotal,
-                    SettledAmount = settledAmount,
-                    RemainingAmount = x.DocTotal - settledAmount,
-                };
-            })
-            .ToList();
+                    decimal settledAmount =
+                        settledAmountOverrides?.TryGetValue(x.Id, out decimal overrideAmount)
+                        == true
+                            ? overrideAmount
+                            : ArSettlementCalculator.GetInvoiceSettledAmount(x);
+
+                    return new ArInvoiceSettlementSnapshotDto
+                    {
+                        InvoiceId = x.Id,
+                        DocNo = x.DocNo,
+                        DocStatus = x.DocStatus,
+                        DocTotal = x.DocTotal,
+                        SettledAmount = settledAmount,
+                        RemainingAmount = x.DocTotal - settledAmount,
+                    };
+                }),
+        ];
     }
 }

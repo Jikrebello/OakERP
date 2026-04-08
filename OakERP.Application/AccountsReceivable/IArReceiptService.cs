@@ -2,12 +2,12 @@ namespace OakERP.Application.AccountsReceivable;
 
 public interface IArReceiptService
 {
-    Task<ArReceiptCommandResultDTO> CreateAsync(
+    Task<ArReceiptCommandResultDto> CreateAsync(
         CreateArReceiptCommand command,
         CancellationToken cancellationToken = default
     );
 
-    Task<ArReceiptCommandResultDTO> AllocateAsync(
+    Task<ArReceiptCommandResultDto> AllocateAsync(
         AllocateArReceiptCommand command,
         CancellationToken cancellationToken = default
     );

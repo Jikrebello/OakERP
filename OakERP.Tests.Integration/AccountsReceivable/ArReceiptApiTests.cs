@@ -5,7 +5,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using OakERP.Application.AccountsReceivable;
-using OakERP.Common.DTOs.Auth;
+using OakERP.Common.Dtos.Auth;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.Accounts_Receivable;
 using OakERP.Domain.Entities.Bank;
@@ -40,7 +40,7 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
             Memo = "Unapplied cash",
         };
 
-        var result = await PostAsync<CreateArReceiptCommand, ArReceiptCommandResultDTO>(
+        var result = await PostAsync<CreateArReceiptCommand, ArReceiptCommandResultDto>(
             ApiRoutes.ArReceipts.Create,
             command
         );
@@ -84,12 +84,12 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
             CurrencyCode = "ZAR",
             Allocations =
             [
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoiceA, AmountApplied = 100m },
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoiceB, AmountApplied = 50m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoiceA, AmountApplied = 100m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoiceB, AmountApplied = 50m },
             ],
         };
 
-        var result = await PostAsync<CreateArReceiptCommand, ArReceiptCommandResultDTO>(
+        var result = await PostAsync<CreateArReceiptCommand, ArReceiptCommandResultDto>(
             ApiRoutes.ArReceipts.Create,
             command
         );
@@ -140,11 +140,11 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
             AllocationDate = new DateOnly(2026, 4, 6),
             Allocations =
             [
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoiceId, AmountApplied = 60m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoiceId, AmountApplied = 60m },
             ],
         };
 
-        var result = await PostAsync<AllocateArReceiptCommand, ArReceiptCommandResultDTO>(
+        var result = await PostAsync<AllocateArReceiptCommand, ArReceiptCommandResultDto>(
             ApiRoutes.ArReceipts.Allocate(receiptId),
             command
         );
@@ -194,14 +194,14 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
             CurrencyCode = "ZAR",
             Allocations =
             [
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoiceId, AmountApplied = 50m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoiceId, AmountApplied = 50m },
             ],
         };
 
         var response = await Client.PostAsJsonAsync(ApiRoutes.ArReceipts.Create, command);
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
-        var result = await response.Content.ReadFromJsonAsync<ArReceiptCommandResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<ArReceiptCommandResultDto>();
         result.ShouldNotBeNull();
         result!.Success.ShouldBeFalse();
         result.Message.ShouldContain("same customer");
@@ -233,14 +233,14 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
             CurrencyCode = "ZAR",
             Allocations =
             [
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoiceId, AmountApplied = 90m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoiceId, AmountApplied = 90m },
             ],
         };
 
         var response = await Client.PostAsJsonAsync(ApiRoutes.ArReceipts.Create, command);
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
-        var result = await response.Content.ReadFromJsonAsync<ArReceiptCommandResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<ArReceiptCommandResultDto>();
         result.ShouldNotBeNull();
         result!.Success.ShouldBeFalse();
         result.Message.ShouldContain("unapplied amount");
@@ -270,7 +270,7 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
         {
             Allocations =
             [
-                new ArReceiptAllocationInputDTO { ArInvoiceId = invoiceId, AmountApplied = 110m },
+                new ArReceiptAllocationInputDto { ArInvoiceId = invoiceId, AmountApplied = 110m },
             ],
         };
 
@@ -280,7 +280,7 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
         );
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
-        var result = await response.Content.ReadFromJsonAsync<ArReceiptCommandResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<ArReceiptCommandResultDto>();
         result.ShouldNotBeNull();
         result!.Success.ShouldBeFalse();
         result.Message.ShouldContain("remaining balance");
@@ -316,7 +316,7 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
         var response = await Client.PostAsJsonAsync(ApiRoutes.ArReceipts.Create, command);
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
-        var result = await response.Content.ReadFromJsonAsync<ArReceiptCommandResultDTO>();
+        var result = await response.Content.ReadFromJsonAsync<ArReceiptCommandResultDto>();
         result.ShouldNotBeNull();
         result!.Success.ShouldBeFalse();
         result.Message.ShouldContain("base currency");
@@ -329,7 +329,7 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
 
     private async Task AuthenticateAsync()
     {
-        var registerDto = new RegisterDTO
+        var registerDto = new RegisterDto
         {
             Email = $"receipt_api_{TestId}@oak.test",
             Password = "TestPass123!",
@@ -340,15 +340,15 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
             TenantName = $"ReceiptTenant_{TestId}",
         };
 
-        var registerResult = await PostAsync<RegisterDTO, AuthResultDTO>(
+        var registerResult = await PostAsync<RegisterDto, AuthResultDto>(
             ApiRoutes.Auth.Register,
             registerDto
         );
         registerResult.Success.ShouldBeTrue();
 
-        var loginResult = await PostAsync<LoginDTO, AuthResultDTO>(
+        var loginResult = await PostAsync<LoginDto, AuthResultDto>(
             ApiRoutes.Auth.Login,
-            new LoginDTO { Email = registerDto.Email, Password = registerDto.Password }
+            new LoginDto { Email = registerDto.Email, Password = registerDto.Password }
         );
 
         loginResult.Success.ShouldBeTrue();

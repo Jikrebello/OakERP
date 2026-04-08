@@ -141,7 +141,7 @@ public static class ServiceCollectionExtensions
         {
             options.SwaggerDoc("v1", new OpenApiInfo { Title = "OakERP API", Version = "v1" });
 
-            // DTO Example Filters
+            // Dto Example Filters
             options.SchemaFilter<RegisterDtoExampleFilter>();
 
             options.SchemaFilter<LoginDtoExampleFilter>();

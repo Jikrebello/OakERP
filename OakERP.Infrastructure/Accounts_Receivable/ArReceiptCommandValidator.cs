@@ -5,9 +5,9 @@ using OakERP.Domain.Posting.General_Ledger;
 
 namespace OakERP.Infrastructure.Accounts_Receivable;
 
-public sealed class ArReceiptCommandValidator
+public static class ArReceiptCommandValidator
 {
-    public ArReceiptCreateValidationResult ValidateCreate(
+    public static ArReceiptCreateValidationResult ValidateCreate(
         CreateArReceiptCommand command,
         GlPostingSettings settings
     )
@@ -22,7 +22,7 @@ public sealed class ArReceiptCommandValidator
             settings.BaseCurrencyCode
         );
         string performedBy = GetPerformedBy(command.PerformedBy);
-        IReadOnlyList<ArReceiptAllocationInputDTO> allocations = command.Allocations ?? [];
+        IReadOnlyList<ArReceiptAllocationInputDto> allocations = command.Allocations ?? [];
 
         return new ArReceiptCreateValidationResult(
             ValidateCreateRequest(
@@ -41,11 +41,13 @@ public sealed class ArReceiptCommandValidator
         );
     }
 
-    public ArReceiptAllocateValidationResult ValidateAllocate(AllocateArReceiptCommand command)
+    public static ArReceiptAllocateValidationResult ValidateAllocate(
+        AllocateArReceiptCommand command
+    )
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        IReadOnlyList<ArReceiptAllocationInputDTO> allocations = command.Allocations ?? [];
+        IReadOnlyList<ArReceiptAllocationInputDto> allocations = command.Allocations ?? [];
 
         return new ArReceiptAllocateValidationResult(
             ValidateAllocateRequest(command, allocations),
@@ -54,18 +56,18 @@ public sealed class ArReceiptCommandValidator
         );
     }
 
-    private static ArReceiptCommandResultDTO? ValidateCreateRequest(
+    private static ArReceiptCommandResultDto? ValidateCreateRequest(
         CreateArReceiptCommand command,
         string docNo,
         string? memo,
         string currencyCode,
         string baseCurrencyCode,
-        IReadOnlyList<ArReceiptAllocationInputDTO> allocations
+        IReadOnlyList<ArReceiptAllocationInputDto> allocations
     )
     {
         if (string.IsNullOrWhiteSpace(docNo))
         {
-            return ArReceiptCommandResultDTO.Fail(
+            return ArReceiptCommandResultDto.Fail(
                 "Document number is required.",
                 HttpStatusCode.BadRequest
             );
@@ -73,7 +75,7 @@ public sealed class ArReceiptCommandValidator
 
         if (docNo.Length > 40)
         {
-            return ArReceiptCommandResultDTO.Fail(
+            return ArReceiptCommandResultDto.Fail(
                 "Document number may not exceed 40 characters.",
                 HttpStatusCode.BadRequest
             );
@@ -81,7 +83,7 @@ public sealed class ArReceiptCommandValidator
 
         if (command.CustomerId == Guid.Empty)
         {
-            return ArReceiptCommandResultDTO.Fail(
+            return ArReceiptCommandResultDto.Fail(
                 "Customer id is required.",
                 HttpStatusCode.BadRequest
             );
@@ -89,7 +91,7 @@ public sealed class ArReceiptCommandValidator
 
         if (command.BankAccountId == Guid.Empty)
         {
-            return ArReceiptCommandResultDTO.Fail(
+            return ArReceiptCommandResultDto.Fail(
                 "Bank account id is required.",
                 HttpStatusCode.BadRequest
             );
@@ -97,7 +99,7 @@ public sealed class ArReceiptCommandValidator
 
         if (command.Amount <= 0m)
         {
-            return ArReceiptCommandResultDTO.Fail(
+            return ArReceiptCommandResultDto.Fail(
                 "Receipt amount must be greater than zero.",
                 HttpStatusCode.BadRequest
             );
@@ -105,7 +107,7 @@ public sealed class ArReceiptCommandValidator
 
         if (memo is not null && memo.Length > 512)
         {
-            return ArReceiptCommandResultDTO.Fail(
+            return ArReceiptCommandResultDto.Fail(
                 "Receipt memo may not exceed 512 characters.",
                 HttpStatusCode.BadRequest
             );
@@ -113,7 +115,7 @@ public sealed class ArReceiptCommandValidator
 
         if (!ArSettlementCalculator.MatchesCurrency(currencyCode, baseCurrencyCode))
         {
-            return ArReceiptCommandResultDTO.Fail(
+            return ArReceiptCommandResultDto.Fail(
                 "AR receipt capture currently supports only the base currency.",
                 HttpStatusCode.BadRequest
             );
@@ -122,14 +124,14 @@ public sealed class ArReceiptCommandValidator
         return ValidateAllocationInputs(allocations, allowEmpty: true);
     }
 
-    private static ArReceiptCommandResultDTO? ValidateAllocateRequest(
+    private static ArReceiptCommandResultDto? ValidateAllocateRequest(
         AllocateArReceiptCommand command,
-        IReadOnlyList<ArReceiptAllocationInputDTO> allocations
+        IReadOnlyList<ArReceiptAllocationInputDto> allocations
     )
     {
         if (command.ReceiptId == Guid.Empty)
         {
-            return ArReceiptCommandResultDTO.Fail(
+            return ArReceiptCommandResultDto.Fail(
                 "Receipt id is required.",
                 HttpStatusCode.BadRequest
             );
@@ -138,14 +140,14 @@ public sealed class ArReceiptCommandValidator
         return ValidateAllocationInputs(allocations, allowEmpty: false);
     }
 
-    private static ArReceiptCommandResultDTO? ValidateAllocationInputs(
-        IReadOnlyList<ArReceiptAllocationInputDTO> allocations,
+    private static ArReceiptCommandResultDto? ValidateAllocationInputs(
+        IReadOnlyList<ArReceiptAllocationInputDto> allocations,
         bool allowEmpty
     )
     {
         if (!allowEmpty && allocations.Count == 0)
         {
-            return ArReceiptCommandResultDTO.Fail(
+            return ArReceiptCommandResultDto.Fail(
                 "At least one allocation is required.",
                 HttpStatusCode.BadRequest
             );
@@ -153,11 +155,11 @@ public sealed class ArReceiptCommandValidator
 
         HashSet<Guid> invoiceIds = [];
 
-        foreach (ArReceiptAllocationInputDTO allocation in allocations)
+        foreach (ArReceiptAllocationInputDto allocation in allocations)
         {
             if (allocation.ArInvoiceId == Guid.Empty)
             {
-                return ArReceiptCommandResultDTO.Fail(
+                return ArReceiptCommandResultDto.Fail(
                     "Allocation invoice id is required.",
                     HttpStatusCode.BadRequest
                 );
@@ -165,7 +167,7 @@ public sealed class ArReceiptCommandValidator
 
             if (!invoiceIds.Add(allocation.ArInvoiceId))
             {
-                return ArReceiptCommandResultDTO.Fail(
+                return ArReceiptCommandResultDto.Fail(
                     "Each invoice may appear only once per allocation request.",
                     HttpStatusCode.BadRequest
                 );
@@ -173,7 +175,7 @@ public sealed class ArReceiptCommandValidator
 
             if (allocation.AmountApplied <= 0m)
             {
-                return ArReceiptCommandResultDTO.Fail(
+                return ArReceiptCommandResultDto.Fail(
                     "Allocation amount must be greater than zero.",
                     HttpStatusCode.BadRequest
                 );
@@ -196,16 +198,16 @@ public sealed class ArReceiptCommandValidator
 }
 
 public sealed record ArReceiptCreateValidationResult(
-    ArReceiptCommandResultDTO? Failure,
+    ArReceiptCommandResultDto? Failure,
     string DocNo,
     string? Memo,
     string CurrencyCode,
     string PerformedBy,
-    IReadOnlyList<ArReceiptAllocationInputDTO> Allocations
+    IReadOnlyList<ArReceiptAllocationInputDto> Allocations
 );
 
 public sealed record ArReceiptAllocateValidationResult(
-    ArReceiptCommandResultDTO? Failure,
+    ArReceiptCommandResultDto? Failure,
     string PerformedBy,
-    IReadOnlyList<ArReceiptAllocationInputDTO> Allocations
+    IReadOnlyList<ArReceiptAllocationInputDto> Allocations
 );

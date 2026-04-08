@@ -18,7 +18,7 @@
 │
 ├── /OakERP.UI                   <-- Shared Blazor components, styles, icons
 │
-├── /OakERP.Shared               <-- DTOs, constants, settings, mapping
+├── /OakERP.Shared               <-- Dtos, constants, settings, mapping
 │
 ├── /OakERP.Auth                 <-- Token handling, roles, identity management
 │

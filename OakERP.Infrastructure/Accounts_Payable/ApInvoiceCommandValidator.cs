@@ -4,9 +4,9 @@ using OakERP.Common.Enums;
 
 namespace OakERP.Infrastructure.Accounts_Payable;
 
-public sealed class ApInvoiceCommandValidator
+public static class ApInvoiceCommandValidator
 {
-    public ApInvoiceCreateValidationResult ValidateCreate(CreateApInvoiceCommand command)
+    public static ApInvoiceCreateValidationResult ValidateCreate(CreateApInvoiceCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
 
@@ -15,7 +15,7 @@ public sealed class ApInvoiceCommandValidator
         string currencyCode = NormalizeCurrencyCode(command.CurrencyCode);
         string? memo = NormalizeOptional(command.Memo);
         string performedBy = GetPerformedBy(command.PerformedBy);
-        IReadOnlyList<ValidatedApInvoiceLineInput> lines = NormalizeLines(command.Lines ?? []);
+        List<ValidatedApInvoiceLineInput> lines = NormalizeLines(command.Lines ?? []);
 
         return new ApInvoiceCreateValidationResult(
             ValidateRequest(command, docNo, invoiceNo, currencyCode, memo, lines),
@@ -28,179 +28,142 @@ public sealed class ApInvoiceCommandValidator
         );
     }
 
-    private static ApInvoiceCommandResultDTO? ValidateRequest(
+    private static ApInvoiceCommandResultDto? ValidateRequest(
         CreateApInvoiceCommand command,
         string docNo,
         string invoiceNo,
         string currencyCode,
         string? memo,
         IReadOnlyList<ValidatedApInvoiceLineInput> lines
-    )
+    ) =>
+        ValidateDocumentNumber(docNo)
+        ?? ValidateVendor(command.VendorId)
+        ?? ValidateInvoiceNumber(invoiceNo)
+        ?? ValidateInvoiceDates(command.InvoiceDate, command.DueDate)
+        ?? ValidateMemo(memo)
+        ?? ValidateCurrencyCode(currencyCode)
+        ?? ValidateTotals(command.TaxTotal, command.DocTotal, lines)
+        ?? ValidateLines(lines);
+
+    private static ApInvoiceCommandResultDto? ValidateDocumentNumber(string docNo)
     {
         if (string.IsNullOrWhiteSpace(docNo))
         {
-            return ApInvoiceCommandResultDTO.Fail(
-                "Document number is required.",
-                HttpStatusCode.BadRequest
-            );
+            return Fail("Document number is required.");
         }
 
-        if (docNo.Length > 40)
-        {
-            return ApInvoiceCommandResultDTO.Fail(
-                "Document number may not exceed 40 characters.",
-                HttpStatusCode.BadRequest
-            );
-        }
+        return docNo.Length > 40 ? Fail("Document number may not exceed 40 characters.") : null;
+    }
 
-        if (command.VendorId == Guid.Empty)
-        {
-            return ApInvoiceCommandResultDTO.Fail(
-                "Vendor id is required.",
-                HttpStatusCode.BadRequest
-            );
-        }
+    private static ApInvoiceCommandResultDto? ValidateVendor(Guid vendorId) =>
+        vendorId == Guid.Empty ? Fail("Vendor id is required.") : null;
 
+    private static ApInvoiceCommandResultDto? ValidateInvoiceNumber(string invoiceNo)
+    {
         if (string.IsNullOrWhiteSpace(invoiceNo))
         {
-            return ApInvoiceCommandResultDTO.Fail(
-                "Vendor invoice number is required.",
-                HttpStatusCode.BadRequest
-            );
+            return Fail("Vendor invoice number is required.");
         }
 
-        if (invoiceNo.Length > 40)
+        return invoiceNo.Length > 40
+            ? Fail("Vendor invoice number may not exceed 40 characters.")
+            : null;
+    }
+
+    private static ApInvoiceCommandResultDto? ValidateInvoiceDates(
+        DateOnly invoiceDate,
+        DateOnly? dueDate
+    )
+    {
+        if (invoiceDate == default)
         {
-            return ApInvoiceCommandResultDTO.Fail(
-                "Vendor invoice number may not exceed 40 characters.",
-                HttpStatusCode.BadRequest
-            );
+            return Fail("Invoice date is required.");
         }
 
-        if (command.InvoiceDate == default)
+        return dueDate is not null && dueDate.Value < invoiceDate
+            ? Fail("Due date may not be earlier than the invoice date.")
+            : null;
+    }
+
+    private static ApInvoiceCommandResultDto? ValidateMemo(string? memo) =>
+        memo is not null && memo.Length > 512
+            ? Fail("Invoice memo may not exceed 512 characters.")
+            : null;
+
+    private static ApInvoiceCommandResultDto? ValidateCurrencyCode(string currencyCode) =>
+        currencyCode.Length != 3 ? Fail("Currency code must be a 3-character ISO code.") : null;
+
+    private static ApInvoiceCommandResultDto? ValidateTotals(
+        decimal taxTotal,
+        decimal docTotal,
+        IReadOnlyList<ValidatedApInvoiceLineInput> lines
+    )
+    {
+        if (taxTotal < 0m)
         {
-            return ApInvoiceCommandResultDTO.Fail(
-                "Invoice date is required.",
-                HttpStatusCode.BadRequest
-            );
+            return Fail("Tax total may not be negative.");
         }
 
-        if (command.DueDate is not null && command.DueDate.Value < command.InvoiceDate)
+        if (docTotal < 0m)
         {
-            return ApInvoiceCommandResultDTO.Fail(
-                "Due date may not be earlier than the invoice date.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        if (memo is not null && memo.Length > 512)
-        {
-            return ApInvoiceCommandResultDTO.Fail(
-                "Invoice memo may not exceed 512 characters.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        if (currencyCode.Length != 3)
-        {
-            return ApInvoiceCommandResultDTO.Fail(
-                "Currency code must be a 3-character ISO code.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        if (command.TaxTotal < 0m)
-        {
-            return ApInvoiceCommandResultDTO.Fail(
-                "Tax total may not be negative.",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        if (command.DocTotal < 0m)
-        {
-            return ApInvoiceCommandResultDTO.Fail(
-                "Document total may not be negative.",
-                HttpStatusCode.BadRequest
-            );
+            return Fail("Document total may not be negative.");
         }
 
         if (lines.Count == 0)
         {
-            return ApInvoiceCommandResultDTO.Fail(
-                "At least one invoice line is required.",
-                HttpStatusCode.BadRequest
-            );
+            return Fail("At least one invoice line is required.");
         }
 
-        decimal computedDocTotal = lines.Sum(x => x.LineTotal) + command.TaxTotal;
-        if (computedDocTotal != command.DocTotal)
-        {
-            return ApInvoiceCommandResultDTO.Fail(
-                "Document total must equal the sum of line totals plus tax total.",
-                HttpStatusCode.BadRequest
-            );
-        }
+        decimal computedDocTotal = lines.Sum(x => x.LineTotal) + taxTotal;
+        return computedDocTotal != docTotal
+            ? Fail("Document total must equal the sum of line totals plus tax total.")
+            : null;
+    }
 
+    private static ApInvoiceCommandResultDto? ValidateLines(
+        IReadOnlyList<ValidatedApInvoiceLineInput> lines
+    )
+    {
         foreach (ValidatedApInvoiceLineInput line in lines)
         {
             if (line.ItemId is not null)
             {
-                return ApInvoiceCommandResultDTO.Fail(
-                    "Item-based AP invoice lines are deferred in this slice.",
-                    HttpStatusCode.BadRequest
-                );
+                return Fail("Item-based AP invoice lines are deferred in this slice.");
             }
 
             if (line.TaxRateId is not null)
             {
-                return ApInvoiceCommandResultDTO.Fail(
-                    "Tax-rated AP invoice lines are deferred in this slice.",
-                    HttpStatusCode.BadRequest
-                );
+                return Fail("Tax-rated AP invoice lines are deferred in this slice.");
             }
 
             if (string.IsNullOrWhiteSpace(line.AccountNo))
             {
-                return ApInvoiceCommandResultDTO.Fail(
-                    "Each AP invoice line must specify a GL account.",
-                    HttpStatusCode.BadRequest
-                );
+                return Fail("Each AP invoice line must specify a GL account.");
             }
 
             if (line.AccountNo.Length > 20)
             {
-                return ApInvoiceCommandResultDTO.Fail(
-                    "Line account number may not exceed 20 characters.",
-                    HttpStatusCode.BadRequest
-                );
+                return Fail("Line account number may not exceed 20 characters.");
             }
 
             if (line.Description is not null && line.Description.Length > 512)
             {
-                return ApInvoiceCommandResultDTO.Fail(
-                    "Line description may not exceed 512 characters.",
-                    HttpStatusCode.BadRequest
-                );
+                return Fail("Line description may not exceed 512 characters.");
             }
 
             if (line.Qty < 0m || line.UnitPrice < 0m || line.LineTotal < 0m)
             {
-                return ApInvoiceCommandResultDTO.Fail(
-                    "Line quantities and amounts may not be negative.",
-                    HttpStatusCode.BadRequest
-                );
+                return Fail("Line quantities and amounts may not be negative.");
             }
         }
 
         return null;
     }
 
-    private static IReadOnlyList<ValidatedApInvoiceLineInput> NormalizeLines(
-        IReadOnlyList<ApInvoiceLineInputDTO> lines
+    private static List<ValidatedApInvoiceLineInput> NormalizeLines(
+        IReadOnlyList<ApInvoiceLineInputDto> lines
     ) =>
-        lines
-            .Select(x => new ValidatedApInvoiceLineInput(
+        lines.Select(x => new ValidatedApInvoiceLineInput(
                 NormalizeOptional(x.Description),
                 NormalizeOptional(x.AccountNo),
                 x.ItemId,
@@ -213,8 +176,11 @@ public sealed class ApInvoiceCommandValidator
 
     private static string NormalizeCurrencyCode(string? currencyCode) =>
         string.IsNullOrWhiteSpace(currencyCode)
-            ? CurrencyISOCodes.ZAR.ToString()
+            ? CurrencyIsoCodes.ZAR.ToString()
             : currencyCode.Trim().ToUpperInvariant();
+
+    private static ApInvoiceCommandResultDto Fail(string message) =>
+        ApInvoiceCommandResultDto.Fail(message, HttpStatusCode.BadRequest);
 
     private static string? NormalizeOptional(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
@@ -224,7 +190,7 @@ public sealed class ApInvoiceCommandValidator
 }
 
 public sealed record ApInvoiceCreateValidationResult(
-    ApInvoiceCommandResultDTO? Failure,
+    ApInvoiceCommandResultDto? Failure,
     string DocNo,
     string InvoiceNo,
     string CurrencyCode,
