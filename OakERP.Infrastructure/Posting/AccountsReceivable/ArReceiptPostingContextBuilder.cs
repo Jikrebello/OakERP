@@ -3,6 +3,7 @@ using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.AccountsReceivable;
 using OakERP.Domain.Posting.GeneralLedger;
+using OakERP.Common.Exceptions;
 
 namespace OakERP.Infrastructure.Posting.AccountsReceivable;
 
@@ -24,7 +25,7 @@ public sealed class ArReceiptPostingContextBuilder : IArReceiptPostingContextBui
 
         string bankAccountNo =
             receipt.BankAccount?.GlAccountNo
-            ?? throw new InvalidOperationException(
+            ?? throw new PostingInvariantViolationException(
                 "AR receipt posting requires a bank account GL account."
             );
 

@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Auth.Identity;
+using OakERP.Common.Exceptions;
 using OakERP.Common.Enums;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.AccountsPayable;
@@ -65,7 +66,8 @@ public static class ServiceCollectionExtensions
     {
         var cs =
             config.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException(
+            ?? throw new ConfigurationValidationException(
+                "ConnectionStrings:DefaultConnection",
                 "ConnectionStrings:DefaultConnection is not configured."
             );
 

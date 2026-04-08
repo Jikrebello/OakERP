@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using OakERP.Auth.Identity;
 using OakERP.Auth.Jwt;
 using OakERP.Auth.Services;
+using OakERP.Common.Exceptions;
 
 namespace OakERP.Auth.Extensions;
 
@@ -19,7 +20,10 @@ public static class ServiceCollectionExtensions
     {
         JwtOptions jwtOptions =
             config.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
-            ?? throw new InvalidOperationException("JwtSettings is not configured.");
+            ?? throw new ConfigurationValidationException(
+                JwtOptions.SectionName,
+                "JwtSettings is not configured."
+            );
         jwtOptions.Validate();
 
         services.AddSingleton(Options.Create(jwtOptions));

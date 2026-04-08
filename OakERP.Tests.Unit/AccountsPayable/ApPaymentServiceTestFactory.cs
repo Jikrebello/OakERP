@@ -22,6 +22,7 @@ public sealed class ApPaymentServiceTestFactory
     public Mock<IUnitOfWork> UnitOfWork { get; } = new(MockBehavior.Strict);
     public Mock<IPersistenceFailureClassifier> PersistenceFailureClassifier { get; } =
         new(MockBehavior.Strict);
+    public Mock<IClock> Clock { get; } = new(MockBehavior.Strict);
     public Mock<ILogger<ApPaymentService>> Logger { get; } = new();
 
     public ApPaymentServiceTestFactory()
@@ -41,8 +42,21 @@ public sealed class ApPaymentServiceTestFactory
             .Setup(x => x.IsUniqueConstraint(It.IsAny<Exception>(), It.IsAny<string>()))
             .Returns(false);
         PersistenceFailureClassifier
+            .Setup(x => x.IsApInvoiceDocNoConflict(It.IsAny<Exception>()))
+            .Returns(false);
+        PersistenceFailureClassifier
+            .Setup(x => x.IsApInvoiceVendorInvoiceNoConflict(It.IsAny<Exception>()))
+            .Returns(false);
+        PersistenceFailureClassifier
+            .Setup(x => x.IsApPaymentDocNoConflict(It.IsAny<Exception>()))
+            .Returns(false);
+        PersistenceFailureClassifier
+            .Setup(x => x.IsArReceiptDocNoConflict(It.IsAny<Exception>()))
+            .Returns(false);
+        PersistenceFailureClassifier
             .Setup(x => x.IsConcurrencyConflict(It.IsAny<Exception>()))
             .Returns(false);
+        Clock.SetupGet(x => x.UtcNow).Returns(new DateTimeOffset(2026, 4, 8, 12, 0, 0, TimeSpan.Zero));
     }
 
     public ApPaymentService CreateService() =>
@@ -55,7 +69,8 @@ public sealed class ApPaymentServiceTestFactory
             new ApPaymentServiceDependencies(
                 GlSettingsProvider.Object,
                 UnitOfWork.Object,
-                PersistenceFailureClassifier.Object
+                PersistenceFailureClassifier.Object,
+                Clock.Object
             ),
             Logger.Object
         );

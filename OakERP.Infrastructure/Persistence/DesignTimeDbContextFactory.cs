@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using OakERP.Common.Exceptions;
 using OakERP.Common.Enums;
 
 namespace OakERP.Infrastructure.Persistence
@@ -18,6 +19,8 @@ namespace OakERP.Infrastructure.Persistence
                 .SetBasePath(projectDir)
                 .AddJsonFile("appsettings.json", optional: true)
                 .AddJsonFile("appsettings.Development.json", optional: true)
+                .AddJsonFile("appsettings.Local.json", optional: true)
+                .AddJsonFile("appsettings.Development.Local.json", optional: true)
                 .AddEnvironmentVariables();
 
             cfgBuilder.AddUserSecrets<ApplicationDbContext>(optional: true);
@@ -27,7 +30,8 @@ namespace OakERP.Infrastructure.Persistence
             var cs =
                 config.GetConnectionString("DefaultConnection")
                 ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-                ?? throw new InvalidOperationException(
+                ?? throw new ConfigurationValidationException(
+                    "ConnectionStrings:DefaultConnection",
                     "ConnectionStrings:DefaultConnection is not configured for design-time migrations."
                 );
 

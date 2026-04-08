@@ -34,7 +34,7 @@ public sealed class ApPaymentPostingContextBuilderTests
         var payment = PostingServiceTestFactory.CreateApPayment();
         payment.BankAccount.GlAccountNo = null!;
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             _builder.BuildAsync(
                 payment,
                 payment.PaymentDate,

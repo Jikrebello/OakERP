@@ -1,5 +1,6 @@
 using System.Net;
 using OakERP.Common.Dtos.Base;
+using OakERP.Common.Errors;
 
 namespace OakERP.Application.AccountsPayable.Invoices.Contracts;
 
@@ -20,4 +21,7 @@ public sealed class ApInvoiceCommandResultDto : BaseResultDto
 
     public static ApInvoiceCommandResultDto Fail(string message, HttpStatusCode statusCode) =>
         Fail<ApInvoiceCommandResultDto>(message, statusCode);
+
+    public static ApInvoiceCommandResultDto Fail(ResultError error) =>
+        Fail<ApInvoiceCommandResultDto>(error);
 }

@@ -3,6 +3,7 @@ using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.AccountsPayable;
 using OakERP.Domain.Posting.GeneralLedger;
+using OakERP.Common.Exceptions;
 
 namespace OakERP.Infrastructure.Posting.AccountsPayable;
 
@@ -28,21 +29,21 @@ public sealed class ApInvoicePostingContextBuilder : IApInvoicePostingContextBui
         {
             if (line.ItemId is not null)
             {
-                throw new InvalidOperationException(
+                throw new PostingInvariantViolationException(
                     $"AP invoice line {line.LineNo} uses ItemId and cannot be posted in this slice."
                 );
             }
 
             if (line.TaxRateId is not null)
             {
-                throw new InvalidOperationException(
+                throw new PostingInvariantViolationException(
                     $"AP invoice line {line.LineNo} uses TaxRateId and cannot be posted in this slice."
                 );
             }
 
             if (string.IsNullOrWhiteSpace(line.AccountNo))
             {
-                throw new InvalidOperationException(
+                throw new PostingInvariantViolationException(
                     $"AP invoice line {line.LineNo} requires an expense account."
                 );
             }

@@ -67,7 +67,7 @@ public class AuthService(
                 AuditReasonEmailAlreadyExists,
                 tenantName: Dto.TenantName
             );
-            return AuthResultDto.Fail("Email already exists.", HttpStatusCode.Conflict);
+            return AuthResultDto.Fail(AuthErrors.EmailAlreadyExists);
         }
 
         await unitOfWork.BeginTransactionAsync();
@@ -110,10 +110,7 @@ public class AuthService(
                 AuditReasonUnexpectedError,
                 tenantName: Dto.TenantName
             );
-            return AuthResultDto.Fail(
-                "An unexpected error occurred during registration.",
-                HttpStatusCode.InternalServerError
-            );
+            return AuthResultDto.Fail(AuthErrors.UnexpectedRegistrationFailure);
         }
     }
 
@@ -125,7 +122,7 @@ public class AuthService(
         if (user is null)
         {
             LogAuditWarning(AuditActionLogin, email, AuditReasonInvalidCredentials);
-            return AuthResultDto.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
+            return AuthResultDto.Fail(AuthErrors.InvalidCredentials);
         }
 
         AuthResultDto? credentialFailure = await ValidateLoginCredentialsAsync(user, Dto, email);
@@ -156,7 +153,7 @@ public class AuthService(
             AuditReasonPasswordsDoNotMatch,
             tenantName: Dto.TenantName
         );
-        return AuthResultDto.Fail("Passwords do not match.", HttpStatusCode.BadRequest);
+        return AuthResultDto.Fail(AuthErrors.PasswordsDoNotMatch);
     }
 
     private static Tenant CreateTenant(string tenantName) =>
@@ -238,10 +235,7 @@ public class AuthService(
             tenantId: tenant.Id,
             tenantName: tenant.Name
         );
-        return AuthResultDto.Fail(
-            "User created but failed to assign role.",
-            HttpStatusCode.InternalServerError
-        );
+        return AuthResultDto.Fail(AuthErrors.RoleAssignmentFailed);
     }
 
     private AuthResultDto BuildRegistrationSuccess(
@@ -286,7 +280,7 @@ public class AuthService(
             userId: user.Id,
             tenantId: user.TenantId
         );
-        return AuthResultDto.Fail("Invalid login credentials.", HttpStatusCode.Unauthorized);
+        return AuthResultDto.Fail(AuthErrors.InvalidCredentials);
     }
 
     private async Task<(Tenant? tenant, AuthResultDto? failure)> GetValidatedTenantAsync(
@@ -305,7 +299,7 @@ public class AuthService(
                 userId: user.Id,
                 tenantId: user.TenantId
             );
-            return (null, AuthResultDto.Fail("Tenant not found.", HttpStatusCode.NotFound));
+            return (null, AuthResultDto.Fail(AuthErrors.TenantNotFound));
         }
 
         if (tenant.License is null)
@@ -320,7 +314,7 @@ public class AuthService(
             );
             return (
                 null,
-                AuthResultDto.Fail("License not found for tenant.", HttpStatusCode.Forbidden)
+                AuthResultDto.Fail(AuthErrors.LicenseNotFound)
             );
         }
 
@@ -334,7 +328,7 @@ public class AuthService(
                 tenantId: tenant.Id,
                 tenantName: tenant.Name
             );
-            return (null, AuthResultDto.Fail("License has expired.", HttpStatusCode.Forbidden));
+            return (null, AuthResultDto.Fail(AuthErrors.LicenseExpired));
         }
 
         return (tenant, null);

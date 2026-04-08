@@ -60,7 +60,7 @@ public sealed class PostingService : IPostingService
             DocKind.ApInvoice => apInvoiceOperation.PostAsync(command, cancellationToken),
             DocKind.ArInvoice => arInvoiceOperation.PostAsync(command, cancellationToken),
             DocKind.ArReceipt => arReceiptOperation.PostAsync(command, cancellationToken),
-            _ => throw new NotSupportedException(
+            _ => throw new UnsupportedWorkflowOperationException(
                 $"Posting for document kind '{command.DocKind}' is not supported."
             ),
         };
@@ -68,5 +68,5 @@ public sealed class PostingService : IPostingService
     public Task<UnpostResult> UnpostAsync(
         UnpostCommand command,
         CancellationToken cancellationToken = default
-    ) => throw new NotSupportedException("Unposting is not supported for posting.");
+    ) => throw new UnsupportedWorkflowOperationException("Unposting is not supported for posting.");
 }

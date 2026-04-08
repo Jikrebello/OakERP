@@ -9,6 +9,7 @@ internal static class TestConfiguration
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: true)
             .AddJsonFile("appsettings.Testing.json", optional: true)
+            .AddInMemoryCollection(TestConfigurationDefaults.Values)
             .AddEnvironmentVariables(prefix: "OakERP__")
             .AddEnvironmentVariables()
             .Build();

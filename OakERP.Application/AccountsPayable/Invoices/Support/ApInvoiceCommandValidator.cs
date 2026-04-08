@@ -48,24 +48,24 @@ public static class ApInvoiceCommandValidator
     {
         if (string.IsNullOrWhiteSpace(docNo))
         {
-            return Fail("Document number is required.");
+            return Fail(ApInvoiceErrors.DocumentNumberRequired);
         }
 
-        return docNo.Length > 40 ? Fail("Document number may not exceed 40 characters.") : null;
+        return docNo.Length > 40 ? Fail(ApInvoiceErrors.DocumentNumberTooLong) : null;
     }
 
     private static ApInvoiceCommandResultDto? ValidateVendor(Guid vendorId) =>
-        vendorId == Guid.Empty ? Fail("Vendor id is required.") : null;
+        vendorId == Guid.Empty ? Fail(ApInvoiceErrors.VendorIdRequired) : null;
 
     private static ApInvoiceCommandResultDto? ValidateInvoiceNumber(string invoiceNo)
     {
         if (string.IsNullOrWhiteSpace(invoiceNo))
         {
-            return Fail("Vendor invoice number is required.");
+            return Fail(ApInvoiceErrors.VendorInvoiceNumberRequired);
         }
 
         return invoiceNo.Length > 40
-            ? Fail("Vendor invoice number may not exceed 40 characters.")
+            ? Fail(ApInvoiceErrors.VendorInvoiceNumberTooLong)
             : null;
     }
 
@@ -76,21 +76,21 @@ public static class ApInvoiceCommandValidator
     {
         if (invoiceDate == default)
         {
-            return Fail("Invoice date is required.");
+            return Fail(ApInvoiceErrors.InvoiceDateRequired);
         }
 
         return dueDate is not null && dueDate.Value < invoiceDate
-            ? Fail("Due date may not be earlier than the invoice date.")
+            ? Fail(ApInvoiceErrors.DueDateBeforeInvoiceDate)
             : null;
     }
 
     private static ApInvoiceCommandResultDto? ValidateMemo(string? memo) =>
         memo is not null && memo.Length > 512
-            ? Fail("Invoice memo may not exceed 512 characters.")
+            ? Fail(ApInvoiceErrors.MemoTooLong)
             : null;
 
     private static ApInvoiceCommandResultDto? ValidateCurrencyCode(string currencyCode) =>
-        currencyCode.Length != 3 ? Fail("Currency code must be a 3-character ISO code.") : null;
+        currencyCode.Length != 3 ? Fail(ApInvoiceErrors.CurrencyCodeInvalid) : null;
 
     private static ApInvoiceCommandResultDto? ValidateTotals(
         decimal taxTotal,
@@ -100,22 +100,22 @@ public static class ApInvoiceCommandValidator
     {
         if (taxTotal < 0m)
         {
-            return Fail("Tax total may not be negative.");
+            return Fail(ApInvoiceErrors.TaxTotalNegative);
         }
 
         if (docTotal < 0m)
         {
-            return Fail("Document total may not be negative.");
+            return Fail(ApInvoiceErrors.DocumentTotalNegative);
         }
 
         if (lines.Count == 0)
         {
-            return Fail("At least one invoice line is required.");
+            return Fail(ApInvoiceErrors.InvoiceLineRequired);
         }
 
         decimal computedDocTotal = lines.Sum(x => x.LineTotal) + taxTotal;
         return computedDocTotal != docTotal
-            ? Fail("Document total must equal the sum of line totals plus tax total.")
+            ? Fail(ApInvoiceErrors.DocumentTotalMismatch)
             : null;
     }
 
@@ -127,32 +127,32 @@ public static class ApInvoiceCommandValidator
         {
             if (line.ItemId is not null)
             {
-                return Fail("Item-based AP invoice lines are deferred in this slice.");
+                return Fail(ApInvoiceErrors.ItemLinesDeferred);
             }
 
             if (line.TaxRateId is not null)
             {
-                return Fail("Tax-rated AP invoice lines are deferred in this slice.");
+                return Fail(ApInvoiceErrors.TaxRatedLinesDeferred);
             }
 
             if (string.IsNullOrWhiteSpace(line.AccountNo))
             {
-                return Fail("Each AP invoice line must specify a GL account.");
+                return Fail(ApInvoiceErrors.LineAccountRequired);
             }
 
             if (line.AccountNo.Length > 20)
             {
-                return Fail("Line account number may not exceed 20 characters.");
+                return Fail(ApInvoiceErrors.LineAccountTooLong);
             }
 
             if (line.Description is not null && line.Description.Length > 512)
             {
-                return Fail("Line description may not exceed 512 characters.");
+                return Fail(ApInvoiceErrors.LineDescriptionTooLong);
             }
 
             if (line.Qty < 0m || line.UnitPrice < 0m || line.LineTotal < 0m)
             {
-                return Fail("Line quantities and amounts may not be negative.");
+                return Fail(ApInvoiceErrors.LineAmountsNegative);
             }
         }
 
@@ -179,8 +179,8 @@ public static class ApInvoiceCommandValidator
             ? CurrencyIsoCodes.ZAR.ToString()
             : currencyCode.Trim().ToUpperInvariant();
 
-    private static ApInvoiceCommandResultDto Fail(string message) =>
-        ApInvoiceCommandResultDto.Fail(message, HttpStatusCode.BadRequest);
+    private static ApInvoiceCommandResultDto Fail(OakERP.Common.Errors.ResultError error) =>
+        ApInvoiceCommandResultDto.Fail(error);
 
     private static string? NormalizeOptional(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();

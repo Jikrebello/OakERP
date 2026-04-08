@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using OakERP.Auth.Identity;
+using OakERP.Common.Exceptions;
 using OakERP.Common.Persistence;
 using OakERP.Domain.Entities.Users;
+using OakERP.Infrastructure.Exceptions;
 using OakERP.Infrastructure.Persistence.Seeding.Base;
 
 namespace OakERP.Infrastructure.Persistence.Seeding.Accounts;
@@ -46,10 +48,16 @@ public class RoleAndAdminSeeder(
         // Admin user
         var email =
             config["Seed:AdminEmail"]
-            ?? throw new InvalidOperationException("Seed:AdminEmail is not configured.");
+            ?? throw new ConfigurationValidationException(
+                "Seed:AdminEmail",
+                "Seed:AdminEmail is not configured."
+            );
         var pass =
             config["Seed:AdminPassword"]
-            ?? throw new InvalidOperationException("Seed:AdminPassword is not configured.");
+            ?? throw new ConfigurationValidationException(
+                "Seed:AdminPassword",
+                "Seed:AdminPassword is not configured."
+            );
 
         var admin = await userManager.FindByEmailAsync(email);
         if (admin is null)
@@ -67,7 +75,7 @@ public class RoleAndAdminSeeder(
             var result = await userManager.CreateAsync(admin, pass);
             if (!result.Succeeded)
             {
-                throw new InvalidOperationException(
+                throw new SeedingFailureException(
                     "Failed to seed admin user: " + result.Errors.First().Description
                 );
             }

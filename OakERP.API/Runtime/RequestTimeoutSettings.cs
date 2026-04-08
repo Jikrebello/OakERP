@@ -1,3 +1,5 @@
+using OakERP.Common.Exceptions;
+
 namespace OakERP.API.Runtime;
 
 public sealed class RequestTimeoutSettings
@@ -14,7 +16,8 @@ public sealed class RequestTimeoutSettings
 
         if (settings.ControllerSeconds <= 0)
         {
-            throw new InvalidOperationException(
+            throw new ConfigurationValidationException(
+                SectionName + ":ControllerSeconds",
                 $"{SectionName}:ControllerSeconds must be greater than 0."
             );
         }

@@ -1,3 +1,5 @@
+using OakERP.Common.Exceptions;
+
 namespace OakERP.Client.Configuration;
 
 public sealed class ApiClientOptions
@@ -8,7 +10,10 @@ public sealed class ApiClientOptions
     {
         if (!Uri.TryCreate(BaseUrl, UriKind.Absolute, out Uri? baseUri))
         {
-            throw new InvalidOperationException("Api:BaseUrl must be a valid absolute URI.");
+            throw new ConfigurationValidationException(
+                "Api:BaseUrl",
+                "Api:BaseUrl must be a valid absolute URI."
+            );
         }
 
         return baseUri;

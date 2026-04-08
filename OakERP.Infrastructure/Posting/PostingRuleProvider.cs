@@ -1,4 +1,5 @@
 using OakERP.Common.Enums;
+using OakERP.Common.Exceptions;
 using OakERP.Domain.Posting;
 
 namespace OakERP.Infrastructure.Posting;
@@ -17,7 +18,7 @@ public sealed class PostingRuleProvider : IPostingRuleProvider
                 DocKind.ApPayment => CreateApPaymentRule(),
                 DocKind.ArInvoice => CreateArInvoiceRule(),
                 DocKind.ArReceipt => CreateArReceiptRule(),
-                _ => throw new NotSupportedException(
+                _ => throw new UnsupportedWorkflowOperationException(
                     $"Posting rule for document kind '{docKind}' is not supported."
                 ),
             }

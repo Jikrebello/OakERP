@@ -86,7 +86,7 @@ internal sealed class PostingResultProcessor(PostingPersistenceDependencies pers
             var account = await GlAccountRepository.FindNoTrackingAsync(accountNo, cancellationToken);
             if (account is null || !account.IsActive)
             {
-                throw new InvalidOperationException(
+                throw new PostingInvariantViolationException(
                     $"GL account '{accountNo}' is missing or inactive for posting."
                 );
             }
@@ -117,7 +117,7 @@ internal sealed class PostingResultProcessor(PostingPersistenceDependencies pers
     {
         if (glEntries.Count == 0)
         {
-            throw new InvalidOperationException("Posting did not produce any GL entries.");
+            throw new PostingInvariantViolationException("Posting did not produce any GL entries.");
         }
 
         decimal debit = 0m;
@@ -139,7 +139,9 @@ internal sealed class PostingResultProcessor(PostingPersistenceDependencies pers
 
         if (debit != credit)
         {
-            throw new InvalidOperationException("Posting produced unbalanced GL entries.");
+            throw new PostingInvariantViolationException(
+                "Posting produced unbalanced GL entries."
+            );
         }
     }
 
@@ -147,7 +149,7 @@ internal sealed class PostingResultProcessor(PostingPersistenceDependencies pers
     {
         if (entry.Debit < 0m || entry.Credit < 0m)
         {
-            throw new InvalidOperationException("Posting produced negative GL amounts.");
+            throw new PostingInvariantViolationException("Posting produced negative GL amounts.");
         }
 
         bool validOneSided =
@@ -155,7 +157,7 @@ internal sealed class PostingResultProcessor(PostingPersistenceDependencies pers
             || (entry.Credit > 0m && entry.Debit == 0m);
         if (!validOneSided)
         {
-            throw new InvalidOperationException(
+            throw new PostingInvariantViolationException(
                 "Posting produced a GL row that is not one-sided and positive."
             );
         }
@@ -167,7 +169,7 @@ internal sealed class PostingResultProcessor(PostingPersistenceDependencies pers
     {
         if (inventoryMovements.Count > 0)
         {
-            throw new InvalidOperationException(
+            throw new PostingInvariantViolationException(
                 "Posting produced unexpected inventory movements."
             );
         }
@@ -194,40 +196,40 @@ internal sealed class PostingResultProcessor(PostingPersistenceDependencies pers
     {
         if (movement.TransactionType != InventoryTransactionType.SalesCogs)
         {
-            throw new InvalidOperationException(
+            throw new PostingInvariantViolationException(
                 "Posting produced an inventory movement with an unexpected transaction type."
             );
         }
 
         if (movement.Qty >= 0m)
         {
-            throw new InvalidOperationException(
+            throw new PostingInvariantViolationException(
                 "Posting produced a non-negative inventory movement."
             );
         }
 
         if (movement.UnitCost < 0m)
         {
-            throw new InvalidOperationException(
+            throw new PostingInvariantViolationException(
                 "Posting produced a negative inventory unit cost."
             );
         }
 
         decimal expectedValueChange = Math.Round(
             movement.Qty * movement.UnitCost,
-            2,
-            MidpointRounding.AwayFromZero
+            PostingMath.CurrencyScale,
+            PostingMath.CurrencyRounding
         );
         if (movement.ValueChange != expectedValueChange)
         {
-            throw new InvalidOperationException(
+            throw new PostingInvariantViolationException(
                 "Posting produced an inventory value change that does not match quantity and unit cost."
             );
         }
 
         if (movement.ValueChange >= 0m)
         {
-            throw new InvalidOperationException(
+            throw new PostingInvariantViolationException(
                 "Posting produced a non-negative inventory value change."
             );
         }
@@ -242,24 +244,28 @@ internal sealed class PostingResultProcessor(PostingPersistenceDependencies pers
     {
         if (string.IsNullOrWhiteSpace(sourceType))
         {
-            throw new InvalidOperationException("Posting produced a row without a source type.");
+            throw new PostingInvariantViolationException(
+                "Posting produced a row without a source type."
+            );
         }
 
         if (!string.Equals(sourceType, expectedSourceType, StringComparison.Ordinal))
         {
-            throw new InvalidOperationException(
+            throw new PostingInvariantViolationException(
                 "Posting produced a row with an unexpected source type."
             );
         }
 
         if (sourceId == Guid.Empty)
         {
-            throw new InvalidOperationException("Posting produced a row without a source id.");
+            throw new PostingInvariantViolationException(
+                "Posting produced a row without a source id."
+            );
         }
 
         if (string.IsNullOrWhiteSpace(sourceText))
         {
-            throw new InvalidOperationException(
+            throw new PostingInvariantViolationException(
                 "Posting produced a row without traceability text."
             );
         }

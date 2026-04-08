@@ -46,58 +46,37 @@ public static class ApPaymentCommandValidator
     {
         if (string.IsNullOrWhiteSpace(docNo))
         {
-            return ApPaymentCommandResultDto.Fail(
-                "Document number is required.",
-                HttpStatusCode.BadRequest
-            );
+            return ApPaymentCommandResultDto.Fail(ApPaymentErrors.DocumentNumberRequired);
         }
 
         if (docNo.Length > 40)
         {
-            return ApPaymentCommandResultDto.Fail(
-                "Document number may not exceed 40 characters.",
-                HttpStatusCode.BadRequest
-            );
+            return ApPaymentCommandResultDto.Fail(ApPaymentErrors.DocumentNumberTooLong);
         }
 
         if (command.VendorId == Guid.Empty)
         {
-            return ApPaymentCommandResultDto.Fail(
-                "Vendor id is required.",
-                HttpStatusCode.BadRequest
-            );
+            return ApPaymentCommandResultDto.Fail(ApPaymentErrors.VendorIdRequired);
         }
 
         if (command.BankAccountId == Guid.Empty)
         {
-            return ApPaymentCommandResultDto.Fail(
-                "Bank account id is required.",
-                HttpStatusCode.BadRequest
-            );
+            return ApPaymentCommandResultDto.Fail(ApPaymentErrors.BankAccountIdRequired);
         }
 
         if (command.PaymentDate == default)
         {
-            return ApPaymentCommandResultDto.Fail(
-                "Payment date is required.",
-                HttpStatusCode.BadRequest
-            );
+            return ApPaymentCommandResultDto.Fail(ApPaymentErrors.PaymentDateRequired);
         }
 
         if (command.Amount <= 0m)
         {
-            return ApPaymentCommandResultDto.Fail(
-                "Payment amount must be greater than zero.",
-                HttpStatusCode.BadRequest
-            );
+            return ApPaymentCommandResultDto.Fail(ApPaymentErrors.PaymentAmountInvalid);
         }
 
         if (memo is not null && memo.Length > 512)
         {
-            return ApPaymentCommandResultDto.Fail(
-                "Payment memo may not exceed 512 characters.",
-                HttpStatusCode.BadRequest
-            );
+            return ApPaymentCommandResultDto.Fail(ApPaymentErrors.MemoTooLong);
         }
 
         return ValidateAllocationInputs(allocations, allowEmpty: true);
@@ -110,10 +89,7 @@ public static class ApPaymentCommandValidator
     {
         if (command.PaymentId == Guid.Empty)
         {
-            return ApPaymentCommandResultDto.Fail(
-                "Payment id is required.",
-                HttpStatusCode.BadRequest
-            );
+            return ApPaymentCommandResultDto.Fail(ApPaymentErrors.PaymentIdRequired);
         }
 
         return ValidateAllocationInputs(allocations, allowEmpty: false);
@@ -126,10 +102,7 @@ public static class ApPaymentCommandValidator
     {
         if (!allowEmpty && allocations.Count == 0)
         {
-            return ApPaymentCommandResultDto.Fail(
-                "At least one allocation is required.",
-                HttpStatusCode.BadRequest
-            );
+            return ApPaymentCommandResultDto.Fail(ApPaymentErrors.AllocationRequired);
         }
 
         HashSet<Guid> invoiceIds = [];
@@ -138,26 +111,17 @@ public static class ApPaymentCommandValidator
         {
             if (allocation.ApInvoiceId == Guid.Empty)
             {
-                return ApPaymentCommandResultDto.Fail(
-                    "Allocation invoice id is required.",
-                    HttpStatusCode.BadRequest
-                );
+                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.AllocationInvoiceIdRequired);
             }
 
             if (!invoiceIds.Add(allocation.ApInvoiceId))
             {
-                return ApPaymentCommandResultDto.Fail(
-                    "Each invoice may appear only once per allocation request.",
-                    HttpStatusCode.BadRequest
-                );
+                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.AllocationDuplicateInvoice);
             }
 
             if (allocation.AmountApplied <= 0m)
             {
-                return ApPaymentCommandResultDto.Fail(
-                    "Allocation amount must be greater than zero.",
-                    HttpStatusCode.BadRequest
-                );
+                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.AllocationAmountInvalid);
             }
         }
 

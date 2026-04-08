@@ -28,7 +28,7 @@ internal sealed class ApPaymentPostingOperation(
             {
                 ApPayment payment =
                     await apPaymentRepository.GetTrackedForPostingAsync(command.SourceId, ct)
-                    ?? throw new InvalidOperationException("AP payment was not found.");
+                    ?? throw new ResourceNotFoundException("AP payment was not found.");
 
                 PostingOperationSupport.EnsureDraftStatus(
                     payment.DocStatus,
@@ -40,12 +40,14 @@ internal sealed class ApPaymentPostingOperation(
 
                 if (payment.BankAccount is null)
                 {
-                    throw new InvalidOperationException("AP payment bank account was not found.");
+                    throw new PostingInvariantViolationException(
+                        "AP payment bank account was not found."
+                    );
                 }
 
                 if (!payment.BankAccount.IsActive)
                 {
-                    throw new InvalidOperationException(
+                    throw new PostingInvariantViolationException(
                         "AP payment posting requires an active bank account."
                     );
                 }
@@ -59,7 +61,7 @@ internal sealed class ApPaymentPostingOperation(
                 decimal allocatedAmount = ApSettlementCalculator.GetPaymentAllocatedAmount(payment);
                 if (allocatedAmount > payment.Amount)
                 {
-                    throw new InvalidOperationException(
+                    throw new PostingInvariantViolationException(
                         "AP payment allocations exceed the payment amount and cannot be posted."
                     );
                 }
@@ -88,7 +90,7 @@ internal sealed class ApPaymentPostingOperation(
                 payment.DocStatus = DocStatus.Posted;
                 payment.PostingDate = postingDate;
                 payment.UpdatedBy = command.PerformedBy;
-                payment.UpdatedAt = DateTimeOffset.UtcNow;
+                payment.UpdatedAt = support.Clock.UtcNow;
 
                 return new PostResult(
                     command.DocKind,

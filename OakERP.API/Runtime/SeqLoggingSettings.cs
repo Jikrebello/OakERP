@@ -1,3 +1,5 @@
+using OakERP.Common.Exceptions;
+
 namespace OakERP.API.Runtime;
 
 public sealed class SeqLoggingSettings
@@ -18,7 +20,8 @@ public sealed class SeqLoggingSettings
 
         if (settings.Enabled && string.IsNullOrWhiteSpace(settings.ServerUrl))
         {
-            throw new InvalidOperationException(
+            throw new ConfigurationValidationException(
+                SectionName + ":ServerUrl",
                 $"{SectionName}:ServerUrl must be configured when Seq logging is enabled."
             );
         }

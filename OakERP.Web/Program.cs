@@ -3,19 +3,38 @@ using Microsoft.FluentUI.AspNetCore.Components;
 using OakERP.Client.Configuration;
 using OakERP.Client.Extensions;
 using OakERP.Common.Abstractions;
+using OakERP.Common.Exceptions;
 using OakERP.Shared.Services;
 using OakERP.UI.Extensions;
 using OakERP.Web.Components;
 using OakERP.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+builder.Configuration.AddJsonFile(
+    $"appsettings.{builder.Environment.EnvironmentName}.Local.json",
+    optional: true,
+    reloadOnChange: true
+);
+
+var apiBaseUrl =
+    builder.Configuration["Api:BaseUrl"]
+    ?? Environment.GetEnvironmentVariable("OakERP__Api__BaseUrl");
+
+if (string.IsNullOrWhiteSpace(apiBaseUrl))
+{
+    throw new ConfigurationValidationException(
+        "Api:BaseUrl",
+        "Api:BaseUrl is not configured."
+    );
+}
+
 var apiOptions = new ApiClientOptions
 {
-    BaseUrl =
-        builder.Configuration["Api:BaseUrl"]
-        ?? Environment.GetEnvironmentVariable("OakERP__Api__BaseUrl")
-        ?? throw new InvalidOperationException("Api:BaseUrl is not configured."),
+    BaseUrl = apiBaseUrl,
 };
+
+apiOptions.GetBaseUri();
 
 // Add Razor Components & Fluent UI
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();

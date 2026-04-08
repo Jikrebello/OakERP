@@ -13,6 +13,8 @@ internal sealed class PostingOperationSupport(
 {
     public IPostingEngine PostingEngine => runtimeDependencies.PostingEngine;
 
+    public IClock Clock => runtimeDependencies.Clock;
+
     public Task<GlPostingSettings> GetSettingsAsync(CancellationToken cancellationToken) =>
         runtimeDependencies.GlSettingsProvider.GetSettingsAsync(cancellationToken);
 
@@ -29,7 +31,7 @@ internal sealed class PostingOperationSupport(
             postingDate,
             cancellationToken
         )
-        ?? throw new InvalidOperationException(
+        ?? throw new PostingInvariantViolationException(
             $"No open fiscal period exists for posting date {postingDate:yyyy-MM-dd}."
         );
 
@@ -51,7 +53,7 @@ internal sealed class PostingOperationSupport(
     {
         if (force)
         {
-            throw new InvalidOperationException(message);
+            throw new UnsupportedWorkflowOperationException(message);
         }
     }
 
@@ -59,7 +61,7 @@ internal sealed class PostingOperationSupport(
     {
         if (status != DocStatus.Draft)
         {
-            throw new InvalidOperationException(message);
+            throw new PostingInvariantViolationException(message);
         }
     }
 
@@ -71,7 +73,7 @@ internal sealed class PostingOperationSupport(
     {
         if (!string.Equals(currencyCode, baseCurrencyCode, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException(message);
+            throw new PostingInvariantViolationException(message);
         }
     }
 }

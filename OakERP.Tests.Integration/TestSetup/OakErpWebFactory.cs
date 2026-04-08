@@ -12,10 +12,7 @@ public class OakErpWebFactory : WebApplicationFactory<Program>
         builder.ConfigureAppConfiguration(
             (_, config) =>
             {
-                config.AddInMemoryCollection([
-                    new KeyValuePair<string, string?>("RunSeedOnStartup", "false"),
-                    new KeyValuePair<string, string?>("Serilog:Seq:Enabled", "false"),
-                ]);
+                config.AddInMemoryCollection(TestConfigurationDefaults.Values);
             }
         );
     }

@@ -1,4 +1,5 @@
 using OakERP.Common.Enums;
+using OakERP.Common.Exceptions;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.AccountsPayable;
 using OakERP.Domain.Posting.AccountsReceivable;
@@ -15,7 +16,7 @@ public sealed class PostingEngine : IPostingEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var rule = context.Rule ?? throw new InvalidOperationException(PostingRuleRequiredMessage);
+        var rule = context.Rule ?? throw new PostingInvariantViolationException(PostingRuleRequiredMessage);
         var invoice = context.Invoice;
 
         var glEntries = new List<GlEntryModel>();
@@ -93,27 +94,27 @@ public sealed class PostingEngine : IPostingEngine
 
             string cogsAccountNo =
                 postingLine.CogsAccountNo
-                ?? throw new InvalidOperationException(
+                ?? throw new PostingInvariantViolationException(
                     $"Stock AR invoice line {postingLine.Line.LineNo} is missing a COGS account."
                 );
             string inventoryAssetAccountNo =
                 postingLine.InventoryAssetAccountNo
-                ?? throw new InvalidOperationException(
+                ?? throw new PostingInvariantViolationException(
                     $"Stock AR invoice line {postingLine.Line.LineNo} is missing an inventory asset account."
                 );
             Guid locationId =
                 postingLine.LocationId
-                ?? throw new InvalidOperationException(
+                ?? throw new PostingInvariantViolationException(
                     $"Stock AR invoice line {postingLine.Line.LineNo} is missing a location."
                 );
             decimal unitCost =
                 postingLine.UnitCost
-                ?? throw new InvalidOperationException(
+                ?? throw new PostingInvariantViolationException(
                     $"Stock AR invoice line {postingLine.Line.LineNo} is missing a unit cost."
                 );
             decimal lineCogsValue =
                 postingLine.LineCogsValue
-                ?? throw new InvalidOperationException(
+                ?? throw new PostingInvariantViolationException(
                     $"Stock AR invoice line {postingLine.Line.LineNo} is missing a COGS value."
                 );
 
@@ -149,7 +150,7 @@ public sealed class PostingEngine : IPostingEngine
                 new InventoryMovementModel(
                     context.PostingDate,
                     postingLine.Line.ItemId
-                        ?? throw new InvalidOperationException(
+                        ?? throw new PostingInvariantViolationException(
                             $"Stock AR invoice line {postingLine.Line.LineNo} is missing an item."
                         ),
                     locationId,
@@ -196,7 +197,7 @@ public sealed class PostingEngine : IPostingEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var rule = context.Rule ?? throw new InvalidOperationException(PostingRuleRequiredMessage);
+        var rule = context.Rule ?? throw new PostingInvariantViolationException(PostingRuleRequiredMessage);
         var receipt = context.Receipt;
 
         var bankRule = FindRuleLine(
@@ -248,7 +249,7 @@ public sealed class PostingEngine : IPostingEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var rule = context.Rule ?? throw new InvalidOperationException(PostingRuleRequiredMessage);
+        var rule = context.Rule ?? throw new PostingInvariantViolationException(PostingRuleRequiredMessage);
         var invoice = context.Invoice;
 
         var apRule = FindRuleLine(
@@ -331,7 +332,7 @@ public sealed class PostingEngine : IPostingEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var rule = context.Rule ?? throw new InvalidOperationException(PostingRuleRequiredMessage);
+        var rule = context.Rule ?? throw new PostingInvariantViolationException(PostingRuleRequiredMessage);
         var payment = context.Payment;
 
         var bankRule = FindRuleLine(
@@ -392,7 +393,7 @@ public sealed class PostingEngine : IPostingEngine
             && x.AccountKey == accountKey
             && x.AmountSource == amountSource
         )
-        ?? throw new InvalidOperationException(
+        ?? throw new PostingInvariantViolationException(
             $"Posting rule '{rule.Name}' is missing the expected '{scope}' line for account key '{accountKey}'."
         );
 
@@ -404,7 +405,7 @@ public sealed class PostingEngine : IPostingEngine
         {
             AccountKey.AccountsReceivable => context.Settings.ArControlAccountNo,
             AccountKey.TaxOutput => context.Settings.DefaultTaxOutputAccountNo,
-            _ => throw new InvalidOperationException(
+            _ => throw new UnsupportedWorkflowOperationException(
                 $"Header account key '{accountKey}' is not supported for AR invoice posting."
             ),
         };
@@ -417,7 +418,7 @@ public sealed class PostingEngine : IPostingEngine
         {
             AccountKey.Bank => context.BankAccountNo,
             AccountKey.AccountsReceivable => context.Settings.ArControlAccountNo,
-            _ => throw new InvalidOperationException(
+            _ => throw new UnsupportedWorkflowOperationException(
                 $"Header account key '{accountKey}' is not supported for AR receipt posting."
             ),
         };
@@ -430,7 +431,7 @@ public sealed class PostingEngine : IPostingEngine
         {
             AccountKey.AccountsPayable => context.Settings.ApControlAccountNo,
             AccountKey.TaxInput => context.Settings.DefaultTaxInputAccountNo,
-            _ => throw new InvalidOperationException(
+            _ => throw new UnsupportedWorkflowOperationException(
                 $"Header account key '{accountKey}' is not supported for AP invoice posting."
             ),
         };
@@ -443,7 +444,7 @@ public sealed class PostingEngine : IPostingEngine
         {
             AccountKey.Bank => context.BankAccountNo,
             AccountKey.AccountsPayable => context.Settings.ApControlAccountNo,
-            _ => throw new InvalidOperationException(
+            _ => throw new UnsupportedWorkflowOperationException(
                 $"Header account key '{accountKey}' is not supported for AP payment posting."
             ),
         };

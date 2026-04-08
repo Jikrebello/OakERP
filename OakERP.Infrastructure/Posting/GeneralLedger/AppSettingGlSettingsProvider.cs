@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using OakERP.Common.Exceptions;
 using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Infrastructure.Persistence;
@@ -24,19 +25,30 @@ public sealed class AppSettingGlSettingsProvider(ApplicationDbContext db) : IGlS
 
         if (setting is null)
         {
-            throw new InvalidOperationException(
+            throw new ConfigurationValidationException(
+                GlPostingSettingsKeys.Posting,
                 $"App setting '{GlPostingSettingsKeys.Posting}' is required for posting."
             );
         }
 
-        var result = JsonSerializer.Deserialize<GlPostingSettings>(
-            setting.ValueJson,
-            SerializerOptions
-        );
+        GlPostingSettings? result;
+        try
+        {
+            result = JsonSerializer.Deserialize<GlPostingSettings>(setting.ValueJson, SerializerOptions);
+        }
+        catch (JsonException exception)
+        {
+            throw new ConfigurationValidationException(
+                GlPostingSettingsKeys.Posting,
+                $"App setting '{GlPostingSettingsKeys.Posting}' could not be deserialized into GL posting settings.",
+                exception
+            );
+        }
 
         if (result is null)
         {
-            throw new InvalidOperationException(
+            throw new ConfigurationValidationException(
+                GlPostingSettingsKeys.Posting,
                 $"App setting '{GlPostingSettingsKeys.Posting}' could not be deserialized into GL posting settings."
             );
         }

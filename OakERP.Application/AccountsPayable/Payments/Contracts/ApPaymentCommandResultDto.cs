@@ -1,16 +1,17 @@
 using System.Net;
 using OakERP.Common.Dtos.Base;
+using OakERP.Common.Errors;
 
 namespace OakERP.Application.AccountsPayable.Payments.Contracts;
 
 public sealed class ApPaymentCommandResultDto : BaseResultDto
 {
     public ApPaymentSnapshotDto? Payment { get; set; }
-    public IReadOnlyList<ApInvoiceSettlementSnapshotDto> Invoices { get; set; } = [];
+    public IReadOnlyList<ApInvoiceSettlementSnapshotDto>? Invoices { get; set; }
 
     public static ApPaymentCommandResultDto SuccessWith(
         ApPaymentSnapshotDto payment,
-        IReadOnlyList<ApInvoiceSettlementSnapshotDto> invoices,
+        IReadOnlyList<ApInvoiceSettlementSnapshotDto>? invoices,
         string message
     ) =>
         new()
@@ -23,4 +24,7 @@ public sealed class ApPaymentCommandResultDto : BaseResultDto
 
     public static ApPaymentCommandResultDto Fail(string message, HttpStatusCode statusCode) =>
         Fail<ApPaymentCommandResultDto>(message, statusCode);
+
+    public static ApPaymentCommandResultDto Fail(ResultError error) =>
+        Fail<ApPaymentCommandResultDto>(error);
 }

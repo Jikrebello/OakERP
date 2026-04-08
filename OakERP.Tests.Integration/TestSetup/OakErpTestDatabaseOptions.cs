@@ -1,3 +1,5 @@
+using OakERP.Common.Exceptions;
+
 namespace OakERP.Tests.Integration.TestSetup;
 
 internal sealed class OakErpTestDatabaseOptions
@@ -10,14 +12,18 @@ internal sealed class OakErpTestDatabaseOptions
     {
         if (string.IsNullOrWhiteSpace(TransactionalConnectionString))
         {
-            throw new InvalidOperationException(
+            throw new ConfigurationValidationException(
+                "Tests:TransactionalConnectionString",
                 "Tests:TransactionalConnectionString is not configured."
             );
         }
 
         if (string.IsNullOrWhiteSpace(ResetConnectionString))
         {
-            throw new InvalidOperationException("Tests:ResetConnectionString is not configured.");
+            throw new ConfigurationValidationException(
+                "Tests:ResetConnectionString",
+                "Tests:ResetConnectionString is not configured."
+            );
         }
     }
 }

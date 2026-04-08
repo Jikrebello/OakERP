@@ -27,27 +27,11 @@ internal static class ArReceiptSettlementAdapters
                 ),
             new SettlementInvoiceLoadExpectations(customerId, currencyCode),
             new SettlementInvoiceLoadFailures<ArReceiptCommandResultDto>(
-                ArReceiptCommandResultDto.Fail(
-                    "One or more AR invoices were not found.",
-                    HttpStatusCode.NotFound
-                ),
-                ArReceiptCommandResultDto.Fail(
-                    "Only posted AR invoices can be allocated in this slice.",
-                    HttpStatusCode.BadRequest
-                ),
-                ArReceiptCommandResultDto.Fail(
-                    "AR receipt allocations must reference invoices for the same customer.",
-                    HttpStatusCode.BadRequest
-                ),
-                ArReceiptCommandResultDto.Fail(
-                    "AR receipt allocations must reference invoices in the same currency as the receipt.",
-                    HttpStatusCode.BadRequest
-                ),
-                docNo =>
-                    ArReceiptCommandResultDto.Fail(
-                        $"AR invoice {docNo} has no remaining balance to allocate.",
-                        HttpStatusCode.BadRequest
-                    )
+                ArReceiptCommandResultDto.Fail(ArReceiptErrors.InvoicesNotFound),
+                ArReceiptCommandResultDto.Fail(ArReceiptErrors.OnlyPostedInvoicesAllowed),
+                ArReceiptCommandResultDto.Fail(ArReceiptErrors.SameCustomerRequired),
+                ArReceiptCommandResultDto.Fail(ArReceiptErrors.SameCurrencyRequired),
+                docNo => ArReceiptCommandResultDto.Fail(ArReceiptErrors.InvoiceWithoutRemainingBalance(docNo))
             )
         );
 
@@ -104,18 +88,11 @@ internal static class ArReceiptSettlementAdapters
                 },
             arReceiptAllocationRepository.AddAsync,
             new SettlementAllocationFailures<ArReceiptCommandResultDto>(
-                ArReceiptCommandResultDto.Fail(
-                    "Allocation total exceeds the receipt's unapplied amount.",
-                    HttpStatusCode.BadRequest
-                ),
-                ArReceiptCommandResultDto.Fail(
-                    "AR invoice was not found.",
-                    HttpStatusCode.NotFound
-                ),
+                ArReceiptCommandResultDto.Fail(ArReceiptErrors.AllocationTotalExceedsUnapplied),
+                ArReceiptCommandResultDto.Fail(ArReceiptErrors.InvoiceNotFound),
                 docNo =>
                     ArReceiptCommandResultDto.Fail(
-                        $"Allocation amount exceeds the remaining balance for invoice {docNo}.",
-                        HttpStatusCode.BadRequest
+                        ArReceiptErrors.AllocationExceedsInvoiceBalance(docNo)
                     )
             )
         );

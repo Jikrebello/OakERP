@@ -400,3 +400,7 @@ FodyWeavers.xsd
 # Serena
 .serena/*
 !.serena/project.yml
+
+# Local appsettings overrides
+**/appsettings.Local.json
+**/appsettings.*.Local.json

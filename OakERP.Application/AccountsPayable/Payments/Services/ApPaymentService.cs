@@ -43,18 +43,12 @@ public sealed class ApPaymentService(
             );
             if (vendor is null)
             {
-                return ApPaymentCommandResultDto.Fail(
-                    "Vendor was not found.",
-                    HttpStatusCode.NotFound
-                );
+                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.VendorNotFound);
             }
 
             if (!vendor.IsActive)
             {
-                return ApPaymentCommandResultDto.Fail(
-                    "AP payments can be created only for active vendors.",
-                    HttpStatusCode.BadRequest
-                );
+                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.VendorInactive);
             }
 
             var bankAccount = await bankAccountRepository.FindNoTrackingAsync(
@@ -63,18 +57,12 @@ public sealed class ApPaymentService(
             );
             if (bankAccount is null)
             {
-                return ApPaymentCommandResultDto.Fail(
-                    "Bank account was not found.",
-                    HttpStatusCode.NotFound
-                );
+                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.BankAccountNotFound);
             }
 
             if (!bankAccount.IsActive)
             {
-                return ApPaymentCommandResultDto.Fail(
-                    "AP payments can be created only against active bank accounts.",
-                    HttpStatusCode.BadRequest
-                );
+                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.BankAccountInactive);
             }
 
             if (
@@ -84,10 +72,7 @@ public sealed class ApPaymentService(
                 )
             )
             {
-                return ApPaymentCommandResultDto.Fail(
-                    "AP payment capture currently supports only the base currency.",
-                    HttpStatusCode.BadRequest
-                );
+                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.BaseCurrencyOnly);
             }
 
             bool docNoExists = await apPaymentRepository.ExistsDocNoAsync(
@@ -96,10 +81,7 @@ public sealed class ApPaymentService(
             );
             if (docNoExists)
             {
-                return ApPaymentCommandResultDto.Fail(
-                    "An AP payment with this document number already exists.",
-                    HttpStatusCode.Conflict
-                );
+                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.DuplicateDocumentNumber);
             }
 
             await dependencies.UnitOfWork.BeginTransactionAsync();
@@ -118,7 +100,7 @@ public sealed class ApPaymentService(
                     Memo = validatedCommand.Memo,
                     CreatedBy = validatedCommand.PerformedBy,
                     UpdatedBy = validatedCommand.PerformedBy,
-                    UpdatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = dependencies.Clock.UtcNow,
                 };
 
                 await apPaymentRepository.AddAsync(payment);
@@ -144,6 +126,7 @@ public sealed class ApPaymentService(
                         ApPaymentSettlementAdapters.CreateAllocationInputs(validatedCommand.Allocations),
                         command.AllocationDate ?? command.PaymentDate,
                         validatedCommand.PerformedBy,
+                        dependencies.Clock.UtcNow,
                         ApPaymentSettlementAdapters.CreateAllocationApplySpec(
                             payment,
                             invoiceLoadInvoices!,
@@ -177,23 +160,12 @@ public sealed class ApPaymentService(
                         "Concurrency failure while creating AP payment {DocNo}",
                         validatedCommand.DocNo
                     );
-                    return ApPaymentCommandResultDto.Fail(
-                        "The payment or one of its invoices was modified during allocation.",
-                        HttpStatusCode.Conflict
-                    );
+                    return ApPaymentCommandResultDto.Fail(ApPaymentErrors.AllocationConcurrencyConflict);
                 }
 
-                if (
-                    dependencies.PersistenceFailureClassifier.IsUniqueConstraint(
-                        ex,
-                        "ix_ap_payments_doc_no"
-                    )
-                )
+                if (dependencies.PersistenceFailureClassifier.IsApPaymentDocNoConflict(ex))
                 {
-                    return ApPaymentCommandResultDto.Fail(
-                        "An AP payment with this document number already exists.",
-                        HttpStatusCode.Conflict
-                    );
+                    return ApPaymentCommandResultDto.Fail(ApPaymentErrors.DuplicateDocumentNumber);
                 }
 
                 logger.LogError(
@@ -201,19 +173,13 @@ public sealed class ApPaymentService(
                     "Unexpected failure while creating AP payment {DocNo}",
                     validatedCommand.DocNo
                 );
-                return ApPaymentCommandResultDto.Fail(
-                    "An unexpected error occurred while creating the AP payment.",
-                    HttpStatusCode.InternalServerError
-                );
+                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.UnexpectedCreateFailure);
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected failure before creating AP payment.");
-            return ApPaymentCommandResultDto.Fail(
-                "An unexpected error occurred while creating the AP payment.",
-                HttpStatusCode.InternalServerError
-            );
+            return ApPaymentCommandResultDto.Fail(ApPaymentErrors.UnexpectedCreateFailure);
         }
     }
 
@@ -242,19 +208,13 @@ public sealed class ApPaymentService(
                 if (payment is null)
                 {
                     await dependencies.UnitOfWork.RollbackAsync();
-                    return ApPaymentCommandResultDto.Fail(
-                        "AP payment was not found.",
-                        HttpStatusCode.NotFound
-                    );
+                    return ApPaymentCommandResultDto.Fail(ApPaymentErrors.PaymentNotFound);
                 }
 
                 if (payment.DocStatus != DocStatus.Draft)
                 {
                     await dependencies.UnitOfWork.RollbackAsync();
-                    return ApPaymentCommandResultDto.Fail(
-                        "Only draft AP payments can be allocated in this slice.",
-                        HttpStatusCode.BadRequest
-                    );
+                    return ApPaymentCommandResultDto.Fail(ApPaymentErrors.OnlyDraftPaymentsAllowed);
                 }
 
                 GlPostingSettings settings = await dependencies.GlSettingsProvider.GetSettingsAsync(
@@ -268,10 +228,7 @@ public sealed class ApPaymentService(
                 )
                 {
                     await dependencies.UnitOfWork.RollbackAsync();
-                    return ApPaymentCommandResultDto.Fail(
-                        "AP payment allocation currently supports only payments in the base currency.",
-                        HttpStatusCode.BadRequest
-                    );
+                    return ApPaymentCommandResultDto.Fail(ApPaymentErrors.AllocationBaseCurrencyOnly);
                 }
 
                 var (invoiceLoadInvoices, invoiceLoadFailure) =
@@ -295,6 +252,7 @@ public sealed class ApPaymentService(
                         ApPaymentSettlementAdapters.CreateAllocationInputs(validatedCommand.Allocations),
                         command.AllocationDate ?? payment.PaymentDate,
                         validatedCommand.PerformedBy,
+                        dependencies.Clock.UtcNow,
                         ApPaymentSettlementAdapters.CreateAllocationApplySpec(
                             payment,
                             invoiceLoadInvoices!,
@@ -328,10 +286,7 @@ public sealed class ApPaymentService(
                         "Concurrency failure while allocating AP payment {PaymentId}",
                         command.PaymentId
                     );
-                    return ApPaymentCommandResultDto.Fail(
-                        "The payment or one of its invoices was modified during allocation.",
-                        HttpStatusCode.Conflict
-                    );
+                    return ApPaymentCommandResultDto.Fail(ApPaymentErrors.AllocationConcurrencyConflict);
                 }
 
                 logger.LogError(
@@ -339,10 +294,7 @@ public sealed class ApPaymentService(
                     "Unexpected failure while allocating AP payment {PaymentId}",
                     command.PaymentId
                 );
-                return ApPaymentCommandResultDto.Fail(
-                    "An unexpected error occurred while allocating the AP payment.",
-                    HttpStatusCode.InternalServerError
-                );
+                return ApPaymentCommandResultDto.Fail(ApPaymentErrors.UnexpectedAllocateFailure);
             }
         }
         catch (Exception ex)
@@ -352,10 +304,7 @@ public sealed class ApPaymentService(
                 "Unexpected failure before allocating AP payment {PaymentId}",
                 command.PaymentId
             );
-            return ApPaymentCommandResultDto.Fail(
-                "An unexpected error occurred while allocating the AP payment.",
-                HttpStatusCode.InternalServerError
-            );
+            return ApPaymentCommandResultDto.Fail(ApPaymentErrors.UnexpectedAllocateFailure);
         }
     }
 }

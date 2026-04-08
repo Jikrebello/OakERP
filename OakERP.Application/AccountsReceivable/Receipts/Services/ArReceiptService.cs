@@ -42,18 +42,12 @@ public sealed class ArReceiptService(
             );
             if (customer is null)
             {
-                return ArReceiptCommandResultDto.Fail(
-                    "Customer was not found.",
-                    HttpStatusCode.NotFound
-                );
+                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.CustomerNotFound);
             }
 
             if (!customer.IsActive)
             {
-                return ArReceiptCommandResultDto.Fail(
-                    "AR receipts can be created only for active customers.",
-                    HttpStatusCode.BadRequest
-                );
+                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.CustomerInactive);
             }
 
             var bankAccount = await bankAccountRepository.FindNoTrackingAsync(
@@ -62,18 +56,12 @@ public sealed class ArReceiptService(
             );
             if (bankAccount is null)
             {
-                return ArReceiptCommandResultDto.Fail(
-                    "Bank account was not found.",
-                    HttpStatusCode.NotFound
-                );
+                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.BankAccountNotFound);
             }
 
             if (!bankAccount.IsActive)
             {
-                return ArReceiptCommandResultDto.Fail(
-                    "AR receipts can be created only against active bank accounts.",
-                    HttpStatusCode.BadRequest
-                );
+                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.BankAccountInactive);
             }
 
             if (
@@ -83,10 +71,7 @@ public sealed class ArReceiptService(
                 )
             )
             {
-                return ArReceiptCommandResultDto.Fail(
-                    "Bank account currency must match the receipt currency.",
-                    HttpStatusCode.BadRequest
-                );
+                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.ReceiptCurrencyMismatch);
             }
 
             bool docNoExists = await arReceiptRepository.ExistsDocNoAsync(
@@ -95,10 +80,7 @@ public sealed class ArReceiptService(
             );
             if (docNoExists)
             {
-                return ArReceiptCommandResultDto.Fail(
-                    "An AR receipt with this document number already exists.",
-                    HttpStatusCode.Conflict
-                );
+                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.DuplicateDocumentNumber);
             }
 
             await dependencies.UnitOfWork.BeginTransactionAsync();
@@ -117,7 +99,7 @@ public sealed class ArReceiptService(
                     Memo = validatedCommand.Memo,
                     CreatedBy = validatedCommand.PerformedBy,
                     UpdatedBy = validatedCommand.PerformedBy,
-                    UpdatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = dependencies.Clock.UtcNow,
                 };
 
                 await arReceiptRepository.AddAsync(receipt);
@@ -143,6 +125,7 @@ public sealed class ArReceiptService(
                         ArReceiptSettlementAdapters.CreateAllocationInputs(validatedCommand.Allocations),
                         command.AllocationDate ?? command.ReceiptDate,
                         validatedCommand.PerformedBy,
+                        dependencies.Clock.UtcNow,
                         ArReceiptSettlementAdapters.CreateAllocationApplySpec(
                             receipt,
                             invoiceLoadInvoices!,
@@ -177,22 +160,13 @@ public sealed class ArReceiptService(
                         validatedCommand.DocNo
                     );
                     return ArReceiptCommandResultDto.Fail(
-                        "The receipt or one of its invoices was modified during allocation.",
-                        HttpStatusCode.Conflict
+                        ArReceiptErrors.AllocationConcurrencyConflict
                     );
                 }
 
-                if (
-                    dependencies.PersistenceFailureClassifier.IsUniqueConstraint(
-                        ex,
-                        "ix_ar_receipts_doc_no"
-                    )
-                )
+                if (dependencies.PersistenceFailureClassifier.IsArReceiptDocNoConflict(ex))
                 {
-                    return ArReceiptCommandResultDto.Fail(
-                        "An AR receipt with this document number already exists.",
-                        HttpStatusCode.Conflict
-                    );
+                    return ArReceiptCommandResultDto.Fail(ArReceiptErrors.DuplicateDocumentNumber);
                 }
 
                 logger.LogError(
@@ -200,19 +174,13 @@ public sealed class ArReceiptService(
                     "Unexpected failure while creating AR receipt {DocNo}",
                     validatedCommand.DocNo
                 );
-                return ArReceiptCommandResultDto.Fail(
-                    "An unexpected error occurred while creating the AR receipt.",
-                    HttpStatusCode.InternalServerError
-                );
+                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.UnexpectedCreateFailure);
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected failure before creating AR receipt.");
-            return ArReceiptCommandResultDto.Fail(
-                "An unexpected error occurred while creating the AR receipt.",
-                HttpStatusCode.InternalServerError
-            );
+            return ArReceiptCommandResultDto.Fail(ArReceiptErrors.UnexpectedCreateFailure);
         }
     }
 
@@ -241,19 +209,13 @@ public sealed class ArReceiptService(
                 if (receipt is null)
                 {
                     await dependencies.UnitOfWork.RollbackAsync();
-                    return ArReceiptCommandResultDto.Fail(
-                        "AR receipt was not found.",
-                        HttpStatusCode.NotFound
-                    );
+                    return ArReceiptCommandResultDto.Fail(ArReceiptErrors.ReceiptNotFound);
                 }
 
                 if (receipt.DocStatus != DocStatus.Draft)
                 {
                     await dependencies.UnitOfWork.RollbackAsync();
-                    return ArReceiptCommandResultDto.Fail(
-                        "Only draft AR receipts can be allocated in this slice.",
-                        HttpStatusCode.BadRequest
-                    );
+                    return ArReceiptCommandResultDto.Fail(ArReceiptErrors.OnlyDraftReceiptsAllowed);
                 }
 
                 GlPostingSettings settings = await dependencies.GlSettingsProvider.GetSettingsAsync(
@@ -267,10 +229,7 @@ public sealed class ArReceiptService(
                 )
                 {
                     await dependencies.UnitOfWork.RollbackAsync();
-                    return ArReceiptCommandResultDto.Fail(
-                        "AR receipt allocation currently supports only receipts in the base currency.",
-                        HttpStatusCode.BadRequest
-                    );
+                    return ArReceiptCommandResultDto.Fail(ArReceiptErrors.AllocationBaseCurrencyOnly);
                 }
 
                 var (invoiceLoadInvoices, invoiceLoadFailure) =
@@ -294,6 +253,7 @@ public sealed class ArReceiptService(
                         ArReceiptSettlementAdapters.CreateAllocationInputs(validatedCommand.Allocations),
                         command.AllocationDate ?? receipt.ReceiptDate,
                         validatedCommand.PerformedBy,
+                        dependencies.Clock.UtcNow,
                         ArReceiptSettlementAdapters.CreateAllocationApplySpec(
                             receipt,
                             invoiceLoadInvoices!,
@@ -328,8 +288,7 @@ public sealed class ArReceiptService(
                         command.ReceiptId
                     );
                     return ArReceiptCommandResultDto.Fail(
-                        "The receipt or one of its invoices was modified during allocation.",
-                        HttpStatusCode.Conflict
+                        ArReceiptErrors.AllocationConcurrencyConflict
                     );
                 }
 
@@ -338,10 +297,7 @@ public sealed class ArReceiptService(
                     "Unexpected failure while allocating AR receipt {ReceiptId}",
                     command.ReceiptId
                 );
-                return ArReceiptCommandResultDto.Fail(
-                    "An unexpected error occurred while allocating the AR receipt.",
-                    HttpStatusCode.InternalServerError
-                );
+                return ArReceiptCommandResultDto.Fail(ArReceiptErrors.UnexpectedAllocateFailure);
             }
         }
         catch (Exception ex)
@@ -351,10 +307,7 @@ public sealed class ArReceiptService(
                 "Unexpected failure before allocating AR receipt {ReceiptId}",
                 command.ReceiptId
             );
-            return ArReceiptCommandResultDto.Fail(
-                "An unexpected error occurred while allocating the AR receipt.",
-                HttpStatusCode.InternalServerError
-            );
+            return ArReceiptCommandResultDto.Fail(ArReceiptErrors.UnexpectedAllocateFailure);
         }
     }
 }

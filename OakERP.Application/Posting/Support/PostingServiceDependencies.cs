@@ -53,7 +53,8 @@ public sealed class PostingPersistenceDependencies(
 public sealed class PostingRuntimeDependencies(
     IGlSettingsProvider glSettingsProvider,
     IPostingRuleProvider postingRuleProvider,
-    IPostingEngine postingEngine
+    IPostingEngine postingEngine,
+    IClock clock
 )
 {
     public IGlSettingsProvider GlSettingsProvider { get; } = glSettingsProvider;
@@ -61,6 +62,8 @@ public sealed class PostingRuntimeDependencies(
     public IPostingRuleProvider PostingRuleProvider { get; } = postingRuleProvider;
 
     public IPostingEngine PostingEngine { get; } = postingEngine;
+
+    public IClock Clock { get; } = clock;
 }
 
 public sealed class PostingContextBuilders(

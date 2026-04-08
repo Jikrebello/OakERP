@@ -1,3 +1,5 @@
+using OakERP.Common.Exceptions;
+
 namespace OakERP.Auth.Jwt;
 
 public sealed class JwtOptions
@@ -16,24 +18,34 @@ public sealed class JwtOptions
     {
         if (string.IsNullOrWhiteSpace(Key) || Key.Length < 32)
         {
-            throw new InvalidOperationException(
+            throw new ConfigurationValidationException(
+                SectionName + ":Key",
                 "JwtSettings:Key must be at least 32 characters for HMAC-SHA256."
             );
         }
 
         if (string.IsNullOrWhiteSpace(Issuer))
         {
-            throw new InvalidOperationException("JwtSettings:Issuer is required.");
+            throw new ConfigurationValidationException(
+                SectionName + ":Issuer",
+                "JwtSettings:Issuer is required."
+            );
         }
 
         if (string.IsNullOrWhiteSpace(Audience))
         {
-            throw new InvalidOperationException("JwtSettings:Audience is required.");
+            throw new ConfigurationValidationException(
+                SectionName + ":Audience",
+                "JwtSettings:Audience is required."
+            );
         }
 
         if (ExpireMinutes <= 0)
         {
-            throw new InvalidOperationException("JwtSettings:ExpireMinutes must be greater than 0.");
+            throw new ConfigurationValidationException(
+                SectionName + ":ExpireMinutes",
+                "JwtSettings:ExpireMinutes must be greater than 0."
+            );
         }
     }
 }

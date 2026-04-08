@@ -48,6 +48,19 @@ public sealed class OptionsBindingTests
     }
 
     [Fact]
+    public void AddJwtAuth_Should_Fail_Fast_When_JwtSettings_Are_Missing()
+    {
+        IConfiguration configuration = new ConfigurationBuilder().Build();
+        var services = new ServiceCollection();
+
+        var exception = Should.Throw<ConfigurationValidationException>(() =>
+            services.AddJwtAuth(configuration)
+        );
+
+        exception.SettingKey.ShouldBe(JwtOptions.SectionName);
+    }
+
+    [Fact]
     public void Client_Core_Registration_Should_Expose_Api_And_Auth_Services()
     {
         var services = new ServiceCollection();
@@ -61,6 +74,16 @@ public sealed class OptionsBindingTests
             x.ServiceType == typeof(OakERP.Client.Services.Auth.IAuthSessionManager)
         );
         services.ShouldContain(x => x.ServiceType == typeof(ICurrentUserService));
+    }
+
+    [Fact]
+    public void ApiClientOptions_Should_Reject_Invalid_BaseUrl()
+    {
+        var exception = Should.Throw<ConfigurationValidationException>(() =>
+            new ApiClientOptions { BaseUrl = "not-a-uri" }.GetBaseUri()
+        );
+
+        exception.SettingKey.ShouldBe("Api:BaseUrl");
     }
 
     private sealed class FakeTokenStore : ITokenStore

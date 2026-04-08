@@ -266,12 +266,14 @@ public sealed class PostingServiceTests
                 )
             )
             .ThrowsAsync(
-                new InvalidOperationException("Stock AR invoice line 1 requires a location.")
+                new PostingInvariantViolationException(
+                    "Stock AR invoice line 1 requires a location."
+                )
             );
 
         var service = _factory.CreateService();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             service.PostAsync(new PostCommand(DocKind.ArInvoice, invoice.Id, "unit-tester"))
         );
 
@@ -512,7 +514,7 @@ public sealed class PostingServiceTests
 
         var service = _factory.CreateService();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             service.PostAsync(new PostCommand(DocKind.ArInvoice, invoice.Id, "unit-tester"))
         );
 
@@ -609,7 +611,7 @@ public sealed class PostingServiceTests
 
         var service = _factory.CreateService();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             service.PostAsync(new PostCommand(DocKind.ArInvoice, invoice.Id, "unit-tester"))
         );
 
@@ -626,7 +628,7 @@ public sealed class PostingServiceTests
     {
         var service = _factory.CreateService();
 
-        await Should.ThrowAsync<NotSupportedException>(() =>
+        await Should.ThrowAsync<UnsupportedWorkflowOperationException>(() =>
             service.PostAsync(new PostCommand(DocKind.ApCreditNote, Guid.NewGuid(), "unit-tester"))
         );
 
@@ -772,7 +774,7 @@ public sealed class PostingServiceTests
 
         var service = _factory.CreateService();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             service.PostAsync(new PostCommand(DocKind.ArReceipt, receipt.Id, "unit-tester"))
         );
 
@@ -867,7 +869,7 @@ public sealed class PostingServiceTests
 
         var service = _factory.CreateService();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             service.PostAsync(new PostCommand(DocKind.ArReceipt, receipt.Id, "unit-tester"))
         );
 

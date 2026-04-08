@@ -4,6 +4,7 @@ using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.AccountsPayable;
 using OakERP.Domain.Posting.GeneralLedger;
+using OakERP.Common.Exceptions;
 
 namespace OakERP.Infrastructure.Posting.AccountsPayable;
 
@@ -25,7 +26,7 @@ public sealed class ApPaymentPostingContextBuilder : IApPaymentPostingContextBui
 
         string bankAccountNo =
             payment.BankAccount?.GlAccountNo
-            ?? throw new InvalidOperationException(
+            ?? throw new PostingInvariantViolationException(
                 "AP payment posting requires a bank account GL account."
             );
 

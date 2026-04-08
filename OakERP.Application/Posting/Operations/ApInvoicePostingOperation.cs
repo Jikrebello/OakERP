@@ -27,7 +27,7 @@ internal sealed class ApInvoicePostingOperation(
             {
                 ApInvoice invoice =
                     await apInvoiceRepository.GetTrackedForPostingAsync(command.SourceId, ct)
-                    ?? throw new InvalidOperationException("AP invoice was not found.");
+                    ?? throw new ResourceNotFoundException("AP invoice was not found.");
 
                 PostingOperationSupport.EnsureDraftStatus(
                     invoice.DocStatus,
@@ -48,7 +48,7 @@ internal sealed class ApInvoicePostingOperation(
                 IReadOnlyList<ApInvoiceLine> lines = [.. invoice.Lines.OrderBy(x => x.LineNo)];
                 if (lines.Count == 0)
                 {
-                    throw new InvalidOperationException(
+                    throw new PostingInvariantViolationException(
                         "AP invoice requires at least one line to be posted."
                     );
                 }
@@ -56,7 +56,7 @@ internal sealed class ApInvoicePostingOperation(
                 decimal expectedDocTotal = lines.Sum(x => x.LineTotal) + invoice.TaxTotal;
                 if (expectedDocTotal != invoice.DocTotal)
                 {
-                    throw new InvalidOperationException(
+                    throw new PostingInvariantViolationException(
                         "AP invoice totals are inconsistent and cannot be posted."
                     );
                 }
@@ -83,7 +83,7 @@ internal sealed class ApInvoicePostingOperation(
 
                 invoice.DocStatus = DocStatus.Posted;
                 invoice.UpdatedBy = command.PerformedBy;
-                invoice.UpdatedAt = DateTimeOffset.UtcNow;
+                invoice.UpdatedAt = support.Clock.UtcNow;
 
                 return new PostResult(
                     command.DocKind,

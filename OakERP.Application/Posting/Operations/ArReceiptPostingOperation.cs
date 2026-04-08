@@ -28,7 +28,7 @@ internal sealed class ArReceiptPostingOperation(
             {
                 ArReceipt receipt =
                     await arReceiptRepository.GetTrackedForPostingAsync(command.SourceId, ct)
-                    ?? throw new InvalidOperationException("AR receipt was not found.");
+                    ?? throw new ResourceNotFoundException("AR receipt was not found.");
 
                 PostingOperationSupport.EnsureDraftStatus(
                     receipt.DocStatus,
@@ -46,12 +46,14 @@ internal sealed class ArReceiptPostingOperation(
 
                 if (receipt.BankAccount is null)
                 {
-                    throw new InvalidOperationException("AR receipt bank account was not found.");
+                    throw new PostingInvariantViolationException(
+                        "AR receipt bank account was not found."
+                    );
                 }
 
                 if (!receipt.BankAccount.IsActive)
                 {
-                    throw new InvalidOperationException(
+                    throw new PostingInvariantViolationException(
                         "AR receipt posting requires an active bank account."
                     );
                 }
@@ -64,7 +66,7 @@ internal sealed class ArReceiptPostingOperation(
                     )
                 )
                 {
-                    throw new InvalidOperationException(
+                    throw new PostingInvariantViolationException(
                         "AR receipt bank account currency must match the receipt currency."
                     );
                 }
@@ -72,7 +74,7 @@ internal sealed class ArReceiptPostingOperation(
                 decimal allocatedAmount = ArSettlementCalculator.GetReceiptAllocatedAmount(receipt);
                 if (allocatedAmount > receipt.Amount)
                 {
-                    throw new InvalidOperationException(
+                    throw new PostingInvariantViolationException(
                         "AR receipt allocations exceed the receipt amount and cannot be posted."
                     );
                 }
@@ -101,7 +103,7 @@ internal sealed class ArReceiptPostingOperation(
                 receipt.DocStatus = DocStatus.Posted;
                 receipt.PostingDate = postingDate;
                 receipt.UpdatedBy = command.PerformedBy;
-                receipt.UpdatedAt = DateTimeOffset.UtcNow;
+                receipt.UpdatedAt = support.Clock.UtcNow;
 
                 return new PostResult(
                     command.DocKind,

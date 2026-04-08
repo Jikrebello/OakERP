@@ -27,27 +27,11 @@ internal static class ApPaymentSettlementAdapters
                 ),
             new SettlementInvoiceLoadExpectations(vendorId, baseCurrencyCode),
             new SettlementInvoiceLoadFailures<ApPaymentCommandResultDto>(
-                ApPaymentCommandResultDto.Fail(
-                    "One or more AP invoices were not found.",
-                    HttpStatusCode.NotFound
-                ),
-                ApPaymentCommandResultDto.Fail(
-                    "Only posted AP invoices can be allocated in this slice.",
-                    HttpStatusCode.BadRequest
-                ),
-                ApPaymentCommandResultDto.Fail(
-                    "AP payment allocations must reference invoices for the same vendor.",
-                    HttpStatusCode.BadRequest
-                ),
-                ApPaymentCommandResultDto.Fail(
-                    "AP payment allocation currently supports only invoices in the base currency.",
-                    HttpStatusCode.BadRequest
-                ),
-                docNo =>
-                    ApPaymentCommandResultDto.Fail(
-                        $"AP invoice {docNo} has no remaining balance to allocate.",
-                        HttpStatusCode.BadRequest
-                    )
+                ApPaymentCommandResultDto.Fail(ApPaymentErrors.InvoicesNotFound),
+                ApPaymentCommandResultDto.Fail(ApPaymentErrors.OnlyPostedInvoicesAllowed),
+                ApPaymentCommandResultDto.Fail(ApPaymentErrors.SameVendorRequired),
+                ApPaymentCommandResultDto.Fail(ApPaymentErrors.BaseCurrencyInvoicesOnly),
+                docNo => ApPaymentCommandResultDto.Fail(ApPaymentErrors.InvoiceWithoutRemainingBalance(docNo))
             )
         );
 
@@ -104,18 +88,11 @@ internal static class ApPaymentSettlementAdapters
                 },
             apPaymentAllocationRepository.AddAsync,
             new SettlementAllocationFailures<ApPaymentCommandResultDto>(
-                ApPaymentCommandResultDto.Fail(
-                    "Allocation total exceeds the payment's unapplied amount.",
-                    HttpStatusCode.BadRequest
-                ),
-                ApPaymentCommandResultDto.Fail(
-                    "AP invoice was not found.",
-                    HttpStatusCode.NotFound
-                ),
+                ApPaymentCommandResultDto.Fail(ApPaymentErrors.AllocationTotalExceedsUnapplied),
+                ApPaymentCommandResultDto.Fail(ApPaymentErrors.InvoiceNotFound),
                 docNo =>
                     ApPaymentCommandResultDto.Fail(
-                        $"Allocation amount exceeds the remaining balance for invoice {docNo}.",
-                        HttpStatusCode.BadRequest
+                        ApPaymentErrors.AllocationExceedsInvoiceBalance(docNo)
                     )
             )
         );

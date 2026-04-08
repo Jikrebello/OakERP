@@ -29,7 +29,7 @@ internal sealed class PostingTransactionExecutor(PostingPersistenceDependencies 
 
             if (PersistenceFailureClassifier.IsConcurrencyConflict(ex))
             {
-                throw new InvalidOperationException(concurrencyConflictMessage, ex);
+                throw new ConcurrencyConflictException(concurrencyConflictMessage, ex);
             }
 
             throw;

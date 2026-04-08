@@ -32,7 +32,7 @@ public sealed class ApInvoicePostingContextBuilderTests
         var invoice = PostingServiceTestFactory.CreateApInvoice(taxTotal: 0m);
         invoice.Lines.First().ItemId = Guid.NewGuid();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             _builder.BuildAsync(
                 invoice,
                 invoice.InvoiceDate,
@@ -51,7 +51,7 @@ public sealed class ApInvoicePostingContextBuilderTests
         var invoice = PostingServiceTestFactory.CreateApInvoice(taxTotal: 0m);
         invoice.Lines.First().TaxRateId = Guid.NewGuid();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             _builder.BuildAsync(
                 invoice,
                 invoice.InvoiceDate,

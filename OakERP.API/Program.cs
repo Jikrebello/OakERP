@@ -3,6 +3,7 @@ using OakERP.API.Extensions;
 using OakERP.API.Runtime;
 using OakERP.Application.Extensions;
 using OakERP.Auth.Extensions;
+using OakERP.Common.Exceptions;
 using OakERP.Infrastructure.Extensions;
 using OakERP.Infrastructure.Persistence.Seeding;
 using OakERP.Infrastructure.Persistence.Seeding.Accounts;
@@ -10,6 +11,12 @@ using OakERP.Infrastructure.Persistence.Seeding.Views;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+builder.Configuration.AddJsonFile(
+    $"appsettings.{builder.Environment.EnvironmentName}.Local.json",
+    optional: true,
+    reloadOnChange: true
+);
 builder.Host.UseSerilog(
     (context, services, loggerConfiguration) =>
     {
@@ -34,9 +41,19 @@ builder.Host.UseSerilog(
     writeToProviders: true
 );
 
-var allowedOrigins =
-    builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-    ?? throw new InvalidOperationException("Cors:AllowedOrigins is not configured.");
+var allowedOrigins = builder
+    .Configuration.GetSection("Cors:AllowedOrigins")
+    .Get<string[]>()?
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .ToArray();
+
+if (allowedOrigins is not { Length: > 0 })
+{
+    throw new ConfigurationValidationException(
+        "Cors:AllowedOrigins",
+        "Cors:AllowedOrigins must contain at least one allowed origin."
+    );
+}
 
 // Services
 builder.Services.AddControllers();

@@ -1,3 +1,5 @@
+using OakERP.Common.Exceptions;
+
 namespace OakERP.API.Runtime;
 
 public sealed class AuthRateLimitSettings
@@ -20,21 +22,26 @@ public sealed class AuthRateLimitSettings
 
         if (settings.PermitLimit <= 0)
         {
-            throw new InvalidOperationException(
+            throw new ConfigurationValidationException(
+                SectionName + ":PermitLimit",
                 $"{SectionName}:PermitLimit must be greater than 0."
             );
         }
 
         if (settings.WindowSeconds <= 0)
         {
-            throw new InvalidOperationException(
+            throw new ConfigurationValidationException(
+                SectionName + ":WindowSeconds",
                 $"{SectionName}:WindowSeconds must be greater than 0."
             );
         }
 
         if (settings.QueueLimit != 0)
         {
-            throw new InvalidOperationException($"{SectionName}:QueueLimit must be 0.");
+            throw new ConfigurationValidationException(
+                SectionName + ":QueueLimit",
+                $"{SectionName}:QueueLimit must be 0."
+            );
         }
 
         return settings;

@@ -1,4 +1,5 @@
 using OakERP.Common.Enums;
+using OakERP.Common.Exceptions;
 using OakERP.Domain.Entities.AccountsReceivable;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
@@ -37,7 +38,7 @@ public sealed class ArInvoicePostingContextBuilder(IInventoryCostService invento
                     line.Item?.Category?.RevenueAccount,
                     settings.DefaultRevenueAccountNo
                 )
-                ?? throw new InvalidOperationException(
+                ?? throw new PostingInvariantViolationException(
                     $"No revenue account could be resolved for AR invoice line {line.LineNo}."
                 );
 
@@ -60,13 +61,13 @@ public sealed class ArInvoicePostingContextBuilder(IInventoryCostService invento
 
             Guid locationId =
                 line.LocationId
-                ?? throw new InvalidOperationException(
+                ?? throw new PostingInvariantViolationException(
                     $"Stock AR invoice line {line.LineNo} requires a location."
                 );
 
             string cogsAccountNo =
                 FirstNonBlank(line.Item?.Category?.CogsAccount, settings.DefaultCogsAccountNo)
-                ?? throw new InvalidOperationException(
+                ?? throw new PostingInvariantViolationException(
                     $"No COGS account could be resolved for AR invoice line {line.LineNo}."
                 );
 
@@ -75,13 +76,13 @@ public sealed class ArInvoicePostingContextBuilder(IInventoryCostService invento
                     line.Item?.Category?.InventoryAccount,
                     settings.DefaultInventoryAssetAccountNo
                 )
-                ?? throw new InvalidOperationException(
+                ?? throw new PostingInvariantViolationException(
                     $"No inventory asset account could be resolved for AR invoice line {line.LineNo}."
                 );
 
             decimal unitCost = await inventoryCostService.GetUnitCostForSaleAsync(
                 line.ItemId
-                    ?? throw new InvalidOperationException(
+                    ?? throw new PostingInvariantViolationException(
                         $"Stock AR invoice line {line.LineNo} requires an item."
                     ),
                 locationId,

@@ -10,10 +10,10 @@ internal static class SettlementAllocationApplicator
         IReadOnlyList<SettlementAllocationInput> allocationInputs,
         DateOnly allocationDate,
         string performedBy,
+        DateTimeOffset updatedAt,
         SettlementAllocationApplySpec<TAllocation, TFailure> spec
     )
     {
-        DateTimeOffset updatedAt = DateTimeOffset.UtcNow;
         List<TAllocation> allocations = [.. spec.GetExistingAllocations()];
         Dictionary<Guid, decimal> settledAmounts = [];
 

@@ -16,6 +16,7 @@ public sealed class ApInvoiceService(
     IGlAccountRepository glAccountRepository,
     IUnitOfWork unitOfWork,
     IPersistenceFailureClassifier persistenceFailureClassifier,
+    IClock clock,
     ILogger<ApInvoiceService> logger
 ) : IApInvoiceService
 {
@@ -63,24 +64,17 @@ public sealed class ApInvoiceService(
             catch (Exception ex)
             {
                 await unitOfWork.RollbackAsync();
-                if (persistenceFailureClassifier.IsUniqueConstraint(ex, "ix_ap_invoices_doc_no"))
+                if (persistenceFailureClassifier.IsApInvoiceDocNoConflict(ex))
                 {
-                    return ApInvoiceCommandResultDto.Fail(
-                        "An AP invoice with this document number already exists.",
-                        HttpStatusCode.Conflict
-                    );
+                    return ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.DuplicateDocumentNumber);
                 }
 
                 if (
-                    persistenceFailureClassifier.IsUniqueConstraint(
-                        ex,
-                        "ix_ap_invoices_vendor_id_invoice_no"
-                    )
+                    persistenceFailureClassifier.IsApInvoiceVendorInvoiceNoConflict(ex)
                 )
                 {
                     return ApInvoiceCommandResultDto.Fail(
-                        "This vendor invoice number already exists for the selected vendor.",
-                        HttpStatusCode.Conflict
+                        ApInvoiceErrors.DuplicateVendorInvoiceNumber
                     );
                 }
 
@@ -89,19 +83,13 @@ public sealed class ApInvoiceService(
                     "Unexpected failure while creating AP invoice {DocNo}",
                     validatedCommand.DocNo
                 );
-                return ApInvoiceCommandResultDto.Fail(
-                    "An unexpected error occurred while creating the AP invoice.",
-                    HttpStatusCode.InternalServerError
-                );
+                return ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.UnexpectedCreateFailure);
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected failure before creating AP invoice.");
-            return ApInvoiceCommandResultDto.Fail(
-                "An unexpected error occurred while creating the AP invoice.",
-                HttpStatusCode.InternalServerError
-            );
+            return ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.UnexpectedCreateFailure);
         }
     }
 
@@ -116,7 +104,7 @@ public sealed class ApInvoiceService(
         {
             return (
                 null,
-                ApInvoiceCommandResultDto.Fail("Vendor was not found.", HttpStatusCode.NotFound)
+                ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.VendorNotFound)
             );
         }
 
@@ -124,10 +112,7 @@ public sealed class ApInvoiceService(
         {
             return (
                 null,
-                ApInvoiceCommandResultDto.Fail(
-                    "AP invoices can be created only for active vendors.",
-                    HttpStatusCode.BadRequest
-                )
+                ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.VendorInactive)
             );
         }
 
@@ -137,10 +122,7 @@ public sealed class ApInvoiceService(
         {
             return (
                 null,
-                ApInvoiceCommandResultDto.Fail(
-                    "AP invoice currency was not found or is inactive.",
-                    HttpStatusCode.BadRequest
-                )
+                ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.CurrencyMissingOrInactive)
             );
         }
 
@@ -183,10 +165,7 @@ public sealed class ApInvoiceService(
     {
         if (await apInvoiceRepository.ExistsDocNoAsync(validatedCommand.DocNo, cancellationToken))
         {
-            return ApInvoiceCommandResultDto.Fail(
-                "An AP invoice with this document number already exists.",
-                HttpStatusCode.Conflict
-            );
+            return ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.DuplicateDocumentNumber);
         }
 
         if (
@@ -197,10 +176,7 @@ public sealed class ApInvoiceService(
             )
         )
         {
-            return ApInvoiceCommandResultDto.Fail(
-                "This vendor invoice number already exists for the selected vendor.",
-                HttpStatusCode.Conflict
-            );
+            return ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.DuplicateVendorInvoiceNumber);
         }
 
         return null;
@@ -222,8 +198,7 @@ public sealed class ApInvoiceService(
             if (account is null || !account.IsActive)
             {
                 return ApInvoiceCommandResultDto.Fail(
-                    $"GL account '{accountNo}' is missing or inactive.",
-                    HttpStatusCode.BadRequest
+                    ApInvoiceErrors.InactiveOrMissingGlAccount(accountNo)
                 );
             }
         }
@@ -231,13 +206,13 @@ public sealed class ApInvoiceService(
         return null;
     }
 
-    private static ApInvoice BuildInvoice(
+    private ApInvoice BuildInvoice(
         CreateApInvoiceCommand command,
         ApInvoiceCreateValidationResult validatedCommand,
         Vendor vendor
     )
     {
-        DateTimeOffset updatedAt = DateTimeOffset.UtcNow;
+        DateTimeOffset updatedAt = clock.UtcNow;
         DateOnly dueDate = command.DueDate ?? command.InvoiceDate.AddDays(vendor.TermsDays);
 
         return new ApInvoice

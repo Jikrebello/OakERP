@@ -6,7 +6,8 @@ namespace OakERP.Application.AccountsPayable.Payments.Support;
 public sealed class ApPaymentServiceDependencies(
     IGlSettingsProvider glSettingsProvider,
     IUnitOfWork unitOfWork,
-    IPersistenceFailureClassifier persistenceFailureClassifier
+    IPersistenceFailureClassifier persistenceFailureClassifier,
+    IClock clock
 )
 {
     public IGlSettingsProvider GlSettingsProvider { get; } = glSettingsProvider;
@@ -15,4 +16,6 @@ public sealed class ApPaymentServiceDependencies(
 
     public IPersistenceFailureClassifier PersistenceFailureClassifier { get; } =
         persistenceFailureClassifier;
+
+    public IClock Clock { get; } = clock;
 }

@@ -142,7 +142,7 @@ public sealed class PostingResultProcessorTests
 
         var processor = CreateProcessor();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             processor.ProcessAsync(
                 postingResult,
                 PostingSourceTypes.ApInvoice,

@@ -205,7 +205,7 @@ public sealed class ApPostingServiceTests
 
         var service = _factory.CreateService();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             service.PostAsync(new PostCommand(DocKind.ApInvoice, invoice.Id, "unit-tester"))
         );
 
@@ -319,7 +319,7 @@ public sealed class ApPostingServiceTests
 
         var service = _factory.CreateService();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             service.PostAsync(new PostCommand(DocKind.ApInvoice, invoice.Id, "unit-tester"))
         );
 
@@ -478,7 +478,7 @@ public sealed class ApPostingServiceTests
 
         var service = _factory.CreateService();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             service.PostAsync(new PostCommand(DocKind.ApPayment, payment.Id, "unit-tester"))
         );
 
@@ -573,7 +573,7 @@ public sealed class ApPostingServiceTests
 
         var service = _factory.CreateService();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             service.PostAsync(new PostCommand(DocKind.ApPayment, payment.Id, "unit-tester"))
         );
 

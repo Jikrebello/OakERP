@@ -46,7 +46,7 @@ public sealed class PostingTransactionExecutorTests
 
         var executor = CreateExecutor();
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<ConcurrencyConflictException>(() =>
             executor.ExecuteAsync(
                 _ => Task.FromResult(123),
                 "The document was modified during posting.",

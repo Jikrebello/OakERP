@@ -3,6 +3,7 @@ using Microsoft.FluentUI.AspNetCore.Components;
 using OakERP.Client.Configuration;
 using OakERP.Client.Extensions;
 using OakERP.Common.Abstractions;
+using OakERP.Common.Exceptions;
 using OakERP.Services;
 using OakERP.Shared.Services;
 using OakERP.UI.Extensions;
@@ -22,13 +23,20 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             });
 
-        var apiOptions = new ApiClientOptions
+        var apiBaseUrl =
+            builder.Configuration["Api:BaseUrl"]
+            ?? Environment.GetEnvironmentVariable("OakERP__Api__BaseUrl");
+
+        if (string.IsNullOrWhiteSpace(apiBaseUrl))
         {
-            BaseUrl =
-                builder.Configuration["Api:BaseUrl"]
-                ?? Environment.GetEnvironmentVariable("OakERP__Api__BaseUrl")
-                ?? throw new InvalidOperationException("Api:BaseUrl is not configured."),
-        };
+            throw new ConfigurationValidationException(
+                "Api:BaseUrl",
+                "Api:BaseUrl is not configured."
+            );
+        }
+
+        var apiOptions = new ApiClientOptions { BaseUrl = apiBaseUrl };
+        apiOptions.GetBaseUri();
 
         // Device-specific services used by shared Razor UI
         builder.Services.AddSingleton<IFormFactor, FormFactor>();

@@ -17,7 +17,7 @@ public sealed class ArInvoicePostingContextBuilderTests
         var invoice = PostingServiceTestFactory.CreateStockInvoice(includeLocation: false);
         var builder = new ArInvoicePostingContextBuilder(_inventoryCostService.Object);
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             builder.BuildAsync(
                 invoice,
                 invoice.InvoiceDate,
@@ -45,11 +45,13 @@ public sealed class ArInvoicePostingContextBuilderTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ThrowsAsync(new InvalidOperationException("No prior cost basis exists."));
+            .ThrowsAsync(
+                new PostingInvariantViolationException("No prior cost basis exists.")
+            );
 
         var builder = new ArInvoicePostingContextBuilder(_inventoryCostService.Object);
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             builder.BuildAsync(
                 invoice,
                 invoice.InvoiceDate,

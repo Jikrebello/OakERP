@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using OakERP.Common.Exceptions;
 
 namespace OakERP.API.Extensions;
 
@@ -27,24 +28,9 @@ public sealed class GlobalExceptionHandler(
             }
         );
 
-        logger.LogError(
-            exception,
-            "Unhandled exception for HTTP {Method} {Path}",
-            httpContext.Request.Method,
-            httpContext.Request.Path.Value ?? "/"
-        );
+        ProblemDetails problemDetails = CreateProblemDetails(exception);
 
-        var problemDetails = new ProblemDetails
-        {
-            Status = StatusCodes.Status500InternalServerError,
-            Title = "An unexpected error occurred.",
-            Type = "https://httpstatuses.com/500",
-        };
-
-        if (environment.IsDevelopment())
-        {
-            problemDetails.Detail = exception.Message;
-        }
+        LogException(exception, httpContext, problemDetails.Status ?? StatusCodes.Status500InternalServerError);
 
         return await problemDetailsService.TryWriteAsync(
             new ProblemDetailsContext
@@ -54,5 +40,42 @@ public sealed class GlobalExceptionHandler(
                 Exception = exception,
             }
         );
+    }
+
+    private ProblemDetails CreateProblemDetails(Exception exception)
+    {
+        if (exception is OakErpException oakErpException)
+        {
+            var statusCode = (int)oakErpException.StatusCode;
+            return new ProblemDetails
+            {
+                Status = statusCode,
+                Title = oakErpException.Title,
+                Type = $"https://httpstatuses.com/{statusCode}",
+                Detail = environment.IsDevelopment() ? oakErpException.Message : null,
+            };
+        }
+
+        return new ProblemDetails
+        {
+            Status = StatusCodes.Status500InternalServerError,
+            Title = "An unexpected error occurred.",
+            Type = "https://httpstatuses.com/500",
+            Detail = environment.IsDevelopment() ? exception.Message : null,
+        };
+    }
+
+    private void LogException(Exception exception, HttpContext httpContext, int statusCode)
+    {
+        var path = httpContext.Request.Path.Value ?? "/";
+        var method = httpContext.Request.Method;
+
+        if (statusCode >= StatusCodes.Status500InternalServerError)
+        {
+            logger.LogError(exception, "Unhandled exception for HTTP {Method} {Path}", method, path);
+            return;
+        }
+
+        logger.LogWarning(exception, "Handled exception for HTTP {Method} {Path}", method, path);
     }
 }

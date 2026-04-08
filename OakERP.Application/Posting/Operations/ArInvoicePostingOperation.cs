@@ -27,7 +27,7 @@ internal sealed class ArInvoicePostingOperation(
             {
                 ArInvoice invoice =
                     await arInvoiceRepository.GetTrackedForPostingAsync(command.SourceId, ct)
-                    ?? throw new InvalidOperationException("AR invoice was not found.");
+                    ?? throw new ResourceNotFoundException("AR invoice was not found.");
 
                 PostingOperationSupport.EnsureDraftStatus(
                     invoice.DocStatus,
@@ -49,7 +49,7 @@ internal sealed class ArInvoicePostingOperation(
                 decimal expectedDocTotal = lines.Sum(x => x.LineTotal) + invoice.TaxTotal;
                 if (expectedDocTotal != invoice.DocTotal)
                 {
-                    throw new InvalidOperationException(
+                    throw new PostingInvariantViolationException(
                         "AR invoice totals are inconsistent and cannot be posted."
                     );
                 }
@@ -77,7 +77,7 @@ internal sealed class ArInvoicePostingOperation(
                 invoice.DocStatus = DocStatus.Posted;
                 invoice.PostingDate = postingDate;
                 invoice.UpdatedBy = command.PerformedBy;
-                invoice.UpdatedAt = DateTimeOffset.UtcNow;
+                invoice.UpdatedAt = support.Clock.UtcNow;
 
                 return new PostResult(
                     command.DocKind,

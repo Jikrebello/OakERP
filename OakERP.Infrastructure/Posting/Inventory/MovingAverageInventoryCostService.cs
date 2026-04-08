@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OakERP.Common.Exceptions;
 using OakERP.Domain.Entities.Inventory;
 using OakERP.Domain.Posting.Inventory;
 using OakERP.Domain.RepositoryInterfaces.Inventory;
@@ -44,7 +45,7 @@ public sealed class MovingAverageInventoryCostService(
         }
 
         return lastKnownUnitCost
-            ?? throw new InvalidOperationException(
+            ?? throw new PostingInvariantViolationException(
                 $"No prior cost basis exists for item '{itemId}' at location '{locationId}' as of {asOfDate:yyyy-MM-dd}."
             );
     }

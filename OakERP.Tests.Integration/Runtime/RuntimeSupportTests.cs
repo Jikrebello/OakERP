@@ -213,6 +213,34 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
         body.ToString().ShouldNotContain("Simulated login failure");
     }
 
+    [Test]
+    public async Task Configuration_Exception_Should_Return_ProblemDetails_With_Config_Title()
+    {
+        using var overrideFactory = Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddScoped<IAuthService, ConfigurationFailingAuthService>();
+            });
+        });
+
+        using var client = overrideFactory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            ApiRoutes.Auth.Login,
+            new LoginDto { Email = "config@example.com", Password = "ignored" }
+        );
+
+        response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
+        response.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
+
+        var body = await RuntimeSupportTestJson.ReadJsonAsync(response);
+        body.GetProperty("status").GetInt32().ShouldBe(StatusCodes.Status500InternalServerError);
+        body
+            .GetProperty("title")
+            .GetString()
+            .ShouldBe("Application configuration is invalid.");
+    }
+
     private sealed class ThrowingAuthService : IAuthService
     {
         public Task<AuthResultDto> RegisterAsync(RegisterDto Dto)
@@ -223,6 +251,25 @@ public class RuntimeSupportTests : WebApiIntegrationTestBase
         public Task<AuthResultDto> LoginAsync(LoginDto Dto)
         {
             throw new InvalidOperationException("Simulated login failure");
+        }
+    }
+
+    private sealed class ConfigurationFailingAuthService : IAuthService
+    {
+        public Task<AuthResultDto> RegisterAsync(RegisterDto Dto)
+        {
+            throw new ConfigurationValidationException(
+                "Auth:Test",
+                "Simulated registration configuration failure"
+            );
+        }
+
+        public Task<AuthResultDto> LoginAsync(LoginDto Dto)
+        {
+            throw new ConfigurationValidationException(
+                "Auth:Test",
+                "Simulated login configuration failure"
+            );
         }
     }
 }

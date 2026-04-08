@@ -1,4 +1,5 @@
-﻿using System.Net;
+using System.Net;
+using OakERP.Common.Errors;
 
 namespace OakERP.Common.Dtos.Base;
 
@@ -26,4 +27,7 @@ public abstract class BaseResultDto
             StatusCode = (int)statusCode,
         };
     }
+
+    public static T Fail<T>(ResultError error)
+        where T : BaseResultDto, new() => Fail<T>(error.Message, error.StatusCode);
 }

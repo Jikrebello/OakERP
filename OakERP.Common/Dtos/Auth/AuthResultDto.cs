@@ -1,5 +1,6 @@
-﻿using System.Net;
+using System.Net;
 using OakERP.Common.Dtos.Base;
+using OakERP.Common.Errors;
 
 namespace OakERP.Common.Dtos.Auth;
 
@@ -27,4 +28,6 @@ public class AuthResultDto : BaseResultDto
 
     public static AuthResultDto Fail(string message, HttpStatusCode statusCode) =>
         Fail<AuthResultDto>(message, statusCode);
+
+    public static AuthResultDto Fail(ResultError error) => Fail<AuthResultDto>(error);
 }

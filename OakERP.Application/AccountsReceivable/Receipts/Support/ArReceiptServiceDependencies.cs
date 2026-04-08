@@ -6,7 +6,8 @@ namespace OakERP.Application.AccountsReceivable.Receipts.Support;
 public sealed class ArReceiptServiceDependencies(
     IGlSettingsProvider glSettingsProvider,
     IUnitOfWork unitOfWork,
-    IPersistenceFailureClassifier persistenceFailureClassifier
+    IPersistenceFailureClassifier persistenceFailureClassifier,
+    IClock clock
 )
 {
     public IGlSettingsProvider GlSettingsProvider { get; } = glSettingsProvider;
@@ -15,4 +16,6 @@ public sealed class ArReceiptServiceDependencies(
 
     public IPersistenceFailureClassifier PersistenceFailureClassifier { get; } =
         persistenceFailureClassifier;
+
+    public IClock Clock { get; } = clock;
 }
