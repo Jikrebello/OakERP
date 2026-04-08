@@ -39,7 +39,7 @@ Should not become a second infrastructure layer or a second user model.
 
 ### OakERP.API
 HTTP transport and composition layer.
-Owns controllers, HTTP pipeline, Swagger, and API-specific configuration.
+Owns controllers, HTTP pipeline, Swagger/OpenAPI, transport-side exception handling, and API-specific runtime configuration.
 Should not be the home of reusable cross-executable registration.
 
 ### OakERP.MigrationTool
@@ -60,6 +60,7 @@ Should remain narrow unless a broader UI modularization is deliberately approved
 ### OakERP.Shared
 Shared Razor/UI shell.
 Owns genuinely shared UI concerns used across hosts.
+Also owns the shared MAUI host-core adapters used by Desktop and Mobile.
 Should not become a junk drawer for client plumbing or feature-specific state.
 
 ### OakERP.Web
@@ -101,7 +102,9 @@ Recent refactors have intentionally moved OakERP toward:
 - explicit migration/seeding ownership
 - narrower auth seams
 - separation of client plumbing from shared UI
+- shared MAUI host-core composition for Desktop and Mobile
 - separation of auth UI state from the shared shell
+- explicit API transport ownership of Swagger and runtime policies
 - cleaner test and tasking hygiene
 
 ## Known Deferred Areas
