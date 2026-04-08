@@ -1,6 +1,7 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using OakERP.Infrastructure.Exceptions;
 
 namespace OakERP.Infrastructure.Persistence.SQL.Views;
 
@@ -40,7 +41,7 @@ public static class SqlViewManifest
     {
         using var s =
             asm.GetManifestResourceStream(resourcePath)
-            ?? throw new InvalidOperationException($"SQL resource not found: {resourcePath}");
+            ?? throw new EmbeddedResourceNotFoundException(resourcePath);
         using var r = new StreamReader(s, Encoding.UTF8);
         return r.ReadToEnd();
     }

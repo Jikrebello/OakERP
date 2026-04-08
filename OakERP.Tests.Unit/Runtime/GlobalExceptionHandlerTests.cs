@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using OakERP.API.Extensions;
 using Shouldly;
@@ -91,6 +93,12 @@ public sealed class GlobalExceptionHandlerTests
     private sealed class CapturingProblemDetailsService : IProblemDetailsService
     {
         public ProblemDetailsContext LastContext { get; private set; } = default!;
+
+        public ValueTask WriteAsync(ProblemDetailsContext context)
+        {
+            LastContext = context;
+            return ValueTask.CompletedTask;
+        }
 
         public ValueTask<bool> TryWriteAsync(ProblemDetailsContext context)
         {

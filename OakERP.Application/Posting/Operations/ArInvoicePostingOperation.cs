@@ -27,7 +27,7 @@ internal sealed class ArInvoicePostingOperation(
             {
                 ArInvoice invoice =
                     await arInvoiceRepository.GetTrackedForPostingAsync(command.SourceId, ct)
-                    ?? throw new ResourceNotFoundException("AR invoice was not found.");
+                    ?? throw new ResourceNotFoundException("AR invoice", command.SourceId.ToString());
 
                 PostingOperationSupport.EnsureDraftStatus(
                     invoice.DocStatus,

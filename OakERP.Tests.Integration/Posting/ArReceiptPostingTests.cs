@@ -82,7 +82,7 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
 
         await PostReceiptAsync(receiptId);
 
-        await Should.ThrowAsync<InvalidOperationException>(() => PostReceiptAsync(receiptId));
+        await Should.ThrowAsync<PostingInvariantViolationException>(() => PostReceiptAsync(receiptId));
 
         await WithDbAsync(async db =>
         {
@@ -137,7 +137,7 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
     {
         var receiptId = await SeedReceiptScenarioAsync(includeOpenPeriod: false);
 
-        await Should.ThrowAsync<InvalidOperationException>(() => PostReceiptAsync(receiptId));
+        await Should.ThrowAsync<PostingInvariantViolationException>(() => PostReceiptAsync(receiptId));
 
         await AssertNoPostingWrittenAsync(receiptId);
     }
@@ -147,7 +147,7 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
     {
         var receiptId = await SeedReceiptScenarioAsync(currencyCode: "USD");
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             PostReceiptAsync(receiptId)
         );
 
@@ -161,7 +161,7 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
     {
         var receiptId = await SeedReceiptScenarioAsync(amount: 100m, allocatedAmount: 120m);
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             PostReceiptAsync(receiptId)
         );
 

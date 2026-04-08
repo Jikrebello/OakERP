@@ -28,7 +28,7 @@ internal sealed class ApPaymentPostingOperation(
             {
                 ApPayment payment =
                     await apPaymentRepository.GetTrackedForPostingAsync(command.SourceId, ct)
-                    ?? throw new ResourceNotFoundException("AP payment was not found.");
+                    ?? throw new ResourceNotFoundException("AP payment", command.SourceId.ToString());
 
                 PostingOperationSupport.EnsureDraftStatus(
                     payment.DocStatus,

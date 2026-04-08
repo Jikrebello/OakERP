@@ -91,7 +91,7 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
 
         await PostPaymentAsync(paymentId);
 
-        await Should.ThrowAsync<InvalidOperationException>(() => PostPaymentAsync(paymentId));
+        await Should.ThrowAsync<PostingInvariantViolationException>(() => PostPaymentAsync(paymentId));
 
         await WithDbAsync(async db =>
         {
@@ -152,7 +152,7 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
             includeOpenPeriod: false
         );
 
-        await Should.ThrowAsync<InvalidOperationException>(() => PostPaymentAsync(paymentId));
+        await Should.ThrowAsync<PostingInvariantViolationException>(() => PostPaymentAsync(paymentId));
 
         await AssertNoPostingWrittenAsync(paymentId);
     }
@@ -166,7 +166,7 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
             bankCurrencyCode: "USD"
         );
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             PostPaymentAsync(paymentId)
         );
 
@@ -180,7 +180,7 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
     {
         var paymentId = await SeedPaymentScenarioAsync(amount: 100m, allocatedAmount: 120m);
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             PostPaymentAsync(paymentId)
         );
 

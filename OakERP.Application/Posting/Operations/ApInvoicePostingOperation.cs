@@ -27,7 +27,7 @@ internal sealed class ApInvoicePostingOperation(
             {
                 ApInvoice invoice =
                     await apInvoiceRepository.GetTrackedForPostingAsync(command.SourceId, ct)
-                    ?? throw new ResourceNotFoundException("AP invoice was not found.");
+                    ?? throw new ResourceNotFoundException("AP invoice", command.SourceId.ToString());
 
                 PostingOperationSupport.EnsureDraftStatus(
                     invoice.DocStatus,

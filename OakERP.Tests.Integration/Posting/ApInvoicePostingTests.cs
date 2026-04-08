@@ -59,7 +59,7 @@ public sealed class ApInvoicePostingTests : WebApiIntegrationTestBase
 
         await PostInvoiceAsync(invoiceId);
 
-        await Should.ThrowAsync<InvalidOperationException>(() => PostInvoiceAsync(invoiceId));
+        await Should.ThrowAsync<PostingInvariantViolationException>(() => PostInvoiceAsync(invoiceId));
 
         await WithDbAsync(async db =>
         {
@@ -114,7 +114,7 @@ public sealed class ApInvoicePostingTests : WebApiIntegrationTestBase
     {
         var invoiceId = await SeedInvoiceScenarioAsync(includeOpenPeriod: false);
 
-        await Should.ThrowAsync<InvalidOperationException>(() => PostInvoiceAsync(invoiceId));
+        await Should.ThrowAsync<PostingInvariantViolationException>(() => PostInvoiceAsync(invoiceId));
 
         await AssertNoPostingWrittenAsync(invoiceId);
     }
@@ -124,7 +124,7 @@ public sealed class ApInvoicePostingTests : WebApiIntegrationTestBase
     {
         var invoiceId = await SeedInvoiceScenarioAsync(currencyCode: "USD");
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             PostInvoiceAsync(invoiceId)
         );
 
@@ -138,7 +138,7 @@ public sealed class ApInvoicePostingTests : WebApiIntegrationTestBase
     {
         var invoiceId = await SeedInvoiceScenarioAsync(includeItemLine: true);
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             PostInvoiceAsync(invoiceId)
         );
 
@@ -152,7 +152,7 @@ public sealed class ApInvoicePostingTests : WebApiIntegrationTestBase
     {
         var invoiceId = await SeedInvoiceScenarioAsync(includeTaxRateLine: true);
 
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var ex = await Should.ThrowAsync<PostingInvariantViolationException>(() =>
             PostInvoiceAsync(invoiceId)
         );
 

@@ -5,6 +5,8 @@ namespace OakERP.Tests.Unit.Settlements;
 
 public sealed class SettlementAllocationApplicatorTests
 {
+    private static readonly DateTimeOffset UpdatedAt = new(2026, 4, 8, 12, 0, 0, TimeSpan.Zero);
+
     [Fact]
     public async Task ApplyAsync_Should_Reject_When_Request_Exceeds_Document_Unapplied_Amount()
     {
@@ -16,6 +18,7 @@ public sealed class SettlementAllocationApplicatorTests
             [new SettlementAllocationInput(invoices.Keys.Single(), 15m)],
             new DateOnly(2026, 4, 8),
             "unit-user",
+            UpdatedAt,
             spec
         );
 
@@ -35,6 +38,7 @@ public sealed class SettlementAllocationApplicatorTests
             [new SettlementAllocationInput(invoices.Keys.Single(), 6m)],
             new DateOnly(2026, 4, 8),
             "unit-user",
+            UpdatedAt,
             spec
         );
 
@@ -52,6 +56,7 @@ public sealed class SettlementAllocationApplicatorTests
             [new SettlementAllocationInput(invoices.Keys.Single(), 40m)],
             new DateOnly(2026, 4, 8),
             "unit-user",
+            UpdatedAt,
             spec
         );
 
@@ -72,6 +77,7 @@ public sealed class SettlementAllocationApplicatorTests
             [new SettlementAllocationInput(invoices.Keys.Single(), 40m)],
             new DateOnly(2026, 4, 8),
             "unit-user",
+            UpdatedAt,
             spec
         );
 
@@ -101,6 +107,7 @@ public sealed class SettlementAllocationApplicatorTests
             ],
             new DateOnly(2026, 4, 8),
             "unit-user",
+            UpdatedAt,
             spec
         );
 
