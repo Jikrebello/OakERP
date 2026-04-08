@@ -87,11 +87,19 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- auth-namespace-normalization-wave4
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- dto-to-dto-casing
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- oakerp-skill-pack
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- posting-flow-decomposition-wave3
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
@@ -255,10 +263,17 @@ OakERP
 |   |       +-- IPersistenceFailureClassifier.cs
 |   |       \-- IUnitOfWork.cs
 |   +-- Posting
+|   |   +-- ApInvoicePostingOperation.cs
+|   |   +-- ApPaymentPostingOperation.cs
+|   |   +-- ArInvoicePostingOperation.cs
+|   |   +-- ArReceiptPostingOperation.cs
 |   |   +-- IPostingService.cs
 |   |   +-- PostCommand.cs
+|   |   +-- PostingOperationSupport.cs
+|   |   +-- PostingResultProcessor.cs
 |   |   +-- PostingService.cs
 |   |   +-- PostingServiceDependencies.cs
+|   |   +-- PostingTransactionExecutor.cs
 |   |   +-- PostResult.cs
 |   |   +-- UnpostCommand.cs
 |   |   \-- UnpostResult.cs
@@ -771,8 +786,10 @@ OakERP
 |   |   +-- PostingEngineApPaymentTests.cs
 |   |   +-- PostingEngineArInvoiceTests.cs
 |   |   +-- PostingEngineArReceiptTests.cs
+|   |   +-- PostingResultProcessorTests.cs
 |   |   +-- PostingServiceTestFactory.cs
-|   |   \-- PostingServiceTests.cs
+|   |   +-- PostingServiceTests.cs
+|   |   \-- PostingTransactionExecutorTests.cs
 |   +-- Settlements
 |   |   +-- SettlementAllocationApplicatorTests.cs
 |   |   \-- SettlementInvoiceLoaderTests.cs
