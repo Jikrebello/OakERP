@@ -99,7 +99,11 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
-|   |   |   |   \-- serilog-seq-logging
+|   |   |   |   +-- serilog-seq-logging
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   \-- settlement-dedup-wave2
 |   |   |   |       +-- findings.md
 |   |   |   |       +-- progress.md
 |   |   |   |       \-- task_plan.md
@@ -223,6 +227,7 @@ OakERP
 |   |   +-- ApPaymentCommandValidator.cs
 |   |   +-- ApPaymentService.cs
 |   |   +-- ApPaymentServiceDependencies.cs
+|   |   +-- ApPaymentSettlementAdapters.cs
 |   |   +-- ApPaymentSnapshotDTO.cs
 |   |   +-- ApPaymentSnapshotFactory.cs
 |   |   +-- CreateApInvoiceCommand.cs
@@ -238,6 +243,7 @@ OakERP
 |   |   +-- ArReceiptCommandValidator.cs
 |   |   +-- ArReceiptService.cs
 |   |   +-- ArReceiptServiceDependencies.cs
+|   |   +-- ArReceiptSettlementAdapters.cs
 |   |   +-- ArReceiptSnapshotDTO.cs
 |   |   +-- ArReceiptSnapshotFactory.cs
 |   |   +-- CreateArReceiptCommand.cs
@@ -256,6 +262,13 @@ OakERP
 |   |   +-- PostResult.cs
 |   |   +-- UnpostCommand.cs
 |   |   \-- UnpostResult.cs
+|   +-- Properties
+|   |   \-- AssemblyInfo.cs
+|   +-- Settlements
+|   |   +-- SettlementAllocationApplicator.cs
+|   |   +-- SettlementAllocationApplySpec.cs
+|   |   +-- SettlementInvoiceLoader.cs
+|   |   \-- SettlementInvoiceLoadSpec.cs
 |   \-- OakERP.Application.csproj
 +-- OakERP.Auth
 |   +-- Extensions
@@ -760,6 +773,9 @@ OakERP
 |   |   +-- PostingEngineArReceiptTests.cs
 |   |   +-- PostingServiceTestFactory.cs
 |   |   \-- PostingServiceTests.cs
+|   +-- Settlements
+|   |   +-- SettlementAllocationApplicatorTests.cs
+|   |   \-- SettlementInvoiceLoaderTests.cs
 |   \-- OakERP.Tests.Unit.csproj
 +-- OakERP.UI
 |   +-- Extensions
