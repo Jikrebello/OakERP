@@ -50,7 +50,7 @@ OakERP
 |   |   \-- ADR-0001-architecture-principles.md
 |   +-- ai
 |   |   +-- tasks
-|   |   |   +-- active
+|   |   |   +-- archive
 |   |   |   |   +-- analyzer-warning-cleanup
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
@@ -71,11 +71,23 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- api-runtime-support
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- api-swagger-hardening
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- ar-architecture-cleanup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- ar-invoice-posting-1a
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- ar-invoice-posting-1b
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
@@ -91,7 +103,27 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- auth-boundary-cleanup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- auth-identity-gateway-cleanup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- auth-jwt-input-cleanup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- auth-namespace-normalization-wave4
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- codex-workflow-setup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- composition-root-cleanup
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
@@ -107,11 +139,19 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- migration-seeding-clarification
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- oakerp-skill-pack
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- posting-flow-decomposition-wave3
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- posting-remediation-slice
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
@@ -127,6 +167,10 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- serena-setup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- serilog-seq-logging
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
@@ -139,64 +183,19 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
-|   |   |   |   +-- solution-folder-reorg-wave6
-|   |   |   |   |   +-- findings.md
-|   |   |   |   |   +-- progress.md
-|   |   |   |   |   \-- task_plan.md
-|   |   |   |   \-- solution-hygiene-wave7
-|   |   |   |       +-- findings.md
-|   |   |   |       +-- progress.md
-|   |   |   |       \-- task_plan.md
-|   |   |   +-- archive
-|   |   |   |   +-- api-runtime-support
-|   |   |   |   |   +-- findings.md
-|   |   |   |   |   +-- progress.md
-|   |   |   |   |   \-- task_plan.md
-|   |   |   |   +-- ar-invoice-posting-1a
-|   |   |   |   |   +-- findings.md
-|   |   |   |   |   +-- progress.md
-|   |   |   |   |   \-- task_plan.md
-|   |   |   |   +-- ar-invoice-posting-1b
-|   |   |   |   |   +-- findings.md
-|   |   |   |   |   +-- progress.md
-|   |   |   |   |   \-- task_plan.md
-|   |   |   |   +-- auth-boundary-cleanup
-|   |   |   |   |   +-- findings.md
-|   |   |   |   |   +-- progress.md
-|   |   |   |   |   \-- task_plan.md
-|   |   |   |   +-- auth-identity-gateway-cleanup
-|   |   |   |   |   +-- findings.md
-|   |   |   |   |   +-- progress.md
-|   |   |   |   |   \-- task_plan.md
-|   |   |   |   +-- auth-jwt-input-cleanup
-|   |   |   |   |   +-- findings.md
-|   |   |   |   |   +-- progress.md
-|   |   |   |   |   \-- task_plan.md
-|   |   |   |   +-- codex-workflow-setup
-|   |   |   |   |   +-- findings.md
-|   |   |   |   |   +-- progress.md
-|   |   |   |   |   \-- task_plan.md
-|   |   |   |   +-- composition-root-cleanup
-|   |   |   |   |   +-- findings.md
-|   |   |   |   |   +-- progress.md
-|   |   |   |   |   \-- task_plan.md
-|   |   |   |   +-- migration-seeding-clarification
-|   |   |   |   |   +-- findings.md
-|   |   |   |   |   +-- progress.md
-|   |   |   |   |   \-- task_plan.md
-|   |   |   |   +-- posting-remediation-slice
-|   |   |   |   |   +-- findings.md
-|   |   |   |   |   +-- progress.md
-|   |   |   |   |   \-- task_plan.md
-|   |   |   |   +-- serena-setup
-|   |   |   |   |   +-- findings.md
-|   |   |   |   |   +-- progress.md
-|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- shared-client-plumbing-separation
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- shared-ui-auth-state-separation
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- solution-folder-reorg-wave6
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- solution-hygiene-wave7
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
