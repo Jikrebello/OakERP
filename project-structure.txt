@@ -111,6 +111,10 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- settlement-auth-cleanup-wave5
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   \-- settlement-dedup-wave2
 |   |   |   |       +-- findings.md
 |   |   |   |       +-- progress.md
