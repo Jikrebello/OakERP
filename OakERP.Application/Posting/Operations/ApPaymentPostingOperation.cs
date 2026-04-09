@@ -1,16 +1,19 @@
 using OakERP.Common.Enums;
 using OakERP.Domain.AccountsPayable;
 using OakERP.Domain.Entities.AccountsPayable;
+using OakERP.Domain.Entities.Bank;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.AccountsPayable;
 using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Domain.RepositoryInterfaces.AccountsPayable;
+using OakERP.Domain.RepositoryInterfaces.Bank;
 
 namespace OakERP.Application.Posting.Operations;
 
 internal sealed class ApPaymentPostingOperation(
     IApPaymentRepository apPaymentRepository,
+    IBankTransactionRepository bankTransactionRepository,
     IApPaymentPostingContextBuilder contextBuilder,
     PostingOperationSupport support,
     PostingTransactionExecutor transactionExecutor
@@ -88,6 +91,23 @@ internal sealed class ApPaymentPostingOperation(
                     inventoryRowsAllowed: false,
                     command.PerformedBy,
                     ct
+                );
+
+                await bankTransactionRepository.AddAsync(
+                    new BankTransaction
+                    {
+                        BankAccountId = payment.BankAccountId,
+                        TxnDate = postingDate,
+                        Amount = -payment.Amount,
+                        DrAccountNo = settings.ApControlAccountNo,
+                        CrAccountNo = payment.BankAccount.GlAccountNo,
+                        SourceType = PostingSourceTypes.ApPayment,
+                        SourceId = payment.Id,
+                        Description = $"AP payment {payment.DocNo}",
+                        ExternalRef = null,
+                        IsReconciled = false,
+                        CreatedBy = command.PerformedBy,
+                    }
                 );
 
                 payment.DocStatus = DocStatus.Posted;

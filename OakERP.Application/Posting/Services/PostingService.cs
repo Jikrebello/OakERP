@@ -28,6 +28,7 @@ public sealed class PostingService : IPostingService
 
         apPaymentOperation = new ApPaymentPostingOperation(
             sourceRepositories.ApPaymentRepository,
+            bankTransactionRepository,
             contextBuilders.ApPaymentPostingContextBuilder,
             support,
             transactionExecutor

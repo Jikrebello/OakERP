@@ -11,6 +11,7 @@ using OakERP.Domain.Entities.AccountsPayable;
 using OakERP.Domain.Entities.Bank;
 using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.GeneralLedger;
+using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Tests.Integration.Runtime;
 using Shouldly;
@@ -41,6 +42,19 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
             var payment = await db.ApPayments.SingleAsync(x => x.Id == paymentId);
             payment.DocStatus.ShouldBe(DocStatus.Posted);
             payment.PostingDate.ShouldBe(result.PostingDate);
+            var bankTransaction = await db.BankTransactions.SingleAsync(x =>
+                x.SourceId == paymentId
+            );
+            bankTransaction.BankAccountId.ShouldBe(payment.BankAccountId);
+            bankTransaction.TxnDate.ShouldBe(result.PostingDate);
+            bankTransaction.Amount.ShouldBe(-payment.Amount);
+            bankTransaction.DrAccountNo.ShouldBe("2000");
+            bankTransaction.CrAccountNo.ShouldBe("1000");
+            bankTransaction.SourceType.ShouldBe(PostingSourceTypes.ApPayment);
+            bankTransaction.SourceId.ShouldBe(paymentId);
+            bankTransaction.Description.ShouldBe($"AP payment {payment.DocNo}");
+            bankTransaction.ExternalRef.ShouldBeNull();
+            bankTransaction.IsReconciled.ShouldBeFalse();
         });
     }
 

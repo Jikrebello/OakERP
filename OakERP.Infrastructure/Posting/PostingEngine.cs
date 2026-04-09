@@ -346,7 +346,7 @@ public sealed class PostingEngine : IPostingEngine
         var bankRule = FindRuleLine(
             rule,
             scope: PostingRuleScopes.Header,
-            side: RuleSide.Debit,
+            side: RuleSide.Credit,
             accountKey: AccountKey.Bank,
             amountSource: AmountSource.HeaderDocTotal
         );
@@ -354,7 +354,7 @@ public sealed class PostingEngine : IPostingEngine
         var apRule = FindRuleLine(
             rule,
             scope: PostingRuleScopes.Header,
-            side: RuleSide.Credit,
+            side: RuleSide.Debit,
             accountKey: AccountKey.AccountsPayable,
             amountSource: AmountSource.HeaderDocTotal
         );
@@ -364,24 +364,24 @@ public sealed class PostingEngine : IPostingEngine
             new GlEntryModel(
                 context.PostingDate,
                 context.Period.Id,
-                ResolveApPaymentHeaderAccountNo(bankRule.AccountKey, context),
-                payment.Amount,
-                0m,
-                PostingSourceTypes.ApPayment,
-                payment.Id,
-                payment.DocNo,
-                $"AP payment {payment.DocNo} bank"
-            ),
-            new GlEntryModel(
-                context.PostingDate,
-                context.Period.Id,
                 ResolveApPaymentHeaderAccountNo(apRule.AccountKey, context),
-                0m,
                 payment.Amount,
+                0m,
                 PostingSourceTypes.ApPayment,
                 payment.Id,
                 payment.DocNo,
                 $"AP payment {payment.DocNo} AP control"
+            ),
+            new GlEntryModel(
+                context.PostingDate,
+                context.Period.Id,
+                ResolveApPaymentHeaderAccountNo(bankRule.AccountKey, context),
+                0m,
+                payment.Amount,
+                PostingSourceTypes.ApPayment,
+                payment.Id,
+                payment.DocNo,
+                $"AP payment {payment.DocNo} bank"
             ),
         ];
 

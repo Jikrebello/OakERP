@@ -17,7 +17,7 @@ namespace OakERP.Tests.Integration.Posting;
 public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
 {
     [Test]
-    public async Task PostAsync_Should_Post_Unapplied_ApPayment_To_Bank_And_ApControl()
+    public async Task PostAsync_Should_Post_Unapplied_ApPayment_To_ApControl_And_Bank_And_Create_Bank_Transaction()
     {
         var paymentId = await SeedPaymentScenarioAsync(amount: 125m, allocatedAmount: 0m);
         var postingDate = DaysFromToday(-2);
@@ -44,10 +44,21 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
             glEntries.Sum(x => x.Debit).ShouldBe(glEntries.Sum(x => x.Credit));
             glEntries.All(x => x.EntryDate == postingDate).ShouldBeTrue();
             glEntries.All(x => x.SourceType == PostingSourceTypes.ApPayment).ShouldBeTrue();
-            glEntries.ShouldContain(x => x.AccountNo == "1000" && x.Debit == 125m);
-            glEntries.ShouldContain(x => x.AccountNo == "2000" && x.Credit == 125m);
+            glEntries.ShouldContain(x => x.AccountNo == "2000" && x.Debit == 125m);
+            glEntries.ShouldContain(x => x.AccountNo == "1000" && x.Credit == 125m);
             (await db.InventoryLedgers.CountAsync(x => x.SourceId == paymentId)).ShouldBe(0);
-            (await db.BankTransactions.CountAsync(x => x.SourceId == paymentId)).ShouldBe(0);
+            var bankTransaction = await db.BankTransactions.SingleAsync(x =>
+                x.SourceId == paymentId
+            );
+            bankTransaction.BankAccountId.ShouldBe(payment.BankAccountId);
+            bankTransaction.TxnDate.ShouldBe(postingDate);
+            bankTransaction.Amount.ShouldBe(-125m);
+            bankTransaction.DrAccountNo.ShouldBe("2000");
+            bankTransaction.CrAccountNo.ShouldBe("1000");
+            bankTransaction.SourceType.ShouldBe(PostingSourceTypes.ApPayment);
+            bankTransaction.Description.ShouldBe($"AP payment {payment.DocNo}");
+            bankTransaction.ExternalRef.ShouldBeNull();
+            bankTransaction.IsReconciled.ShouldBeFalse();
         });
     }
 
@@ -72,8 +83,8 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
                 .OrderBy(x => x.AccountNo)
                 .ToListAsync();
 
-            glEntries.ShouldContain(x => x.AccountNo == "1000" && x.Debit == 150m);
-            glEntries.ShouldContain(x => x.AccountNo == "2000" && x.Credit == 150m);
+            glEntries.ShouldContain(x => x.AccountNo == "2000" && x.Debit == 150m);
+            glEntries.ShouldContain(x => x.AccountNo == "1000" && x.Credit == 150m);
             (await db.ApPaymentAllocations.CountAsync(x => x.ApPaymentId == paymentId)).ShouldBe(1);
             var invoiceId = await db
                 .ApPaymentAllocations.Where(x => x.ApPaymentId == paymentId)
@@ -81,6 +92,10 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
                 .SingleAsync();
             var invoice = await db.ApInvoices.SingleAsync(x => x.Id == invoiceId);
             invoice.DocStatus.ShouldBe(DocStatus.Posted);
+            var bankTransaction = await db.BankTransactions.SingleAsync(x =>
+                x.SourceId == paymentId
+            );
+            bankTransaction.Amount.ShouldBe(-150m);
         });
     }
 
@@ -101,7 +116,7 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
             payment.DocStatus.ShouldBe(DocStatus.Posted);
             (await db.GlEntries.CountAsync(x => x.SourceId == paymentId)).ShouldBe(2);
             (await db.InventoryLedgers.CountAsync(x => x.SourceId == paymentId)).ShouldBe(0);
-            (await db.BankTransactions.CountAsync(x => x.SourceId == paymentId)).ShouldBe(0);
+            (await db.BankTransactions.CountAsync(x => x.SourceId == paymentId)).ShouldBe(1);
         });
     }
 
@@ -141,8 +156,22 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
             payment.DocStatus.ShouldBe(DocStatus.Posted);
             (await db.GlEntries.CountAsync(x => x.SourceId == paymentId)).ShouldBe(2);
             (await db.InventoryLedgers.CountAsync(x => x.SourceId == paymentId)).ShouldBe(0);
-            (await db.BankTransactions.CountAsync(x => x.SourceId == paymentId)).ShouldBe(0);
+            (await db.BankTransactions.CountAsync(x => x.SourceId == paymentId)).ShouldBe(1);
         });
+    }
+
+    [Test]
+    public async Task PostAsync_Should_Roll_Back_Gl_And_Bank_Transaction_When_Save_Fails()
+    {
+        var paymentId = await SeedPaymentScenarioAsync(
+            amount: 100m,
+            allocatedAmount: 0m,
+            bankGlAccountNo: "2000"
+        );
+
+        await Should.ThrowAsync<DbUpdateException>(() => PostPaymentAsync(paymentId));
+
+        await AssertNoPostingWrittenAsync(paymentId);
     }
 
     [Test]
@@ -222,7 +251,8 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
         decimal allocatedAmount,
         bool includeOpenPeriod = true,
         string bankCurrencyCode = "ZAR",
-        DateOnly? paymentDate = null
+        DateOnly? paymentDate = null,
+        string bankGlAccountNo = "1000"
     )
     {
         var paymentId = Guid.NewGuid();
@@ -362,7 +392,7 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
                 {
                     Id = bankAccountId,
                     Name = bankName,
-                    GlAccountNo = "1000",
+                    GlAccountNo = bankGlAccountNo,
                     OpeningBalance = 0m,
                     CurrencyCode = bankCurrencyCode,
                     IsActive = true,

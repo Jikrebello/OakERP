@@ -139,14 +139,14 @@ public sealed class PostingRuleProvider : IPostingRuleProvider
                 new PostingRuleLine
                 {
                     Side = RuleSide.Debit,
-                    AccountKey = AccountKey.Bank,
+                    AccountKey = AccountKey.AccountsPayable,
                     AmountSource = AmountSource.HeaderDocTotal,
                     Scope = PostingRuleScopes.Header,
                 },
                 new PostingRuleLine
                 {
                     Side = RuleSide.Credit,
-                    AccountKey = AccountKey.AccountsPayable,
+                    AccountKey = AccountKey.Bank,
                     AmountSource = AmountSource.HeaderDocTotal,
                     Scope = PostingRuleScopes.Header,
                 },

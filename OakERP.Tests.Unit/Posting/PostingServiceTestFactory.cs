@@ -237,14 +237,14 @@ public sealed class PostingServiceTestFactory
             [
                 new PostingRuleLine
                 {
-                    AccountKey = AccountKey.Bank,
+                    AccountKey = AccountKey.AccountsPayable,
                     AmountSource = AmountSource.HeaderDocTotal,
                     Scope = PostingRuleScopes.Header,
                     Side = RuleSide.Debit,
                 },
                 new PostingRuleLine
                 {
-                    AccountKey = AccountKey.AccountsPayable,
+                    AccountKey = AccountKey.Bank,
                     AmountSource = AmountSource.HeaderDocTotal,
                     Scope = PostingRuleScopes.Header,
                     Side = RuleSide.Credit,
