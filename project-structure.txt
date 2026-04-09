@@ -55,6 +55,10 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- ar-receipt-bank-transaction
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   \-- posting-transport-api
 |   |   |   |       +-- findings.md
 |   |   |   |       +-- progress.md
