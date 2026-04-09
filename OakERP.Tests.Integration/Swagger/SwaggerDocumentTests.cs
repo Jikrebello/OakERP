@@ -57,12 +57,7 @@ public sealed class SwaggerDocumentTests
             "post",
             requiresBearer: true
         );
-        AssertRoute(
-            document,
-            "/api/ap-payments/{paymentId}/post",
-            "post",
-            requiresBearer: true
-        );
+        AssertRoute(document, "/api/ap-payments/{paymentId}/post", "post", requiresBearer: true);
         AssertRoute(document, "/api/ar-receipts", "post", requiresBearer: true);
         AssertRoute(
             document,
@@ -70,12 +65,7 @@ public sealed class SwaggerDocumentTests
             "post",
             requiresBearer: true
         );
-        AssertRoute(
-            document,
-            "/api/ar-receipts/{receiptId}/post",
-            "post",
-            requiresBearer: true
-        );
+        AssertRoute(document, "/api/ar-receipts/{receiptId}/post", "post", requiresBearer: true);
 
         var bearerScheme = document
             .RootElement.GetProperty("components")

@@ -9,8 +9,8 @@ using OakERP.Common.Enums;
 using OakERP.Domain.Entities.AccountsPayable;
 using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.GeneralLedger;
-using Shouldly;
 using OakERP.Tests.Integration.Runtime;
+using Shouldly;
 
 namespace OakERP.Tests.Integration.AccountsPayable;
 
@@ -113,7 +113,10 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
 
         var invoiceId = await CreateDraftInvoiceAsync();
 
-        var response = await PostInvoiceAsync(invoiceId, new PostDocumentRequestDto { Force = true });
+        var response = await PostInvoiceAsync(
+            invoiceId,
+            new PostDocumentRequestDto { Force = true }
+        );
 
         await AssertProblemDetailsAsync(
             response,
@@ -484,7 +487,11 @@ public sealed class ApInvoiceApiTests : WebApiIntegrationTestBase
         string invoiceNo = $"VEN-{Guid.NewGuid():N}";
         await SeedReferenceDataAsync(
             vendorId,
-            includeUsdCurrency: !string.Equals(currencyCode, "ZAR", StringComparison.OrdinalIgnoreCase)
+            includeUsdCurrency: !string.Equals(
+                currencyCode,
+                "ZAR",
+                StringComparison.OrdinalIgnoreCase
+            )
         );
 
         var result = await PostAsync<CreateApInvoiceCommand, ApInvoiceCommandResultDto>(

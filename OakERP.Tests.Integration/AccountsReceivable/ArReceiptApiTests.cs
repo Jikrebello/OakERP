@@ -12,8 +12,8 @@ using OakERP.Domain.Entities.Bank;
 using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting.GeneralLedger;
-using Shouldly;
 using OakERP.Tests.Integration.Runtime;
+using Shouldly;
 
 namespace OakERP.Tests.Integration.AccountsReceivable;
 
@@ -127,7 +127,10 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
 
         var receiptId = await CreateDraftReceiptAsync();
 
-        var response = await PostReceiptAsync(receiptId, new PostDocumentRequestDto { Force = true });
+        var response = await PostReceiptAsync(
+            receiptId,
+            new PostDocumentRequestDto { Force = true }
+        );
 
         await AssertProblemDetailsAsync(
             response,

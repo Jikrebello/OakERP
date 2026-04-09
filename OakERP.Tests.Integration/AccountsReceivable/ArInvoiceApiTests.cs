@@ -10,8 +10,8 @@ using OakERP.Domain.Entities.AccountsReceivable;
 using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Entities.Inventory;
-using Shouldly;
 using OakERP.Tests.Integration.Runtime;
+using Shouldly;
 
 namespace OakERP.Tests.Integration.AccountsReceivable;
 
@@ -114,7 +114,10 @@ public sealed class ArInvoiceApiTests : WebApiIntegrationTestBase
 
         var invoiceId = await CreateDraftInvoiceAsync();
 
-        var response = await PostInvoiceAsync(invoiceId, new PostDocumentRequestDto { Force = true });
+        var response = await PostInvoiceAsync(
+            invoiceId,
+            new PostDocumentRequestDto { Force = true }
+        );
 
         await AssertProblemDetailsAsync(
             response,
@@ -636,7 +639,11 @@ public sealed class ArInvoiceApiTests : WebApiIntegrationTestBase
             locationId,
             outputTaxRateId,
             inputTaxRateId,
-            includeUsdCurrency: !string.Equals(currencyCode, "ZAR", StringComparison.OrdinalIgnoreCase)
+            includeUsdCurrency: !string.Equals(
+                currencyCode,
+                "ZAR",
+                StringComparison.OrdinalIgnoreCase
+            )
         );
 
         var result = await PostAsync<CreateArInvoiceCommand, ArInvoiceCommandResultDto>(

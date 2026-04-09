@@ -12,8 +12,8 @@ using OakERP.Domain.Entities.Bank;
 using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting.GeneralLedger;
-using Shouldly;
 using OakERP.Tests.Integration.Runtime;
+using Shouldly;
 
 namespace OakERP.Tests.Integration.AccountsPayable;
 
@@ -121,7 +121,10 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
 
         var paymentId = await CreateDraftPaymentAsync();
 
-        var response = await PostPaymentAsync(paymentId, new PostDocumentRequestDto { Force = true });
+        var response = await PostPaymentAsync(
+            paymentId,
+            new PostDocumentRequestDto { Force = true }
+        );
 
         await AssertProblemDetailsAsync(
             response,
