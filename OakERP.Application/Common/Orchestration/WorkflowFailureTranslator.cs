@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace OakERP.Application.Common.Orchestration;
 
 internal sealed class WorkflowExceptionRule<TResult>(
