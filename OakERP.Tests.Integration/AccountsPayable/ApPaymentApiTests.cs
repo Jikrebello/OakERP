@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
+using OakERP.API.Contracts.Posting;
 using OakERP.Common.Dtos.Auth;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.AccountsPayable;
@@ -12,12 +13,123 @@ using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting.GeneralLedger;
 using Shouldly;
+using OakERP.Tests.Integration.Runtime;
 
 namespace OakERP.Tests.Integration.AccountsPayable;
 
 [TestFixture]
 public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
 {
+    [Test]
+    public async Task Post_Endpoint_Should_Post_Draft_Ap_Payment()
+    {
+        await AuthenticateAsync();
+
+        var paymentId = await CreateDraftPaymentAsync();
+
+        var response = await PostPaymentAsync(paymentId);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<PostResult>();
+        result.ShouldNotBeNull();
+        result!.DocKind.ShouldBe(DocKind.ApPayment);
+        result.SourceId.ShouldBe(paymentId);
+        result.GlEntryCount.ShouldBeGreaterThan(0);
+
+        await WithDbAsync(async db =>
+        {
+            var payment = await db.ApPayments.SingleAsync(x => x.Id == paymentId);
+            payment.DocStatus.ShouldBe(DocStatus.Posted);
+            payment.PostingDate.ShouldBe(result.PostingDate);
+        });
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_Conflict_ProblemDetails_When_Payment_Is_Already_Posted()
+    {
+        await AuthenticateAsync();
+
+        var paymentId = await CreateDraftPaymentAsync();
+        (await PostPaymentAsync(paymentId)).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var response = await PostPaymentAsync(paymentId);
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.Conflict,
+            "Posting invariant was violated."
+        );
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_Conflict_ProblemDetails_When_No_Open_Period_Exists()
+    {
+        await AuthenticateAsync();
+
+        var paymentId = await CreateDraftPaymentAsync();
+
+        var response = await PostPaymentAsync(
+            paymentId,
+            new PostDocumentRequestDto { PostingDate = DaysFromToday(40) }
+        );
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.Conflict,
+            "Posting invariant was violated."
+        );
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_BadRequest_ProblemDetails_For_NonBase_Currency()
+    {
+        await AuthenticateAsync();
+
+        var vendorId = Guid.NewGuid();
+        var bankAccountId = Guid.NewGuid();
+        string docNo = $"APPAY-{Guid.NewGuid():N}";
+        await SeedReferenceDataAsync(vendorId, bankAccountId, bankCurrencyCode: "USD");
+        var paymentId = await SeedDraftPaymentAsync(vendorId, bankAccountId, docNo, 75m);
+
+        var response = await PostPaymentAsync(paymentId);
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.BadRequest,
+            "Posting invariant was violated."
+        );
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_NotFound_ProblemDetails_For_Unknown_Payment()
+    {
+        await AuthenticateAsync();
+
+        var response = await PostPaymentAsync(Guid.NewGuid());
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.NotFound,
+            "AP payment was not found."
+        );
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_BadRequest_ProblemDetails_When_Force_Is_Not_Supported()
+    {
+        await AuthenticateAsync();
+
+        var paymentId = await CreateDraftPaymentAsync();
+
+        var response = await PostPaymentAsync(paymentId, new PostDocumentRequestDto { Force = true });
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.BadRequest,
+            "The requested operation is not supported."
+        );
+    }
+
     [Test]
     public async Task Create_Endpoint_Should_Create_Unapplied_Draft_Payment()
     {
@@ -558,5 +670,54 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
         });
 
         return paymentId;
+    }
+
+    private async Task<Guid> CreateDraftPaymentAsync()
+    {
+        var vendorId = Guid.NewGuid();
+        var bankAccountId = Guid.NewGuid();
+        string docNo = $"APPAY-{Guid.NewGuid():N}";
+        await SeedReferenceDataAsync(vendorId, bankAccountId);
+
+        var result = await PostAsync<CreateApPaymentCommand, ApPaymentCommandResultDto>(
+            ApiRoutes.ApPayments.Create,
+            new CreateApPaymentCommand
+            {
+                DocNo = docNo,
+                VendorId = vendorId,
+                BankAccountId = bankAccountId,
+                PaymentDate = DaysFromToday(-4),
+                Amount = 125m,
+                Memo = "Posting transport test payment",
+            }
+        );
+
+        result.Success.ShouldBeTrue();
+        result.Payment.ShouldNotBeNull();
+        return result.Payment!.PaymentId;
+    }
+
+    private Task<HttpResponseMessage> PostPaymentAsync(
+        Guid paymentId,
+        PostDocumentRequestDto? request = null
+    ) => Client.PostAsJsonAsync(ApiRoutes.ApPayments.Post(paymentId), request ?? new());
+
+    private static async Task AssertProblemDetailsAsync(
+        HttpResponseMessage response,
+        HttpStatusCode expectedStatusCode,
+        string expectedTitle
+    )
+    {
+        response.StatusCode.ShouldBe(expectedStatusCode);
+        response.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
+
+        var body = await RuntimeSupportTestJson.ReadJsonAsync(response);
+        body.GetProperty("status").GetInt32().ShouldBe((int)expectedStatusCode);
+        body.GetProperty("title").GetString().ShouldBe(expectedTitle);
+        body.GetProperty("type")
+            .GetString()
+            .ShouldBe($"https://httpstatuses.com/{(int)expectedStatusCode}");
+        body.GetProperty("correlationId").GetString().ShouldNotBeNullOrWhiteSpace();
+        body.GetProperty("traceId").GetString().ShouldNotBeNullOrWhiteSpace();
     }
 }

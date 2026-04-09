@@ -1,4 +1,5 @@
 using OakERP.Common.Enums;
+using OakERP.Common.Errors;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.GeneralLedger;
@@ -32,7 +33,8 @@ internal sealed class PostingOperationSupport(
             cancellationToken
         )
         ?? throw new PostingInvariantViolationException(
-            $"No open fiscal period exists for posting date {postingDate:yyyy-MM-dd}."
+            $"No open fiscal period exists for posting date {postingDate:yyyy-MM-dd}.",
+            FailureKind.Conflict
         );
 
     public Task ProcessPostingResultAsync(
@@ -62,7 +64,7 @@ internal sealed class PostingOperationSupport(
     {
         if (status != DocStatus.Draft)
         {
-            throw new PostingInvariantViolationException(message);
+            throw new PostingInvariantViolationException(message, FailureKind.Conflict);
         }
     }
 
@@ -74,7 +76,7 @@ internal sealed class PostingOperationSupport(
     {
         if (!string.Equals(currencyCode, baseCurrencyCode, StringComparison.OrdinalIgnoreCase))
         {
-            throw new PostingInvariantViolationException(message);
+            throw new PostingInvariantViolationException(message, FailureKind.Validation);
         }
     }
 }

@@ -30,6 +30,8 @@ public sealed class GlobalExceptionHandler(
         );
 
         ProblemDetails problemDetails = CreateProblemDetails(exception);
+        httpContext.Response.StatusCode =
+            problemDetails.Status ?? StatusCodes.Status500InternalServerError;
 
         LogException(
             exception,

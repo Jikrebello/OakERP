@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
+using OakERP.API.Contracts.Posting;
 using OakERP.Common.Dtos.Auth;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.AccountsReceivable;
@@ -12,12 +13,129 @@ using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting.GeneralLedger;
 using Shouldly;
+using OakERP.Tests.Integration.Runtime;
 
 namespace OakERP.Tests.Integration.AccountsReceivable;
 
 [TestFixture]
 public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
 {
+    [Test]
+    public async Task Post_Endpoint_Should_Post_Draft_Ar_Receipt()
+    {
+        await AuthenticateAsync();
+
+        var receiptId = await CreateDraftReceiptAsync();
+
+        var response = await PostReceiptAsync(receiptId);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<PostResult>();
+        result.ShouldNotBeNull();
+        result!.DocKind.ShouldBe(DocKind.ArReceipt);
+        result.SourceId.ShouldBe(receiptId);
+        result.GlEntryCount.ShouldBeGreaterThan(0);
+
+        await WithDbAsync(async db =>
+        {
+            var receipt = await db.ArReceipts.SingleAsync(x => x.Id == receiptId);
+            receipt.DocStatus.ShouldBe(DocStatus.Posted);
+            receipt.PostingDate.ShouldBe(result.PostingDate);
+        });
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_Conflict_ProblemDetails_When_Receipt_Is_Already_Posted()
+    {
+        await AuthenticateAsync();
+
+        var receiptId = await CreateDraftReceiptAsync();
+        (await PostReceiptAsync(receiptId)).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var response = await PostReceiptAsync(receiptId);
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.Conflict,
+            "Posting invariant was violated."
+        );
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_Conflict_ProblemDetails_When_No_Open_Period_Exists()
+    {
+        await AuthenticateAsync();
+
+        var receiptId = await CreateDraftReceiptAsync();
+
+        var response = await PostReceiptAsync(
+            receiptId,
+            new PostDocumentRequestDto { PostingDate = DaysFromToday(40) }
+        );
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.Conflict,
+            "Posting invariant was violated."
+        );
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_BadRequest_ProblemDetails_For_NonBase_Currency()
+    {
+        await AuthenticateAsync();
+
+        var customerId = Guid.NewGuid();
+        var bankAccountId = Guid.NewGuid();
+        string docNo = $"RCPT-{Guid.NewGuid():N}";
+        await SeedReferenceDataAsync(customerId, bankAccountId, bankCurrencyCode: "USD");
+        var receiptId = await SeedDraftReceiptAsync(
+            customerId,
+            bankAccountId,
+            docNo,
+            80m,
+            currencyCode: "USD"
+        );
+
+        var response = await PostReceiptAsync(receiptId);
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.BadRequest,
+            "Posting invariant was violated."
+        );
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_NotFound_ProblemDetails_For_Unknown_Receipt()
+    {
+        await AuthenticateAsync();
+
+        var response = await PostReceiptAsync(Guid.NewGuid());
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.NotFound,
+            "AR receipt was not found."
+        );
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_BadRequest_ProblemDetails_When_Force_Is_Not_Supported()
+    {
+        await AuthenticateAsync();
+
+        var receiptId = await CreateDraftReceiptAsync();
+
+        var response = await PostReceiptAsync(receiptId, new PostDocumentRequestDto { Force = true });
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.BadRequest,
+            "The requested operation is not supported."
+        );
+    }
+
     [Test]
     public async Task Create_Endpoint_Should_Create_Unapplied_Draft_Receipt()
     {
@@ -537,7 +655,8 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
         Guid customerId,
         Guid bankAccountId,
         string docNo,
-        decimal amount
+        decimal amount,
+        string currencyCode = "ZAR"
     )
     {
         var receiptId = Guid.NewGuid();
@@ -553,7 +672,7 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
                     BankAccountId = bankAccountId,
                     ReceiptDate = DaysFromToday(-4),
                     Amount = amount,
-                    CurrencyCode = "ZAR",
+                    CurrencyCode = currencyCode,
                     DocStatus = DocStatus.Draft,
                 }
             );
@@ -562,5 +681,55 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
         });
 
         return receiptId;
+    }
+
+    private async Task<Guid> CreateDraftReceiptAsync()
+    {
+        var customerId = Guid.NewGuid();
+        var bankAccountId = Guid.NewGuid();
+        string docNo = $"RCPT-{Guid.NewGuid():N}";
+        await SeedReferenceDataAsync(customerId, bankAccountId);
+
+        var result = await PostAsync<CreateArReceiptCommand, ArReceiptCommandResultDto>(
+            ApiRoutes.ArReceipts.Create,
+            new CreateArReceiptCommand
+            {
+                DocNo = docNo,
+                CustomerId = customerId,
+                BankAccountId = bankAccountId,
+                ReceiptDate = DaysFromToday(-4),
+                Amount = 125m,
+                CurrencyCode = "ZAR",
+                Memo = "Posting transport test receipt",
+            }
+        );
+
+        result.Success.ShouldBeTrue();
+        result.Receipt.ShouldNotBeNull();
+        return result.Receipt!.ReceiptId;
+    }
+
+    private Task<HttpResponseMessage> PostReceiptAsync(
+        Guid receiptId,
+        PostDocumentRequestDto? request = null
+    ) => Client.PostAsJsonAsync(ApiRoutes.ArReceipts.Post(receiptId), request ?? new());
+
+    private static async Task AssertProblemDetailsAsync(
+        HttpResponseMessage response,
+        HttpStatusCode expectedStatusCode,
+        string expectedTitle
+    )
+    {
+        response.StatusCode.ShouldBe(expectedStatusCode);
+        response.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
+
+        var body = await RuntimeSupportTestJson.ReadJsonAsync(response);
+        body.GetProperty("status").GetInt32().ShouldBe((int)expectedStatusCode);
+        body.GetProperty("title").GetString().ShouldBe(expectedTitle);
+        body.GetProperty("type")
+            .GetString()
+            .ShouldBe($"https://httpstatuses.com/{(int)expectedStatusCode}");
+        body.GetProperty("correlationId").GetString().ShouldNotBeNullOrWhiteSpace();
+        body.GetProperty("traceId").GetString().ShouldNotBeNullOrWhiteSpace();
     }
 }

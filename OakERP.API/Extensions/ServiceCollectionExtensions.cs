@@ -11,6 +11,7 @@ using OakERP.API.Swagger.Configuration;
 using OakERP.API.Swagger.Examples.AccountsPayable;
 using OakERP.API.Swagger.Examples.AccountsReceivable;
 using OakERP.API.Swagger.Examples.Auth;
+using OakERP.API.Swagger.Examples.Posting;
 using OakERP.API.Swagger.Examples.Users;
 
 namespace OakERP.API.Extensions;
@@ -155,6 +156,7 @@ public static class ServiceCollectionExtensions
             options.SchemaFilter<CreateArInvoiceCommandExampleFilter>();
             options.SchemaFilter<CreateArReceiptCommandExampleFilter>();
             options.SchemaFilter<AllocateArReceiptCommandExampleFilter>();
+            options.SchemaFilter<PostDocumentRequestDtoExampleFilter>();
             options.SchemaFilter<CurrentUserResponseExampleFilter>();
 
             options.OperationFilter<AuthorizeOperationFilter>();

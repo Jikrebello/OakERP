@@ -17,11 +17,15 @@ public static class ApiRoutes
     public static class ApInvoices
     {
         public const string Create = "/api/ap-invoices";
+
+        public static string Post(Guid invoiceId) => $"/api/ap-invoices/{invoiceId}/post";
     }
 
     public static class ArInvoices
     {
         public const string Create = "/api/ar-invoices";
+
+        public static string Post(Guid invoiceId) => $"/api/ar-invoices/{invoiceId}/post";
     }
 
     public static class ApPayments
@@ -30,6 +34,8 @@ public static class ApiRoutes
 
         public static string Allocate(Guid paymentId) =>
             $"/api/ap-payments/{paymentId}/allocations";
+
+        public static string Post(Guid paymentId) => $"/api/ap-payments/{paymentId}/post";
     }
 
     public static class ArReceipts
@@ -38,5 +44,7 @@ public static class ApiRoutes
 
         public static string Allocate(Guid receiptId) =>
             $"/api/ar-receipts/{receiptId}/allocations";
+
+        public static string Post(Guid receiptId) => $"/api/ar-receipts/{receiptId}/post";
     }
 }

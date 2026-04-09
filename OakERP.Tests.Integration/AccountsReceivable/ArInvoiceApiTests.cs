@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
+using OakERP.API.Contracts.Posting;
 using OakERP.Common.Dtos.Auth;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.AccountsReceivable;
@@ -10,12 +11,118 @@ using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Entities.Inventory;
 using Shouldly;
+using OakERP.Tests.Integration.Runtime;
 
 namespace OakERP.Tests.Integration.AccountsReceivable;
 
 [TestFixture]
 public sealed class ArInvoiceApiTests : WebApiIntegrationTestBase
 {
+    [Test]
+    public async Task Post_Endpoint_Should_Post_Draft_Ar_Invoice()
+    {
+        await AuthenticateAsync();
+
+        var invoiceId = await CreateDraftInvoiceAsync();
+
+        var response = await PostInvoiceAsync(invoiceId);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<PostResult>();
+        result.ShouldNotBeNull();
+        result!.DocKind.ShouldBe(DocKind.ArInvoice);
+        result.SourceId.ShouldBe(invoiceId);
+        result.GlEntryCount.ShouldBeGreaterThan(0);
+
+        await WithDbAsync(async db =>
+        {
+            var invoice = await db.ArInvoices.SingleAsync(x => x.Id == invoiceId);
+            invoice.DocStatus.ShouldBe(DocStatus.Posted);
+        });
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_Conflict_ProblemDetails_When_Invoice_Is_Already_Posted()
+    {
+        await AuthenticateAsync();
+
+        var invoiceId = await CreateDraftInvoiceAsync();
+        (await PostInvoiceAsync(invoiceId)).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var response = await PostInvoiceAsync(invoiceId);
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.Conflict,
+            "Posting invariant was violated."
+        );
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_Conflict_ProblemDetails_When_No_Open_Period_Exists()
+    {
+        await AuthenticateAsync();
+
+        var invoiceId = await CreateDraftInvoiceAsync();
+
+        var response = await PostInvoiceAsync(
+            invoiceId,
+            new PostDocumentRequestDto { PostingDate = DaysFromToday(40) }
+        );
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.Conflict,
+            "Posting invariant was violated."
+        );
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_BadRequest_ProblemDetails_For_NonBase_Currency()
+    {
+        await AuthenticateAsync();
+
+        var invoiceId = await CreateDraftInvoiceAsync(currencyCode: "USD");
+
+        var response = await PostInvoiceAsync(invoiceId);
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.BadRequest,
+            "Posting invariant was violated."
+        );
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_NotFound_ProblemDetails_For_Unknown_Invoice()
+    {
+        await AuthenticateAsync();
+
+        var response = await PostInvoiceAsync(Guid.NewGuid());
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.NotFound,
+            "AR invoice was not found."
+        );
+    }
+
+    [Test]
+    public async Task Post_Endpoint_Should_Return_BadRequest_ProblemDetails_When_Force_Is_Not_Supported()
+    {
+        await AuthenticateAsync();
+
+        var invoiceId = await CreateDraftInvoiceAsync();
+
+        var response = await PostInvoiceAsync(invoiceId, new PostDocumentRequestDto { Force = true });
+
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.BadRequest,
+            "The requested operation is not supported."
+        );
+    }
+
     [Test]
     public async Task Create_Endpoint_Should_Create_Draft_Ar_Invoice_With_Mixed_Lines_And_Default_Due_Date()
     {
@@ -378,7 +485,8 @@ public sealed class ArInvoiceApiTests : WebApiIntegrationTestBase
         Guid inputTaxRateId,
         bool customerActive = true,
         bool itemActive = true,
-        bool locationActive = true
+        bool locationActive = true,
+        bool includeUsdCurrency = false
     )
     {
         string customerCode = $"CUST-{customerId.ToString("N")[..8].ToUpperInvariant()}";
@@ -399,6 +507,21 @@ public sealed class ArInvoiceApiTests : WebApiIntegrationTestBase
                         NumericCode = 710,
                         Name = "Rand",
                         Symbol = "R",
+                        Decimals = 2,
+                        IsActive = true,
+                    }
+                );
+            }
+
+            if (includeUsdCurrency && !await db.Currencies.AnyAsync(x => x.Code == "USD"))
+            {
+                db.Currencies.Add(
+                    new Currency
+                    {
+                        Code = "USD",
+                        NumericCode = 840,
+                        Name = "US Dollar",
+                        Symbol = "$",
                         Decimals = 2,
                         IsActive = true,
                     }
@@ -497,5 +620,77 @@ public sealed class ArInvoiceApiTests : WebApiIntegrationTestBase
 
             await db.SaveChangesAsync();
         });
+    }
+
+    private async Task<Guid> CreateDraftInvoiceAsync(string currencyCode = "ZAR")
+    {
+        var customerId = Guid.NewGuid();
+        var itemId = Guid.NewGuid();
+        var locationId = Guid.NewGuid();
+        var outputTaxRateId = Guid.NewGuid();
+        var inputTaxRateId = Guid.NewGuid();
+        string docNo = $"ARINV-{Guid.NewGuid():N}";
+        await SeedReferenceDataAsync(
+            customerId,
+            itemId,
+            locationId,
+            outputTaxRateId,
+            inputTaxRateId,
+            includeUsdCurrency: !string.Equals(currencyCode, "ZAR", StringComparison.OrdinalIgnoreCase)
+        );
+
+        var result = await PostAsync<CreateArInvoiceCommand, ArInvoiceCommandResultDto>(
+            ApiRoutes.ArInvoices.Create,
+            new CreateArInvoiceCommand
+            {
+                DocNo = docNo,
+                CustomerId = customerId,
+                InvoiceDate = DaysFromToday(-4),
+                CurrencyCode = currencyCode,
+                ShipTo = "Posting transport test ship-to",
+                Memo = "Posting transport test invoice",
+                TaxTotal = 15m,
+                DocTotal = 115m,
+                Lines =
+                [
+                    new ArInvoiceLineInputDto
+                    {
+                        Description = "Services",
+                        RevenueAccount = "4000",
+                        Qty = 1m,
+                        UnitPrice = 100m,
+                        LineTotal = 100m,
+                    },
+                ],
+            }
+        );
+
+        result.Success.ShouldBeTrue();
+        result.Invoice.ShouldNotBeNull();
+        return result.Invoice!.InvoiceId;
+    }
+
+    private Task<HttpResponseMessage> PostInvoiceAsync(
+        Guid invoiceId,
+        PostDocumentRequestDto? request = null
+    ) => Client.PostAsJsonAsync(ApiRoutes.ArInvoices.Post(invoiceId), request ?? new());
+
+    private static async Task AssertProblemDetailsAsync(
+        HttpResponseMessage response,
+        HttpStatusCode expectedStatusCode,
+        string expectedTitle
+    )
+    {
+        response.StatusCode.ShouldBe(expectedStatusCode);
+        response.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
+
+        var body = await RuntimeSupportTestJson.ReadJsonAsync(response);
+        body.GetProperty("status").GetInt32().ShouldBe((int)expectedStatusCode);
+        body.GetProperty("title").GetString().ShouldBe(expectedTitle);
+        body.GetProperty("type")
+            .GetString()
+            .ShouldBe($"https://httpstatuses.com/{(int)expectedStatusCode}");
+        body.GetProperty("correlationId").GetString().ShouldNotBeNullOrWhiteSpace();
+        body.GetProperty("traceId").GetString().ShouldNotBeNullOrWhiteSpace();
     }
 }

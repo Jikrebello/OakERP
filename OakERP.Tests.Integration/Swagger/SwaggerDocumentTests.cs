@@ -47,7 +47,9 @@ public sealed class SwaggerDocumentTests
         AssertRoute(document, "/api/users/admin-only", "get", requiresBearer: true);
         AssertRoute(document, "/api/users/user-only", "get", requiresBearer: true);
         AssertRoute(document, "/api/ap-invoices", "post", requiresBearer: true);
+        AssertRoute(document, "/api/ap-invoices/{invoiceId}/post", "post", requiresBearer: true);
         AssertRoute(document, "/api/ar-invoices", "post", requiresBearer: true);
+        AssertRoute(document, "/api/ar-invoices/{invoiceId}/post", "post", requiresBearer: true);
         AssertRoute(document, "/api/ap-payments", "post", requiresBearer: true);
         AssertRoute(
             document,
@@ -55,10 +57,22 @@ public sealed class SwaggerDocumentTests
             "post",
             requiresBearer: true
         );
+        AssertRoute(
+            document,
+            "/api/ap-payments/{paymentId}/post",
+            "post",
+            requiresBearer: true
+        );
         AssertRoute(document, "/api/ar-receipts", "post", requiresBearer: true);
         AssertRoute(
             document,
             "/api/ar-receipts/{receiptId}/allocations",
+            "post",
+            requiresBearer: true
+        );
+        AssertRoute(
+            document,
+            "/api/ar-receipts/{receiptId}/post",
             "post",
             requiresBearer: true
         );
@@ -100,10 +114,24 @@ public sealed class SwaggerDocumentTests
         );
         AssertRequestBodyAndSuccessResponse(
             document,
+            "/api/ap-invoices/{invoiceId}/post",
+            "post",
+            "PostDocumentRequestDto",
+            "PostResult"
+        );
+        AssertRequestBodyAndSuccessResponse(
+            document,
             "/api/ar-invoices",
             "post",
             "CreateArInvoiceCommand",
             "ArInvoiceCommandResultDto"
+        );
+        AssertRequestBodyAndSuccessResponse(
+            document,
+            "/api/ar-invoices/{invoiceId}/post",
+            "post",
+            "PostDocumentRequestDto",
+            "PostResult"
         );
         AssertRequestBodyAndSuccessResponse(
             document,
@@ -121,6 +149,13 @@ public sealed class SwaggerDocumentTests
         );
         AssertRequestBodyAndSuccessResponse(
             document,
+            "/api/ap-payments/{paymentId}/post",
+            "post",
+            "PostDocumentRequestDto",
+            "PostResult"
+        );
+        AssertRequestBodyAndSuccessResponse(
+            document,
             "/api/ar-receipts",
             "post",
             "CreateArReceiptCommand",
@@ -133,6 +168,18 @@ public sealed class SwaggerDocumentTests
             "AllocateArReceiptCommand",
             "ArReceiptCommandResultDto"
         );
+        AssertRequestBodyAndSuccessResponse(
+            document,
+            "/api/ar-receipts/{receiptId}/post",
+            "post",
+            "PostDocumentRequestDto",
+            "PostResult"
+        );
+
+        AssertCommonPostingResponses(document, "/api/ap-invoices/{invoiceId}/post");
+        AssertCommonPostingResponses(document, "/api/ar-invoices/{invoiceId}/post");
+        AssertCommonPostingResponses(document, "/api/ap-payments/{paymentId}/post");
+        AssertCommonPostingResponses(document, "/api/ar-receipts/{receiptId}/post");
 
         AssertResponseExists(document, "/api/users/whoami", "get", "200");
         AssertResponseExists(document, "/api/users/whoami", "get", "401");
@@ -155,6 +202,7 @@ public sealed class SwaggerDocumentTests
         AssertSchemaExample(document, "AllocateApPaymentCommand");
         AssertSchemaExample(document, "CreateArReceiptCommand");
         AssertSchemaExample(document, "AllocateArReceiptCommand");
+        AssertSchemaExample(document, "PostDocumentRequestDto");
         AssertSchemaExample(document, "CurrentUserResponse");
         AssertArInvoiceCreateExampleShape(document);
     }
@@ -242,6 +290,14 @@ public sealed class SwaggerDocumentTests
             Is.True,
             $"{path} is missing response {statusCode}."
         );
+    }
+
+    private static void AssertCommonPostingResponses(JsonDocument document, string path)
+    {
+        AssertResponseExists(document, path, "post", "400");
+        AssertResponseExists(document, path, "post", "404");
+        AssertResponseExists(document, path, "post", "409");
+        AssertResponseExists(document, path, "post", "500");
     }
 
     private static void AssertSchemaExample(JsonDocument document, string schemaName)
