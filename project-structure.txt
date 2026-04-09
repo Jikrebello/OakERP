@@ -51,6 +51,10 @@ OakERP
 |   +-- ai
 |   |   +-- tasks
 |   |   |   +-- active
+|   |   |   |   +-- ap-payment-bank-transaction
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- ar-invoice-backend
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
