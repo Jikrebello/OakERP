@@ -51,7 +51,11 @@ OakERP
 |   +-- ai
 |   |   +-- tasks
 |   |   |   +-- active
-|   |   |   |   \-- ar-invoice-backend
+|   |   |   |   +-- ar-invoice-backend
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   \-- posting-transport-api
 |   |   |   |       +-- findings.md
 |   |   |   |       +-- progress.md
 |   |   |   |       \-- task_plan.md
@@ -221,6 +225,9 @@ OakERP
 |   +-- 02-init-extensions.sh
 |   \-- init.sql
 +-- OakERP.API
+|   +-- Contracts
+|   |   \-- Posting
+|   |       \-- PostDocumentRequestDto.cs
 |   +-- Controllers
 |   |   +-- ApInvoicesController.cs
 |   |   +-- ApPaymentsController.cs
@@ -261,6 +268,8 @@ OakERP
 |   |       +-- Auth
 |   |       |   +-- LoginDtoExampleFilter.cs
 |   |       |   \-- RegisterDtoExampleFilter.cs
+|   |       +-- Posting
+|   |       |   \-- PostDocumentRequestDtoExampleFilter.cs
 |   |       \-- Users
 |   |           \-- CurrentUserResponseExampleFilter.cs
 |   +-- appsettings.Development.json
@@ -952,11 +961,13 @@ OakERP
 |   |   +-- ArInvoicePostingContextBuilderTests.cs
 |   |   +-- ArInvoicePostingServiceTests.cs
 |   |   +-- ArReceiptPostingServiceTests.cs
+|   |   +-- DocumentPostingControllerTests.cs
 |   |   +-- MovingAverageInventoryCostServiceTests.cs
 |   |   +-- PostingEngineApInvoiceTests.cs
 |   |   +-- PostingEngineApPaymentTests.cs
 |   |   +-- PostingEngineArInvoiceTests.cs
 |   |   +-- PostingEngineArReceiptTests.cs
+|   |   +-- PostingOperationSupportTests.cs
 |   |   +-- PostingResultProcessorTests.cs
 |   |   +-- PostingServiceTestFactory.cs
 |   |   \-- PostingTransactionExecutorTests.cs
