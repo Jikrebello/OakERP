@@ -13,6 +13,7 @@ using OakERP.Domain.Posting.AccountsReceivable;
 using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Domain.RepositoryInterfaces.AccountsPayable;
 using OakERP.Domain.RepositoryInterfaces.AccountsReceivable;
+using OakERP.Domain.RepositoryInterfaces.Bank;
 using OakERP.Domain.RepositoryInterfaces.GeneralLedger;
 using OakERP.Domain.RepositoryInterfaces.Inventory;
 
@@ -24,6 +25,8 @@ public sealed class PostingServiceTestFactory
     public Mock<IApInvoiceRepository> ApInvoiceRepository { get; } = new(MockBehavior.Strict);
     public Mock<IArInvoiceRepository> ArInvoiceRepository { get; } = new(MockBehavior.Strict);
     public Mock<IArReceiptRepository> ArReceiptRepository { get; } = new(MockBehavior.Strict);
+    public Mock<IBankTransactionRepository> BankTransactionRepository { get; } =
+        new(MockBehavior.Strict);
     public Mock<IFiscalPeriodRepository> FiscalPeriodRepository { get; } = new(MockBehavior.Strict);
     public Mock<IGlAccountRepository> GlAccountRepository { get; } = new(MockBehavior.Strict);
     public Mock<IGlEntryRepository> GlEntryRepository { get; } = new(MockBehavior.Strict);
@@ -82,6 +85,7 @@ public sealed class PostingServiceTestFactory
                 ArInvoiceRepository.Object,
                 ArReceiptRepository.Object
             ),
+            BankTransactionRepository.Object,
             new PostingPersistenceDependencies(
                 FiscalPeriodRepository.Object,
                 GlAccountRepository.Object,

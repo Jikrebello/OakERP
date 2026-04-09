@@ -1,4 +1,5 @@
 using OakERP.Common.Enums;
+using OakERP.Domain.RepositoryInterfaces.Bank;
 
 namespace OakERP.Application.Posting.Services;
 
@@ -11,6 +12,7 @@ public sealed class PostingService : IPostingService
 
     public PostingService(
         PostingSourceRepositories sourceRepositories,
+        IBankTransactionRepository bankTransactionRepository,
         PostingPersistenceDependencies persistenceDependencies,
         PostingRuntimeDependencies runtimeDependencies,
         PostingContextBuilders contextBuilders
@@ -44,6 +46,7 @@ public sealed class PostingService : IPostingService
         );
         arReceiptOperation = new ArReceiptPostingOperation(
             sourceRepositories.ArReceiptRepository,
+            bankTransactionRepository,
             contextBuilders.ArReceiptPostingContextBuilder,
             support,
             transactionExecutor

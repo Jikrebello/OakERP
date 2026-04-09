@@ -133,6 +133,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IArReceiptAllocationRepository, ArReceiptAllocationRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IBankAccountRepository, BankAccountRepository>();
+        services.AddScoped<IBankTransactionRepository, BankTransactionRepository>();
         services.AddScoped<ICurrencyRepository, CurrencyRepository>();
         services.AddScoped<ITaxRateRepository, TaxRateRepository>();
         services.AddScoped<IFiscalPeriodRepository, FiscalPeriodRepository>();

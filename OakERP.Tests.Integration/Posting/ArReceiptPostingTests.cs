@@ -45,7 +45,19 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
                 .All(x => x.SourceType == OakERP.Domain.Posting.PostingSourceTypes.ArReceipt)
                 .ShouldBeTrue();
             (await db.InventoryLedgers.CountAsync(x => x.SourceId == receiptId)).ShouldBe(0);
-            (await db.BankTransactions.CountAsync(x => x.SourceId == receiptId)).ShouldBe(0);
+            var bankTransaction = await db.BankTransactions.SingleAsync(x =>
+                x.SourceId == receiptId
+            );
+            bankTransaction.BankAccountId.ShouldBe(receipt.BankAccountId);
+            receipt.PostingDate.ShouldNotBeNull();
+            bankTransaction.TxnDate.ShouldBe(receipt.PostingDate.Value);
+            bankTransaction.Amount.ShouldBe(125m);
+            bankTransaction.DrAccountNo.ShouldBe("1000");
+            bankTransaction.CrAccountNo.ShouldBe("1100");
+            bankTransaction.SourceType.ShouldBe(OakERP.Domain.Posting.PostingSourceTypes.ArReceipt);
+            bankTransaction.Description.ShouldBe($"AR receipt {receipt.DocNo}");
+            bankTransaction.ExternalRef.ShouldBeNull();
+            bankTransaction.IsReconciled.ShouldBeFalse();
         });
     }
 
@@ -72,6 +84,10 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
             glEntries.ShouldContain(x => x.AccountNo == "1000" && x.Debit == 150m);
             glEntries.ShouldContain(x => x.AccountNo == "1100" && x.Credit == 150m);
             (await db.ArReceiptAllocations.CountAsync(x => x.ArReceiptId == receiptId)).ShouldBe(1);
+            var bankTransaction = await db.BankTransactions.SingleAsync(x =>
+                x.SourceId == receiptId
+            );
+            bankTransaction.Amount.ShouldBe(150m);
         });
     }
 
@@ -92,6 +108,7 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
             receipt.DocStatus.ShouldBe(DocStatus.Posted);
             (await db.GlEntries.CountAsync(x => x.SourceId == receiptId)).ShouldBe(2);
             (await db.InventoryLedgers.CountAsync(x => x.SourceId == receiptId)).ShouldBe(0);
+            (await db.BankTransactions.CountAsync(x => x.SourceId == receiptId)).ShouldBe(1);
         });
     }
 
@@ -131,7 +148,18 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
             receipt.DocStatus.ShouldBe(DocStatus.Posted);
             (await db.GlEntries.CountAsync(x => x.SourceId == receiptId)).ShouldBe(2);
             (await db.InventoryLedgers.CountAsync(x => x.SourceId == receiptId)).ShouldBe(0);
+            (await db.BankTransactions.CountAsync(x => x.SourceId == receiptId)).ShouldBe(1);
         });
+    }
+
+    [Test]
+    public async Task PostAsync_Should_Roll_Back_Gl_And_Bank_Transaction_When_Save_Fails()
+    {
+        var receiptId = await SeedReceiptScenarioAsync(bankGlAccountNo: "1100");
+
+        await Should.ThrowAsync<DbUpdateException>(() => PostReceiptAsync(receiptId));
+
+        await AssertNoPostingWrittenAsync(receiptId);
     }
 
     [Test]
@@ -205,7 +233,8 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
         decimal allocatedAmount = 0m,
         bool includeOpenPeriod = true,
         string currencyCode = "ZAR",
-        DateOnly? receiptDate = null
+        DateOnly? receiptDate = null,
+        string bankGlAccountNo = "1000"
     )
     {
         var receiptId = Guid.NewGuid();
@@ -338,7 +367,7 @@ public sealed class ArReceiptPostingTests : WebApiIntegrationTestBase
                 {
                     Id = bankAccountId,
                     Name = bankName,
-                    GlAccountNo = "1000",
+                    GlAccountNo = bankGlAccountNo,
                     OpeningBalance = 0m,
                     CurrencyCode = currencyCode,
                     IsActive = true,

@@ -41,6 +41,14 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
             var receipt = await db.ArReceipts.SingleAsync(x => x.Id == receiptId);
             receipt.DocStatus.ShouldBe(DocStatus.Posted);
             receipt.PostingDate.ShouldBe(result.PostingDate);
+            var bankTransaction = await db.BankTransactions.SingleAsync(x =>
+                x.SourceId == receiptId
+            );
+            bankTransaction.BankAccountId.ShouldBe(receipt.BankAccountId);
+            bankTransaction.TxnDate.ShouldBe(result.PostingDate);
+            bankTransaction.Amount.ShouldBe(receipt.Amount);
+            bankTransaction.SourceType.ShouldBe(OakERP.Domain.Posting.PostingSourceTypes.ArReceipt);
+            bankTransaction.SourceId.ShouldBe(receiptId);
         });
     }
 

@@ -1,16 +1,19 @@
 using OakERP.Common.Enums;
 using OakERP.Domain.AccountsReceivable;
 using OakERP.Domain.Entities.AccountsReceivable;
+using OakERP.Domain.Entities.Bank;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.AccountsReceivable;
 using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Domain.RepositoryInterfaces.AccountsReceivable;
+using OakERP.Domain.RepositoryInterfaces.Bank;
 
 namespace OakERP.Application.Posting.Operations;
 
 internal sealed class ArReceiptPostingOperation(
     IArReceiptRepository arReceiptRepository,
+    IBankTransactionRepository bankTransactionRepository,
     IArReceiptPostingContextBuilder contextBuilder,
     PostingOperationSupport support,
     PostingTransactionExecutor transactionExecutor
@@ -101,6 +104,23 @@ internal sealed class ArReceiptPostingOperation(
                     inventoryRowsAllowed: false,
                     command.PerformedBy,
                     ct
+                );
+
+                await bankTransactionRepository.AddAsync(
+                    new BankTransaction
+                    {
+                        BankAccountId = receipt.BankAccountId,
+                        TxnDate = postingDate,
+                        Amount = receipt.Amount,
+                        DrAccountNo = receipt.BankAccount.GlAccountNo,
+                        CrAccountNo = settings.ArControlAccountNo,
+                        SourceType = PostingSourceTypes.ArReceipt,
+                        SourceId = receipt.Id,
+                        Description = $"AR receipt {receipt.DocNo}",
+                        ExternalRef = null,
+                        IsReconciled = false,
+                        CreatedBy = command.PerformedBy,
+                    }
                 );
 
                 receipt.DocStatus = DocStatus.Posted;
