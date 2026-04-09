@@ -55,10 +55,14 @@ public sealed class ArInvoiceServiceTests
                 x.FindNoTrackingAsync(location.Id, It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(location);
-        _factory.TaxRateRepository.Setup(x => x.GetByIdAsync(taxRate.Id)).ReturnsAsync(taxRate);
+        _factory
+            .TaxRateRepository.Setup(x =>
+                x.FindNoTrackingAsync(taxRate.Id, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(taxRate);
         _factory
             .ArInvoiceRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsReceivable.ArInvoice>())
+                x.AddAsync(It.IsAny<Domain.Entities.AccountsReceivable.ArInvoice>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -144,7 +148,7 @@ public sealed class ArInvoiceServiceTests
             .GlAccountRepository.Setup(x =>
                 x.FindNoTrackingAsync("4999", It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync((OakERP.Domain.Entities.GeneralLedger.GlAccount?)null);
+            .ReturnsAsync((Domain.Entities.GeneralLedger.GlAccount?)null);
 
         var service = _factory.CreateService();
 
@@ -201,7 +205,11 @@ public sealed class ArInvoiceServiceTests
                 x.FindNoTrackingAsync(location.Id, It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(location);
-        _factory.TaxRateRepository.Setup(x => x.GetByIdAsync(taxRate.Id)).ReturnsAsync(taxRate);
+        _factory
+            .TaxRateRepository.Setup(x =>
+                x.FindNoTrackingAsync(taxRate.Id, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(taxRate);
 
         var service = _factory.CreateService();
 
@@ -297,10 +305,14 @@ public sealed class ArInvoiceServiceTests
                 x.FindNoTrackingAsync(location.Id, It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(location);
-        _factory.TaxRateRepository.Setup(x => x.GetByIdAsync(taxRate.Id)).ReturnsAsync(taxRate);
+        _factory
+            .TaxRateRepository.Setup(x =>
+                x.FindNoTrackingAsync(taxRate.Id, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(taxRate);
         _factory
             .ArInvoiceRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsReceivable.ArInvoice>())
+                x.AddAsync(It.IsAny<Domain.Entities.AccountsReceivable.ArInvoice>())
             )
             .Returns(Task.CompletedTask);
         _factory

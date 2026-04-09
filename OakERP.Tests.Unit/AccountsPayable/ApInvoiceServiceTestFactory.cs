@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
+using OakERP.Application.AccountsPayable.Invoices.Support;
+using OakERP.Application.Common.Orchestration;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Domain.Entities.AccountsPayable;
 using OakERP.Domain.Entities.Common;
@@ -53,13 +55,17 @@ public sealed class ApInvoiceServiceTestFactory
 
     public ApInvoiceService CreateService() =>
         new(
-            ApInvoiceRepository.Object,
-            VendorRepository.Object,
-            CurrencyRepository.Object,
-            GlAccountRepository.Object,
-            UnitOfWork.Object,
-            PersistenceFailureClassifier.Object,
-            Clock.Object,
+            new ApInvoiceCreateDependencies(
+                ApInvoiceRepository.Object,
+                VendorRepository.Object,
+                CurrencyRepository.Object,
+                GlAccountRepository.Object
+            ),
+            new InvoiceCreateWorkflowDependencies(
+                UnitOfWork.Object,
+                PersistenceFailureClassifier.Object,
+                Clock.Object
+            ),
             Logger.Object
         );
 

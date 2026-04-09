@@ -107,9 +107,7 @@ public sealed class ArReceiptPostingServiceTests
                 }
             );
         _factory
-            .GlEntryRepository.Setup(x =>
-                x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>())
-            )
+            .GlEntryRepository.Setup(x => x.AddAsync(It.IsAny<GlEntry>()))
             .Returns(Task.CompletedTask);
         _factory
             .UnitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
@@ -128,10 +126,7 @@ public sealed class ArReceiptPostingServiceTests
             x => x.AddAsync(It.IsAny<Domain.Entities.Inventory.InventoryLedger>()),
             Times.Never
         );
-        _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
-            Times.Exactly(2)
-        );
+        _factory.GlEntryRepository.Verify(x => x.AddAsync(It.IsAny<GlEntry>()), Times.Exactly(2));
         _factory.UnitOfWork.Verify(x => x.CommitAsync(), Times.Once);
     }
 
@@ -156,10 +151,7 @@ public sealed class ArReceiptPostingServiceTests
         );
 
         ex.Message.ShouldContain("exceed the receipt amount");
-        _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
-            Times.Never
-        );
+        _factory.GlEntryRepository.Verify(x => x.AddAsync(It.IsAny<GlEntry>()), Times.Never);
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
     }
 

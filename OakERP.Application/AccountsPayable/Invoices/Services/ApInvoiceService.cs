@@ -1,37 +1,20 @@
 using Microsoft.Extensions.Logging;
-using OakERP.Application.Interfaces.Persistence;
-using OakERP.Domain.RepositoryInterfaces.AccountsPayable;
-using OakERP.Domain.RepositoryInterfaces.Common;
-using OakERP.Domain.RepositoryInterfaces.GeneralLedger;
+using OakERP.Application.AccountsPayable.Invoices.Support;
+using OakERP.Application.Common.Orchestration;
 
 namespace OakERP.Application.AccountsPayable.Invoices.Services;
 
-public sealed class ApInvoiceService : IApInvoiceService
+public sealed class ApInvoiceService(
+    ApInvoiceCreateDependencies repositories,
+    InvoiceCreateWorkflowDependencies dependencies,
+    ILogger<ApInvoiceService> logger
+) : IApInvoiceService
 {
-    private readonly ApInvoiceCreateWorkflow createWorkflow;
-
-    public ApInvoiceService(
-        IApInvoiceRepository apInvoiceRepository,
-        IVendorRepository vendorRepository,
-        ICurrencyRepository currencyRepository,
-        IGlAccountRepository glAccountRepository,
-        IUnitOfWork unitOfWork,
-        IPersistenceFailureClassifier persistenceFailureClassifier,
-        IClock clock,
-        ILogger<ApInvoiceService> logger
-    )
-    {
-        createWorkflow = new ApInvoiceCreateWorkflow(
-            apInvoiceRepository,
-            vendorRepository,
-            currencyRepository,
-            glAccountRepository,
-            unitOfWork,
-            persistenceFailureClassifier,
-            clock,
-            logger
-        );
-    }
+    private readonly ApInvoiceCreateWorkflow createWorkflow = new(
+        repositories,
+        dependencies,
+        logger
+    );
 
     public Task<ApInvoiceCommandResultDto> CreateAsync(
         CreateApInvoiceCommand command,

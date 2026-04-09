@@ -43,7 +43,7 @@ public static class ServiceCollectionExtensions
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.OnRejected = WriteRateLimitProblemDetailsAsync;
-            options.AddPolicy<string>(
+            options.AddPolicy(
                 AuthRateLimitSettings.PolicyName,
                 httpContext =>
                     RateLimitPartition.GetFixedWindowLimiter(

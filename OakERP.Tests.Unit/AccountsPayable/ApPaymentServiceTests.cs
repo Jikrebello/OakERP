@@ -43,7 +43,7 @@ public sealed class ApPaymentServiceTests
             .ReturnsAsync(false);
         _factory
             .ApPaymentRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsPayable.ApPayment>())
+                x.AddAsync(It.IsAny<Domain.Entities.AccountsPayable.ApPayment>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -112,7 +112,7 @@ public sealed class ApPaymentServiceTests
             .ReturnsAsync(false);
         _factory
             .ApPaymentRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsPayable.ApPayment>())
+                x.AddAsync(It.IsAny<Domain.Entities.AccountsPayable.ApPayment>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -231,7 +231,7 @@ public sealed class ApPaymentServiceTests
             .ReturnsAsync(false);
         _factory
             .ApPaymentRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsPayable.ApPayment>())
+                x.AddAsync(It.IsAny<Domain.Entities.AccountsPayable.ApPayment>())
             )
             .Returns(Task.CompletedTask);
         _factory

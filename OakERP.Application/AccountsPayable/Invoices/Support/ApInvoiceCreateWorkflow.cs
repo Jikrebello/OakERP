@@ -1,23 +1,14 @@
 using Microsoft.Extensions.Logging;
 using OakERP.Application.Common.Orchestration;
-using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.AccountsPayable;
-using OakERP.Domain.RepositoryInterfaces.AccountsPayable;
-using OakERP.Domain.RepositoryInterfaces.Common;
-using OakERP.Domain.RepositoryInterfaces.GeneralLedger;
 
 namespace OakERP.Application.AccountsPayable.Invoices.Support;
 
 internal sealed class ApInvoiceCreateWorkflow(
-    IApInvoiceRepository apInvoiceRepository,
-    IVendorRepository vendorRepository,
-    ICurrencyRepository currencyRepository,
-    IGlAccountRepository glAccountRepository,
-    IUnitOfWork unitOfWork,
-    IPersistenceFailureClassifier persistenceFailureClassifier,
-    IClock clock,
-    ILogger<Services.ApInvoiceService> logger
+    ApInvoiceCreateDependencies repositories,
+    InvoiceCreateWorkflowDependencies dependencies,
+    ILogger<ApInvoiceService> logger
 )
 {
     private sealed record CreatePreconditions(Vendor Vendor);
@@ -46,12 +37,12 @@ internal sealed class ApInvoiceCreateWorkflow(
                 return preconditionFailure;
             }
 
-            return await new ResultWorkflowTransactionRunner(unitOfWork).ExecuteAsync(
+            return await dependencies.TransactionRunner.ExecuteAsync(
                 async _ =>
                 {
                     var invoice = BuildInvoice(command, validatedCommand, preconditions!.Vendor);
 
-                    await apInvoiceRepository.AddAsync(invoice);
+                    await repositories.ApInvoiceRepository.AddAsync(invoice);
 
                     return ApInvoiceSnapshotFactory.BuildSuccess(
                         invoice,
@@ -65,19 +56,15 @@ internal sealed class ApInvoiceCreateWorkflow(
         {
             ApInvoiceCommandResultDto? translatedFailure = WorkflowFailureTranslator.TryTranslate(
                 ex,
-                [
-                    new WorkflowExceptionRule<ApInvoiceCommandResultDto>(
-                        persistenceFailureClassifier.IsApInvoiceDocNoConflict,
-                        _ => ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.DuplicateDocumentNumber)
-                    ),
-                    new WorkflowExceptionRule<ApInvoiceCommandResultDto>(
-                        persistenceFailureClassifier.IsApInvoiceVendorInvoiceNoConflict,
-                        _ =>
-                            ApInvoiceCommandResultDto.Fail(
-                                ApInvoiceErrors.DuplicateVendorInvoiceNumber
-                            )
-                    ),
-                ]
+                new WorkflowExceptionRule<ApInvoiceCommandResultDto>(
+                    dependencies.PersistenceFailureClassifier.IsApInvoiceDocNoConflict,
+                    _ => ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.DuplicateDocumentNumber)
+                ),
+                new WorkflowExceptionRule<ApInvoiceCommandResultDto>(
+                    dependencies.PersistenceFailureClassifier.IsApInvoiceVendorInvoiceNoConflict,
+                    _ =>
+                        ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.DuplicateVendorInvoiceNumber)
+                )
             );
             if (translatedFailure is not null)
             {
@@ -98,7 +85,7 @@ internal sealed class ApInvoiceCreateWorkflow(
         CancellationToken cancellationToken
     )
     {
-        Vendor? vendor = await vendorRepository.FindNoTrackingAsync(
+        Vendor? vendor = await repositories.VendorRepository.FindNoTrackingAsync(
             command.VendorId,
             cancellationToken
         );
@@ -147,7 +134,7 @@ internal sealed class ApInvoiceCreateWorkflow(
         CancellationToken cancellationToken
     )
     {
-        var currency = await currencyRepository.FindNoTrackingAsync(
+        var currency = await repositories.CurrencyRepository.FindNoTrackingAsync(
             currencyCode,
             cancellationToken
         );
@@ -160,13 +147,18 @@ internal sealed class ApInvoiceCreateWorkflow(
         CancellationToken cancellationToken
     )
     {
-        if (await apInvoiceRepository.ExistsDocNoAsync(validatedCommand.DocNo, cancellationToken))
+        if (
+            await repositories.ApInvoiceRepository.ExistsDocNoAsync(
+                validatedCommand.DocNo,
+                cancellationToken
+            )
+        )
         {
             return ApInvoiceCommandResultDto.Fail(ApInvoiceErrors.DuplicateDocumentNumber);
         }
 
         if (
-            await apInvoiceRepository.ExistsVendorInvoiceNoAsync(
+            await repositories.ApInvoiceRepository.ExistsVendorInvoiceNoAsync(
                 command.VendorId,
                 validatedCommand.InvoiceNo,
                 cancellationToken
@@ -191,7 +183,7 @@ internal sealed class ApInvoiceCreateWorkflow(
 
         foreach (string accountNo in accountNumbers)
         {
-            var account = await glAccountRepository.FindNoTrackingAsync(
+            var account = await repositories.GlAccountRepository.FindNoTrackingAsync(
                 accountNo,
                 cancellationToken
             );
@@ -212,7 +204,7 @@ internal sealed class ApInvoiceCreateWorkflow(
         Vendor vendor
     )
     {
-        DateTimeOffset updatedAt = clock.UtcNow;
+        DateTimeOffset updatedAt = dependencies.Clock.UtcNow;
         DateOnly dueDate = command.DueDate ?? command.InvoiceDate.AddDays(vendor.TermsDays);
 
         return new ApInvoice

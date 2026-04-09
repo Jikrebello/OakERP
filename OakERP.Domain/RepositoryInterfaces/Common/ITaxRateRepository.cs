@@ -4,13 +4,13 @@ namespace OakERP.Domain.RepositoryInterfaces.Common;
 
 public interface ITaxRateRepository
 {
-    Task<TaxRate?> GetByIdAsync(Guid id);
+    ValueTask<TaxRate?> FindTrackedAsync(Guid id, CancellationToken ct = default);
 
-    IQueryable<TaxRate> Query();
+    Task<TaxRate?> FindNoTrackingAsync(Guid id, CancellationToken ct = default);
 
-    Task CreateAsync(TaxRate taxRate);
+    IQueryable<TaxRate> QueryNoTracking();
 
-    Task UpdateAsync(TaxRate taxRate);
+    Task AddAsync(TaxRate entity);
 
-    Task DeleteAsync(TaxRate taxRate);
+    Task RemoveAsync(TaxRate entity);
 }

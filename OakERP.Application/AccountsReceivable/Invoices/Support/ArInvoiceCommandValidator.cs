@@ -138,8 +138,8 @@ public static class ArInvoiceCommandValidator
     private static List<ValidatedArInvoiceLineInput> NormalizeLines(
         IReadOnlyList<ArInvoiceLineInputDto> lines
     ) =>
-        lines
-            .Select(x => new ValidatedArInvoiceLineInput(
+        [
+            .. lines.Select(x => new ValidatedArInvoiceLineInput(
                 NormalizeOptional(x.Description),
                 NormalizeOptional(x.RevenueAccount),
                 x.ItemId,
@@ -148,8 +148,8 @@ public static class ArInvoiceCommandValidator
                 x.TaxRateId,
                 x.LocationId,
                 x.LineTotal
-            ))
-            .ToList();
+            )),
+        ];
 
     private static string NormalizeCurrencyCode(string? currencyCode) =>
         string.IsNullOrWhiteSpace(currencyCode)

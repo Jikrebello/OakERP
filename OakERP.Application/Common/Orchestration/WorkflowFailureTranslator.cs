@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace OakERP.Application.Common.Orchestration;
 
 internal sealed class WorkflowExceptionRule<TResult>(
@@ -17,14 +19,9 @@ internal static class WorkflowFailureTranslator
         params WorkflowExceptionRule<TResult>[] rules
     )
     {
-        foreach (WorkflowExceptionRule<TResult> rule in rules)
-        {
-            if (rule.Matches(exception))
-            {
-                return rule.Translate(exception);
-            }
-        }
-
-        return default;
+        WorkflowExceptionRule<TResult>? matchingRule = rules.FirstOrDefault(rule =>
+            rule.Matches(exception)
+        );
+        return matchingRule is null ? default : matchingRule.Translate(exception);
     }
 }

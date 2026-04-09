@@ -1,6 +1,5 @@
 using Microsoft.OpenApi.Any;
 using OakERP.API.Swagger.Configuration;
-using OakERP.Application.AccountsPayable.Payments.Commands;
 
 namespace OakERP.API.Swagger.Examples.AccountsPayable;
 

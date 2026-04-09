@@ -17,7 +17,7 @@ internal sealed class ArReceiptCreateWorkflow(
     ICustomerRepository customerRepository,
     IBankAccountRepository bankAccountRepository,
     SettlementDocumentWorkflowDependencies dependencies,
-    ILogger<Services.ArReceiptService> logger
+    ILogger<ArReceiptService> logger
 )
 {
     public async Task<ArReceiptCommandResultDto> ExecuteAsync(
@@ -170,32 +170,30 @@ internal sealed class ArReceiptCreateWorkflow(
         {
             ArReceiptCommandResultDto? translatedFailure = WorkflowFailureTranslator.TryTranslate(
                 ex,
-                [
-                    new WorkflowExceptionRule<ArReceiptCommandResultDto>(
-                        innerException =>
-                            dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(
-                                innerException
-                            ),
-                        innerException =>
-                        {
-                            logger.LogWarning(
-                                innerException,
-                                "Concurrency failure while creating AR receipt {DocNo}",
-                                command.DocNo
-                            );
-                            return ArReceiptCommandResultDto.Fail(
-                                ArReceiptErrors.AllocationConcurrencyConflict
-                            );
-                        }
-                    ),
-                    new WorkflowExceptionRule<ArReceiptCommandResultDto>(
-                        innerException =>
-                            dependencies.PersistenceFailureClassifier.IsArReceiptDocNoConflict(
-                                innerException
-                            ),
-                        _ => ArReceiptCommandResultDto.Fail(ArReceiptErrors.DuplicateDocumentNumber)
-                    ),
-                ]
+                new WorkflowExceptionRule<ArReceiptCommandResultDto>(
+                    innerException =>
+                        dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(
+                            innerException
+                        ),
+                    innerException =>
+                    {
+                        logger.LogWarning(
+                            innerException,
+                            "Concurrency failure while creating AR receipt {DocNo}",
+                            command.DocNo
+                        );
+                        return ArReceiptCommandResultDto.Fail(
+                            ArReceiptErrors.AllocationConcurrencyConflict
+                        );
+                    }
+                ),
+                new WorkflowExceptionRule<ArReceiptCommandResultDto>(
+                    innerException =>
+                        dependencies.PersistenceFailureClassifier.IsArReceiptDocNoConflict(
+                            innerException
+                        ),
+                    _ => ArReceiptCommandResultDto.Fail(ArReceiptErrors.DuplicateDocumentNumber)
+                )
             );
             if (translatedFailure is not null)
             {

@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
+using OakERP.Application.AccountsReceivable.Invoices.Support;
+using OakERP.Application.Common.Orchestration;
 using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.AccountsReceivable;
@@ -59,16 +61,20 @@ public sealed class ArInvoiceServiceTestFactory
 
     public ArInvoiceService CreateService() =>
         new(
-            ArInvoiceRepository.Object,
-            CustomerRepository.Object,
-            CurrencyRepository.Object,
-            GlAccountRepository.Object,
-            ItemRepository.Object,
-            LocationRepository.Object,
-            TaxRateRepository.Object,
-            UnitOfWork.Object,
-            PersistenceFailureClassifier.Object,
-            Clock.Object,
+            new ArInvoiceCreateDependencies(
+                ArInvoiceRepository.Object,
+                CustomerRepository.Object,
+                CurrencyRepository.Object,
+                GlAccountRepository.Object,
+                ItemRepository.Object,
+                LocationRepository.Object,
+                TaxRateRepository.Object
+            ),
+            new InvoiceCreateWorkflowDependencies(
+                UnitOfWork.Object,
+                PersistenceFailureClassifier.Object,
+                Clock.Object
+            ),
             Logger.Object
         );
 

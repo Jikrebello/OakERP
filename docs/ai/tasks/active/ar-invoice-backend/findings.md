@@ -36,7 +36,8 @@ ar-invoice-backend
 - Thin orchestrators getting too thick:
   - The controller and service should stay thin; precondition loading and entity construction belong in the workflow.
 - Pure engines/calculators with side effects or lookups:
-  - Posting engines/builders must remain untouched except for compatibility validation.
+- Posting engines/builders must remain untouched except for compatibility validation.
+- The shared Application slice already had a precedent for Sonar-friendly dependency grouping through `SettlementDocumentWorkflowDependencies` and the posting dependency bundles; the AP/AR invoice create flows can follow that same pattern without introducing new abstractions.
 
 ## Configuration / Environment Notes
 - No new environment-specific configuration is needed.
@@ -44,6 +45,7 @@ ar-invoice-backend
 
 ## Testing Notes
 - Existing patterns are `[ApInvoiceApiTests]`, `[ArReceiptApiTests]`, and `[SwaggerDocumentTests]`.
+- The Sonar cleanup surfaced one stale unit-test seam: `ArInvoiceServiceTests` was still mocking a non-existent `ITaxRateRepository.GetByIdAsync` method instead of the current `FindNoTrackingAsync` contract.
 - Existing AR invoice posting tests were blocked by fixed-key seed data colliding with globally seeded integration data.
 - Compatibility validation required making `ArInvoicePostingTests.SeedInvoiceScenarioAsync` use idempotent/shared-safe seed setup and an explicit out-of-period invoice date for the missing-period negative case.
 - The broader repo pass exposed the same shared-seed collision pattern in `ApInvoiceApiTests`, `ApPaymentApiTests`, `ArReceiptApiTests`, and `AuthApiTests`; those suites needed per-test unique tenant/document identifiers rather than shared fixture-level keys.

@@ -9,21 +9,16 @@ namespace OakERP.Reports;
 // This class can be registered as scoped DI service and then injected into Blazor
 // components for use.
 
-public class ExampleJsInterop : IAsyncDisposable
+public class ExampleJsInterop(IJSRuntime jsRuntime) : IAsyncDisposable
 {
-    private readonly Lazy<Task<IJSObjectReference>> moduleTask;
-
-    public ExampleJsInterop(IJSRuntime jsRuntime)
-    {
-        moduleTask = new(() =>
-            jsRuntime
-                .InvokeAsync<IJSObjectReference>(
-                    "import",
-                    "./_content/OakERP.Reports/exampleJsInterop.js"
-                )
-                .AsTask()
-        );
-    }
+    private readonly Lazy<Task<IJSObjectReference>> moduleTask = new(() =>
+        jsRuntime
+            .InvokeAsync<IJSObjectReference>(
+                "import",
+                "./_content/OakERP.Reports/exampleJsInterop.js"
+            )
+            .AsTask()
+    );
 
     public async ValueTask<string> Prompt(string message)
     {

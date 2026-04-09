@@ -76,7 +76,7 @@ public sealed class ApInvoiceServiceTests
             .ReturnsAsync(account);
         _factory
             .ApInvoiceRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsPayable.ApInvoice>())
+                x.AddAsync(It.IsAny<Domain.Entities.AccountsPayable.ApInvoice>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -195,7 +195,7 @@ public sealed class ApInvoiceServiceTests
             .GlAccountRepository.Setup(x =>
                 x.FindNoTrackingAsync("5999", It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync((OakERP.Domain.Entities.GeneralLedger.GlAccount?)null);
+            .ReturnsAsync((Domain.Entities.GeneralLedger.GlAccount?)null);
 
         var service = _factory.CreateService();
 

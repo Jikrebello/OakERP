@@ -155,9 +155,7 @@ public sealed class ApInvoicePostingServiceTests
                 }
             );
         _factory
-            .GlEntryRepository.Setup(x =>
-                x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>())
-            )
+            .GlEntryRepository.Setup(x => x.AddAsync(It.IsAny<GlEntry>()))
             .Returns(Task.CompletedTask);
         _factory
             .UnitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
@@ -176,10 +174,7 @@ public sealed class ApInvoicePostingServiceTests
             x => x.AddAsync(It.IsAny<Domain.Entities.Inventory.InventoryLedger>()),
             Times.Never
         );
-        _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
-            Times.Exactly(4)
-        );
+        _factory.GlEntryRepository.Verify(x => x.AddAsync(It.IsAny<GlEntry>()), Times.Exactly(4));
         _factory.UnitOfWork.Verify(x => x.CommitAsync(), Times.Once);
     }
 
@@ -213,9 +208,9 @@ public sealed class ApInvoicePostingServiceTests
         _factory.ApInvoicePostingContextBuilder.Verify(
             x =>
                 x.BuildAsync(
-                    It.IsAny<OakERP.Domain.Entities.AccountsPayable.ApInvoice>(),
+                    It.IsAny<Domain.Entities.AccountsPayable.ApInvoice>(),
                     It.IsAny<DateOnly>(),
-                    It.IsAny<OakERP.Domain.Entities.GeneralLedger.FiscalPeriod>(),
+                    It.IsAny<FiscalPeriod>(),
                     It.IsAny<GlPostingSettings>(),
                     It.IsAny<PostingRule>(),
                     It.IsAny<CancellationToken>()
@@ -328,10 +323,7 @@ public sealed class ApInvoicePostingServiceTests
             x => x.AddAsync(It.IsAny<Domain.Entities.Inventory.InventoryLedger>()),
             Times.Never
         );
-        _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
-            Times.Never
-        );
+        _factory.GlEntryRepository.Verify(x => x.AddAsync(It.IsAny<GlEntry>()), Times.Never);
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
     }
 }

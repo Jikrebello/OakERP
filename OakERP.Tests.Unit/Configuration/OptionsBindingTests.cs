@@ -71,7 +71,7 @@ public sealed class OptionsBindingTests
 
         services.ShouldContain(x => x.ServiceType == typeof(IApiClient));
         services.ShouldContain(x =>
-            x.ServiceType == typeof(OakERP.Client.Services.Auth.IAuthSessionManager)
+            x.ServiceType == typeof(Client.Services.Auth.IAuthSessionManager)
         );
         services.ShouldContain(x => x.ServiceType == typeof(ICurrentUserService));
     }

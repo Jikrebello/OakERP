@@ -155,8 +155,8 @@ public static class ApInvoiceCommandValidator
     private static List<ValidatedApInvoiceLineInput> NormalizeLines(
         IReadOnlyList<ApInvoiceLineInputDto> lines
     ) =>
-        lines
-            .Select(x => new ValidatedApInvoiceLineInput(
+        [
+            .. lines.Select(x => new ValidatedApInvoiceLineInput(
                 NormalizeOptional(x.Description),
                 NormalizeOptional(x.AccountNo),
                 x.ItemId,
@@ -164,8 +164,8 @@ public static class ApInvoiceCommandValidator
                 x.UnitPrice,
                 x.TaxRateId,
                 x.LineTotal
-            ))
-            .ToList();
+            )),
+        ];
 
     private static string NormalizeCurrencyCode(string? currencyCode) =>
         string.IsNullOrWhiteSpace(currencyCode)

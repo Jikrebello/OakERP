@@ -1,29 +1,16 @@
 using Microsoft.Extensions.Logging;
 using OakERP.Application.Common.Orchestration;
-using OakERP.Application.Interfaces.Persistence;
 using OakERP.Common.Enums;
 using OakERP.Domain.Entities.AccountsReceivable;
 using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.Inventory;
-using OakERP.Domain.RepositoryInterfaces.AccountsReceivable;
-using OakERP.Domain.RepositoryInterfaces.Common;
-using OakERP.Domain.RepositoryInterfaces.GeneralLedger;
-using OakERP.Domain.RepositoryInterfaces.Inventory;
 
 namespace OakERP.Application.AccountsReceivable.Invoices.Support;
 
 internal sealed class ArInvoiceCreateWorkflow(
-    IArInvoiceRepository arInvoiceRepository,
-    ICustomerRepository customerRepository,
-    ICurrencyRepository currencyRepository,
-    IGlAccountRepository glAccountRepository,
-    IItemRepository itemRepository,
-    ILocationRepository locationRepository,
-    ITaxRateRepository taxRateRepository,
-    IUnitOfWork unitOfWork,
-    IPersistenceFailureClassifier persistenceFailureClassifier,
-    IClock clock,
-    ILogger<Services.ArInvoiceService> logger
+    ArInvoiceCreateDependencies repositories,
+    InvoiceCreateWorkflowDependencies dependencies,
+    ILogger<ArInvoiceService> logger
 )
 {
     private sealed record CreatePreconditions(Customer Customer);
@@ -52,12 +39,12 @@ internal sealed class ArInvoiceCreateWorkflow(
                 return preconditionFailure;
             }
 
-            return await new ResultWorkflowTransactionRunner(unitOfWork).ExecuteAsync(
+            return await dependencies.TransactionRunner.ExecuteAsync(
                 async _ =>
                 {
                     var invoice = BuildInvoice(command, validatedCommand, preconditions!.Customer);
 
-                    await arInvoiceRepository.AddAsync(invoice);
+                    await repositories.ArInvoiceRepository.AddAsync(invoice);
 
                     return ArInvoiceSnapshotFactory.BuildSuccess(
                         invoice,
@@ -71,12 +58,10 @@ internal sealed class ArInvoiceCreateWorkflow(
         {
             ArInvoiceCommandResultDto? translatedFailure = WorkflowFailureTranslator.TryTranslate(
                 ex,
-                [
-                    new WorkflowExceptionRule<ArInvoiceCommandResultDto>(
-                        persistenceFailureClassifier.IsArInvoiceDocNoConflict,
-                        _ => ArInvoiceCommandResultDto.Fail(ArInvoiceErrors.DuplicateDocumentNumber)
-                    ),
-                ]
+                new WorkflowExceptionRule<ArInvoiceCommandResultDto>(
+                    dependencies.PersistenceFailureClassifier.IsArInvoiceDocNoConflict,
+                    _ => ArInvoiceCommandResultDto.Fail(ArInvoiceErrors.DuplicateDocumentNumber)
+                )
             );
             if (translatedFailure is not null)
             {
@@ -97,7 +82,7 @@ internal sealed class ArInvoiceCreateWorkflow(
         CancellationToken cancellationToken
     )
     {
-        Customer? customer = await customerRepository.FindNoTrackingAsync(
+        Customer? customer = await repositories.CustomerRepository.FindNoTrackingAsync(
             command.CustomerId,
             cancellationToken
         );
@@ -119,7 +104,12 @@ internal sealed class ArInvoiceCreateWorkflow(
             );
         }
 
-        if (await arInvoiceRepository.ExistsDocNoAsync(validatedCommand.DocNo, cancellationToken))
+        if (
+            await repositories.ArInvoiceRepository.ExistsDocNoAsync(
+                validatedCommand.DocNo,
+                cancellationToken
+            )
+        )
         {
             return (null, ArInvoiceCommandResultDto.Fail(ArInvoiceErrors.DuplicateDocumentNumber));
         }
@@ -165,7 +155,7 @@ internal sealed class ArInvoiceCreateWorkflow(
         CancellationToken cancellationToken
     )
     {
-        var currency = await currencyRepository.FindNoTrackingAsync(
+        var currency = await repositories.CurrencyRepository.FindNoTrackingAsync(
             currencyCode,
             cancellationToken
         );
@@ -188,7 +178,7 @@ internal sealed class ArInvoiceCreateWorkflow(
 
         foreach (string accountNo in accountNumbers)
         {
-            var account = await glAccountRepository.FindNoTrackingAsync(
+            var account = await repositories.GlAccountRepository.FindNoTrackingAsync(
                 accountNo,
                 cancellationToken
             );
@@ -219,7 +209,10 @@ internal sealed class ArInvoiceCreateWorkflow(
 
         foreach (Guid itemId in itemIds)
         {
-            Item? item = await itemRepository.FindNoTrackingAsync(itemId, cancellationToken);
+            Item? item = await repositories.ItemRepository.FindNoTrackingAsync(
+                itemId,
+                cancellationToken
+            );
             if (item is null || !item.IsActive)
             {
                 return ArInvoiceCommandResultDto.Fail(
@@ -247,7 +240,7 @@ internal sealed class ArInvoiceCreateWorkflow(
 
         foreach (Guid locationId in locationIds)
         {
-            Location? location = await locationRepository.FindNoTrackingAsync(
+            Location? location = await repositories.LocationRepository.FindNoTrackingAsync(
                 locationId,
                 cancellationToken
             );
@@ -277,7 +270,7 @@ internal sealed class ArInvoiceCreateWorkflow(
 
         foreach (Guid taxRateId in taxRateIds)
         {
-            TaxRate? taxRate = await taxRateRepository.GetByIdAsync(taxRateId);
+            TaxRate? taxRate = await repositories.TaxRateRepository.FindNoTrackingAsync(taxRateId);
             if (taxRate is null || !taxRate.IsActive)
             {
                 return ArInvoiceCommandResultDto.Fail(
@@ -302,7 +295,7 @@ internal sealed class ArInvoiceCreateWorkflow(
         Customer customer
     )
     {
-        DateTimeOffset updatedAt = clock.UtcNow;
+        DateTimeOffset updatedAt = dependencies.Clock.UtcNow;
         DateOnly dueDate = command.DueDate ?? command.InvoiceDate.AddDays(customer.TermsDays);
 
         return new ArInvoice

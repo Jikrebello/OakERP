@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
-using OakERP.Tests.Integration.TestSetup;
 
 namespace OakERP.Tests.Integration.Swagger;
 

@@ -1,4 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
+using OakERP.Application.AccountsPayable.Invoices.Support;
+using OakERP.Application.AccountsReceivable.Invoices.Support;
+using OakERP.Application.Common.Orchestration;
 using OakERP.Application.Settlements.Documents;
 
 namespace OakERP.Application.Extensions;
@@ -8,6 +11,9 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddSingleton<IClock, SystemClock>();
+        services.AddScoped<InvoiceCreateWorkflowDependencies>();
+        services.AddScoped<ApInvoiceCreateDependencies>();
+        services.AddScoped<ArInvoiceCreateDependencies>();
         services.AddScoped<SettlementDocumentWorkflowDependencies>();
         services.AddScoped<PostingSourceRepositories>();
         services.AddScoped<PostingPersistenceDependencies>();

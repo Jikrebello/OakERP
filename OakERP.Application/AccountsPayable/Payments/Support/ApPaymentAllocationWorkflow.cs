@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using OakERP.Application.Common.Orchestration;
 using OakERP.Application.Settlements.Documents;
-using OakERP.Common.Enums;
 using OakERP.Domain.AccountsPayable;
 using OakERP.Domain.Entities.AccountsPayable;
 using OakERP.Domain.Posting.GeneralLedger;
@@ -14,7 +13,7 @@ internal sealed class ApPaymentAllocationWorkflow(
     IApPaymentAllocationRepository apPaymentAllocationRepository,
     IApInvoiceRepository apInvoiceRepository,
     SettlementDocumentWorkflowDependencies dependencies,
-    ILogger<Services.ApPaymentService> logger
+    ILogger<ApPaymentService> logger
 )
 {
     public async Task<ApPaymentCommandResultDto> ExecuteAsync(
@@ -120,25 +119,23 @@ internal sealed class ApPaymentAllocationWorkflow(
         {
             ApPaymentCommandResultDto? translatedFailure = WorkflowFailureTranslator.TryTranslate(
                 ex,
-                [
-                    new WorkflowExceptionRule<ApPaymentCommandResultDto>(
-                        innerException =>
-                            dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(
-                                innerException
-                            ),
-                        innerException =>
-                        {
-                            logger.LogWarning(
-                                innerException,
-                                "Concurrency failure while allocating AP payment {PaymentId}",
-                                command.PaymentId
-                            );
-                            return ApPaymentCommandResultDto.Fail(
-                                ApPaymentErrors.AllocationConcurrencyConflict
-                            );
-                        }
-                    ),
-                ]
+                new WorkflowExceptionRule<ApPaymentCommandResultDto>(
+                    innerException =>
+                        dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(
+                            innerException
+                        ),
+                    innerException =>
+                    {
+                        logger.LogWarning(
+                            innerException,
+                            "Concurrency failure while allocating AP payment {PaymentId}",
+                            command.PaymentId
+                        );
+                        return ApPaymentCommandResultDto.Fail(
+                            ApPaymentErrors.AllocationConcurrencyConflict
+                        );
+                    }
+                )
             );
             if (translatedFailure is not null)
             {

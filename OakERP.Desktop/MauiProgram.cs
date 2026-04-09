@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.FluentUI.AspNetCore.Components;
-using OakERP.Shared.Extensions;
 using OakERP.Shared.Hosts.Maui;
 
 namespace OakERP;

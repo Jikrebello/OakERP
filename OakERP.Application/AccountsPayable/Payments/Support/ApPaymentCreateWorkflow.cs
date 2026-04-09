@@ -17,7 +17,7 @@ internal sealed class ApPaymentCreateWorkflow(
     IVendorRepository vendorRepository,
     IBankAccountRepository bankAccountRepository,
     SettlementDocumentWorkflowDependencies dependencies,
-    ILogger<Services.ApPaymentService> logger
+    ILogger<ApPaymentService> logger
 )
 {
     public async Task<ApPaymentCommandResultDto> ExecuteAsync(
@@ -168,32 +168,30 @@ internal sealed class ApPaymentCreateWorkflow(
         {
             ApPaymentCommandResultDto? translatedFailure = WorkflowFailureTranslator.TryTranslate(
                 ex,
-                [
-                    new WorkflowExceptionRule<ApPaymentCommandResultDto>(
-                        innerException =>
-                            dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(
-                                innerException
-                            ),
-                        innerException =>
-                        {
-                            logger.LogWarning(
-                                innerException,
-                                "Concurrency failure while creating AP payment {DocNo}",
-                                command.DocNo
-                            );
-                            return ApPaymentCommandResultDto.Fail(
-                                ApPaymentErrors.AllocationConcurrencyConflict
-                            );
-                        }
-                    ),
-                    new WorkflowExceptionRule<ApPaymentCommandResultDto>(
-                        innerException =>
-                            dependencies.PersistenceFailureClassifier.IsApPaymentDocNoConflict(
-                                innerException
-                            ),
-                        _ => ApPaymentCommandResultDto.Fail(ApPaymentErrors.DuplicateDocumentNumber)
-                    ),
-                ]
+                new WorkflowExceptionRule<ApPaymentCommandResultDto>(
+                    innerException =>
+                        dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(
+                            innerException
+                        ),
+                    innerException =>
+                    {
+                        logger.LogWarning(
+                            innerException,
+                            "Concurrency failure while creating AP payment {DocNo}",
+                            command.DocNo
+                        );
+                        return ApPaymentCommandResultDto.Fail(
+                            ApPaymentErrors.AllocationConcurrencyConflict
+                        );
+                    }
+                ),
+                new WorkflowExceptionRule<ApPaymentCommandResultDto>(
+                    innerException =>
+                        dependencies.PersistenceFailureClassifier.IsApPaymentDocNoConflict(
+                            innerException
+                        ),
+                    _ => ApPaymentCommandResultDto.Fail(ApPaymentErrors.DuplicateDocumentNumber)
+                )
             );
             if (translatedFailure is not null)
             {

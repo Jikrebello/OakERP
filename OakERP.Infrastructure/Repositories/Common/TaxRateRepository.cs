@@ -9,22 +9,19 @@ public class TaxRateRepository(ApplicationDbContext db) : ITaxRateRepository
 {
     private DbSet<TaxRate> Set => db.TaxRates;
 
-    public Task<TaxRate?> GetByIdAsync(Guid id) =>
-        Set.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
+    public ValueTask<TaxRate?> FindTrackedAsync(Guid id, CancellationToken ct = default) =>
+        Set.FindAsync([id], ct);
 
-    public IQueryable<TaxRate> Query() => Set.AsNoTracking();
+    public Task<TaxRate?> FindNoTrackingAsync(Guid id, CancellationToken ct = default) =>
+        Set.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task CreateAsync(TaxRate taxRate) => await Set.AddAsync(taxRate);
+    public IQueryable<TaxRate> QueryNoTracking() => Set.AsNoTracking();
 
-    public Task UpdateAsync(TaxRate taxRate)
+    public async Task AddAsync(TaxRate entity) => await Set.AddAsync(entity);
+
+    public Task RemoveAsync(TaxRate entity)
     {
-        Set.Update(taxRate);
-        return Task.CompletedTask;
-    }
-
-    public Task DeleteAsync(TaxRate taxRate)
-    {
-        Set.Remove(taxRate);
+        Set.Remove(entity);
         return Task.CompletedTask;
     }
 }

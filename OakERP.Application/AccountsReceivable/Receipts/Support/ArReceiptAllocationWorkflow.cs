@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using OakERP.Application.Common.Orchestration;
 using OakERP.Application.Settlements.Documents;
-using OakERP.Common.Enums;
 using OakERP.Domain.AccountsReceivable;
 using OakERP.Domain.Entities.AccountsReceivable;
 using OakERP.Domain.Posting.GeneralLedger;
@@ -14,7 +13,7 @@ internal sealed class ArReceiptAllocationWorkflow(
     IArReceiptAllocationRepository arReceiptAllocationRepository,
     IArInvoiceRepository arInvoiceRepository,
     SettlementDocumentWorkflowDependencies dependencies,
-    ILogger<Services.ArReceiptService> logger
+    ILogger<ArReceiptService> logger
 )
 {
     public async Task<ArReceiptCommandResultDto> ExecuteAsync(
@@ -120,25 +119,23 @@ internal sealed class ArReceiptAllocationWorkflow(
         {
             ArReceiptCommandResultDto? translatedFailure = WorkflowFailureTranslator.TryTranslate(
                 ex,
-                [
-                    new WorkflowExceptionRule<ArReceiptCommandResultDto>(
-                        innerException =>
-                            dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(
-                                innerException
-                            ),
-                        innerException =>
-                        {
-                            logger.LogWarning(
-                                innerException,
-                                "Concurrency failure while allocating AR receipt {ReceiptId}",
-                                command.ReceiptId
-                            );
-                            return ArReceiptCommandResultDto.Fail(
-                                ArReceiptErrors.AllocationConcurrencyConflict
-                            );
-                        }
-                    ),
-                ]
+                new WorkflowExceptionRule<ArReceiptCommandResultDto>(
+                    innerException =>
+                        dependencies.PersistenceFailureClassifier.IsConcurrencyConflict(
+                            innerException
+                        ),
+                    innerException =>
+                    {
+                        logger.LogWarning(
+                            innerException,
+                            "Concurrency failure while allocating AR receipt {ReceiptId}",
+                            command.ReceiptId
+                        );
+                        return ArReceiptCommandResultDto.Fail(
+                            ArReceiptErrors.AllocationConcurrencyConflict
+                        );
+                    }
+                )
             );
             if (translatedFailure is not null)
             {

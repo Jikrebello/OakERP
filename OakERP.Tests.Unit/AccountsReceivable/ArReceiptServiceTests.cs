@@ -44,7 +44,7 @@ public sealed class ArReceiptServiceTests
             .ReturnsAsync(false);
         _factory
             .ArReceiptRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsReceivable.ArReceipt>())
+                x.AddAsync(It.IsAny<Domain.Entities.AccountsReceivable.ArReceipt>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -114,7 +114,7 @@ public sealed class ArReceiptServiceTests
             .ReturnsAsync(false);
         _factory
             .ArReceiptRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsReceivable.ArReceipt>())
+                x.AddAsync(It.IsAny<Domain.Entities.AccountsReceivable.ArReceipt>())
             )
             .Returns(Task.CompletedTask);
         _factory
@@ -234,7 +234,7 @@ public sealed class ArReceiptServiceTests
             .ReturnsAsync(false);
         _factory
             .ArReceiptRepository.Setup(x =>
-                x.AddAsync(It.IsAny<OakERP.Domain.Entities.AccountsReceivable.ArReceipt>())
+                x.AddAsync(It.IsAny<Domain.Entities.AccountsReceivable.ArReceipt>())
             )
             .Returns(Task.CompletedTask);
         _factory

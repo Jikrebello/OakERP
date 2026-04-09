@@ -22,6 +22,8 @@ ar-invoice-backend
 - Broadened integration-test hardening to the adjacent AP payment, AP invoice, AR receipt, and auth API suites so repo-wide validation can run cleanly in the shared seeded test database.
 - Fixed API/integration test collisions by switching reused auth tenant identities and AP/AR document seeds to per-test unique values and by shortening generated AP invoice numbers to stay within persisted column limits.
 - Ran CSharpier over the touched integration files after the broader validation pass exposed formatting drift.
+- Resolved the SonarQube warning set in `OakERP.Application` by simplifying `WorkflowFailureTranslator`, removing redundant `params` array creation at workflow call sites, and grouping AP/AR invoice-create dependencies into narrow concrete bundles so the invoice services and workflows stay below the constructor-parameter threshold.
+- Corrected the AR invoice unit tests to use the current `ITaxRateRepository.FindNoTrackingAsync` seam while validating the warning cleanup.
 
 ## Files Touched
 - `OakERP.API/Controllers/ArInvoicesController.cs`
@@ -71,6 +73,10 @@ ar-invoice-backend
 - `dotnet build OakERP.sln` - passed
 - `dotnet test OakERP.Tests.Unit/OakERP.Tests.Unit.csproj` - passed
 - `pwsh ./tools/validate-pr.ps1` - passed
+- `dotnet build OakERP.Application/OakERP.Application.csproj` - passed
+- `dotnet test OakERP.Tests.Unit/OakERP.Tests.Unit.csproj --filter "FullyQualifiedName~ApInvoice|FullyQualifiedName~ArInvoice"` - passed
+- `dotnet test OakERP.Tests.Unit/OakERP.Tests.Unit.csproj` - passed
+- `dotnet test OakERP.Tests.Integration/OakERP.Tests.Integration.csproj` - passed
 
 ## Remaining
 - No known remaining validation work for this slice pass.

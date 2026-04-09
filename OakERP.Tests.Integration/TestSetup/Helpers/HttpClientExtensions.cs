@@ -8,7 +8,7 @@ public static class HttpClientExtensions
     /// <summary>
     /// Sends a PATCH request with a JSON-encoded body to the specified URI.
     /// </summary>
-    /// <remarks>The request body is serialized to JSON using <see cref="System.Text.Json.JsonSerializer"/>
+    /// <remarks>The request body is serialized to JSON using <see cref="JsonSerializer"/>
     /// and sent with a content type of "application/json". Ensure the server supports PATCH requests  with JSON
     /// payloads.</remarks>
     /// <typeparam name="T">The type of the object to serialize into the JSON request body.</typeparam>

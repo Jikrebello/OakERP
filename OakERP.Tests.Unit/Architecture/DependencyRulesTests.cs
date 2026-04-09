@@ -9,10 +9,12 @@ public sealed class DependencyRulesTests
     [Fact]
     public void Domain_Assembly_Should_Not_Reference_AspNetCore_Ef_Or_Outer_Layers()
     {
-        string[] references = typeof(Tenant)
-            .Assembly.GetReferencedAssemblies()
-            .Select(x => x.Name ?? string.Empty)
-            .ToArray();
+        string[] references =
+        [
+            .. typeof(Tenant)
+                .Assembly.GetReferencedAssemblies()
+                .Select(x => x.Name ?? string.Empty),
+        ];
 
         references.ShouldNotContain(name =>
             name.StartsWith("Microsoft.AspNetCore", StringComparison.Ordinal)
@@ -29,10 +31,12 @@ public sealed class DependencyRulesTests
     [Fact]
     public void Application_Assembly_Should_Not_Reference_Infrastructure()
     {
-        string[] references = typeof(IApInvoiceService)
-            .Assembly.GetReferencedAssemblies()
-            .Select(x => x.Name ?? string.Empty)
-            .ToArray();
+        string[] references =
+        [
+            .. typeof(IApInvoiceService)
+                .Assembly.GetReferencedAssemblies()
+                .Select(x => x.Name ?? string.Empty),
+        ];
 
         references.ShouldNotContain(name =>
             name.Equals("OakERP.Infrastructure", StringComparison.Ordinal)
@@ -42,10 +46,10 @@ public sealed class DependencyRulesTests
     [Fact]
     public void Domain_Assembly_Should_Not_Define_ApplicationUser()
     {
-        string[] exportedTypes = typeof(Tenant)
-            .Assembly.GetExportedTypes()
-            .Select(x => x.FullName ?? string.Empty)
-            .ToArray();
+        string[] exportedTypes =
+        [
+            .. typeof(Tenant).Assembly.GetExportedTypes().Select(x => x.FullName ?? string.Empty),
+        ];
 
         exportedTypes.ShouldNotContain(name =>
             name.EndsWith(".ApplicationUser", StringComparison.Ordinal)
@@ -61,10 +65,12 @@ public sealed class DependencyRulesTests
             Path.Combine(GetRepoRoot(), "OakERP.MigrationTool", "OakERP.MigrationTool.csproj")
         );
 
-        string[] projectReferences = project
-            .Descendants("ProjectReference")
-            .Select(x => (string?)x.Attribute("Include") ?? string.Empty)
-            .ToArray();
+        string[] projectReferences =
+        [
+            .. project
+                .Descendants("ProjectReference")
+                .Select(x => (string?)x.Attribute("Include") ?? string.Empty),
+        ];
 
         projectReferences.ShouldNotContain(path =>
             path.Contains("OakERP.API", StringComparison.OrdinalIgnoreCase)

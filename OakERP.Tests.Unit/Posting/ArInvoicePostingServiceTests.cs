@@ -195,9 +195,7 @@ public sealed class ArInvoicePostingServiceTests
                 }
             );
         _factory
-            .GlEntryRepository.Setup(x =>
-                x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>())
-            )
+            .GlEntryRepository.Setup(x => x.AddAsync(It.IsAny<GlEntry>()))
             .Returns(Task.CompletedTask);
         _factory
             .InventoryLedgerRepository.Setup(x =>
@@ -217,10 +215,7 @@ public sealed class ArInvoicePostingServiceTests
         invoice.DocStatus.ShouldBe(DocStatus.Posted);
         invoice.PostingDate.ShouldBe(invoice.InvoiceDate);
         invoice.UpdatedBy.ShouldBe("unit-tester");
-        _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
-            Times.Exactly(5)
-        );
+        _factory.GlEntryRepository.Verify(x => x.AddAsync(It.IsAny<GlEntry>()), Times.Exactly(5));
         _factory.InventoryLedgerRepository.Verify(
             x => x.AddAsync(It.IsAny<Domain.Entities.Inventory.InventoryLedger>()),
             Times.Once
@@ -379,9 +374,7 @@ public sealed class ArInvoicePostingServiceTests
                     }
             );
         _factory
-            .GlEntryRepository.Setup(x =>
-                x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>())
-            )
+            .GlEntryRepository.Setup(x => x.AddAsync(It.IsAny<GlEntry>()))
             .Returns(Task.CompletedTask);
         _factory
             .UnitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
@@ -519,10 +512,7 @@ public sealed class ArInvoicePostingServiceTests
         );
 
         ex.Message.ShouldContain("does not match quantity and unit cost");
-        _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
-            Times.Never
-        );
+        _factory.GlEntryRepository.Verify(x => x.AddAsync(It.IsAny<GlEntry>()), Times.Never);
         _factory.InventoryLedgerRepository.Verify(
             x => x.AddAsync(It.IsAny<Domain.Entities.Inventory.InventoryLedger>()),
             Times.Never
@@ -616,10 +606,7 @@ public sealed class ArInvoicePostingServiceTests
         );
 
         ex.Message.ShouldContain("without a source id");
-        _factory.GlEntryRepository.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.GeneralLedger.GlEntry>()),
-            Times.Never
-        );
+        _factory.GlEntryRepository.Verify(x => x.AddAsync(It.IsAny<GlEntry>()), Times.Never);
         _factory.UnitOfWork.Verify(x => x.RollbackAsync(), Times.Once);
     }
 

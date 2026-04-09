@@ -5,38 +5,32 @@ using OakERP.Domain.RepositoryInterfaces.Bank;
 
 namespace OakERP.Application.AccountsReceivable.Receipts.Services;
 
-public sealed class ArReceiptService : IArReceiptService
+public sealed class ArReceiptService(
+    IArReceiptRepository arReceiptRepository,
+    IArReceiptAllocationRepository arReceiptAllocationRepository,
+    IArInvoiceRepository arInvoiceRepository,
+    ICustomerRepository customerRepository,
+    IBankAccountRepository bankAccountRepository,
+    SettlementDocumentWorkflowDependencies dependencies,
+    ILogger<ArReceiptService> logger
+) : IArReceiptService
 {
-    private readonly ArReceiptCreateWorkflow createWorkflow;
-    private readonly ArReceiptAllocationWorkflow allocationWorkflow;
-
-    public ArReceiptService(
-        IArReceiptRepository arReceiptRepository,
-        IArReceiptAllocationRepository arReceiptAllocationRepository,
-        IArInvoiceRepository arInvoiceRepository,
-        ICustomerRepository customerRepository,
-        IBankAccountRepository bankAccountRepository,
-        SettlementDocumentWorkflowDependencies dependencies,
-        ILogger<ArReceiptService> logger
-    )
-    {
-        createWorkflow = new ArReceiptCreateWorkflow(
-            arReceiptRepository,
-            arReceiptAllocationRepository,
-            arInvoiceRepository,
-            customerRepository,
-            bankAccountRepository,
-            dependencies,
-            logger
-        );
-        allocationWorkflow = new ArReceiptAllocationWorkflow(
-            arReceiptRepository,
-            arReceiptAllocationRepository,
-            arInvoiceRepository,
-            dependencies,
-            logger
-        );
-    }
+    private readonly ArReceiptCreateWorkflow createWorkflow = new(
+        arReceiptRepository,
+        arReceiptAllocationRepository,
+        arInvoiceRepository,
+        customerRepository,
+        bankAccountRepository,
+        dependencies,
+        logger
+    );
+    private readonly ArReceiptAllocationWorkflow allocationWorkflow = new(
+        arReceiptRepository,
+        arReceiptAllocationRepository,
+        arInvoiceRepository,
+        dependencies,
+        logger
+    );
 
     public Task<ArReceiptCommandResultDto> CreateAsync(
         CreateArReceiptCommand command,
