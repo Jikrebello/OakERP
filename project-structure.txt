@@ -287,6 +287,7 @@ OakERP
 |   |   |   |   \-- IApInvoiceService.cs
 |   |   |   \-- Support
 |   |   |       +-- ApInvoiceCommandValidator.cs
+|   |   |       +-- ApInvoiceCreateDependencies.cs
 |   |   |       +-- ApInvoiceCreateWorkflow.cs
 |   |   |       +-- ApInvoiceErrors.cs
 |   |   |       \-- ApInvoiceSnapshotFactory.cs
@@ -323,6 +324,7 @@ OakERP
 |   |   |   |   \-- IArInvoiceService.cs
 |   |   |   \-- Support
 |   |   |       +-- ArInvoiceCommandValidator.cs
+|   |   |       +-- ArInvoiceCreateDependencies.cs
 |   |   |       +-- ArInvoiceCreateWorkflow.cs
 |   |   |       +-- ArInvoiceErrors.cs
 |   |   |       \-- ArInvoiceSnapshotFactory.cs
@@ -348,6 +350,7 @@ OakERP
 |   |           \-- ArReceiptSnapshotFactory.cs
 |   +-- Common
 |   |   \-- Orchestration
+|   |       +-- InvoiceCreateWorkflowDependencies.cs
 |   |       +-- ResultWorkflowTransactionRunner.cs
 |   |       \-- WorkflowFailureTranslator.cs
 |   +-- Extensions
