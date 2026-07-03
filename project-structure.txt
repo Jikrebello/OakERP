@@ -63,6 +63,14 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- csharpier-local-tool-repair
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- local-auth-cors-test-setup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   \-- posting-transport-api
 |   |   |   |       +-- findings.md
 |   |   |   |       +-- progress.md
@@ -445,6 +453,7 @@ OakERP
 |   +-- Extensions
 |   |   \-- ServiceCollectionExtensions.cs
 |   +-- Routes
+|   |   +-- AuthApiRoutes.cs
 |   |   \-- AuthRoutes.cs
 |   +-- Services
 |   |   +-- Api
@@ -919,7 +928,8 @@ OakERP
 |   +-- TestSetup
 |   |   +-- Helpers
 |   |   |   +-- ApiTestException.cs
-|   |   |   \-- HttpClientExtensions.cs
+|   |   |   +-- HttpClientExtensions.cs
+|   |   |   \-- PostingTestData.cs
 |   |   +-- ApiRoutes.cs
 |   |   +-- OakErpTestDatabaseOptions.cs
 |   |   +-- OakErpWebFactory.cs
@@ -954,7 +964,9 @@ OakERP
 |   |   +-- Internal
 |   |   |   \-- AuthTransactionRunnerTests.cs
 |   |   +-- AuthServiceTestFactory.cs
-|   |   \-- AuthServiceTests.cs
+|   |   +-- AuthServiceTests.cs
+|   |   +-- AuthViewModelTests.cs
+|   |   \-- ClientAuthRouteTests.cs
 |   +-- Common
 |   |   \-- Orchestration
 |   |       +-- ResultWorkflowTransactionRunnerTests.cs
