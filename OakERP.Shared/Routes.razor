@@ -1,13 +1,11 @@
 ﻿<Router AppAssembly="typeof(Layout.MainLayout).Assembly">
     <Found Context="routeData">
-        <ErrorBoundary>
+        <OakErrorBoundary>
             <ChildContent>
                 <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
             </ChildContent>
-            <ErrorContent>
-                <ErrorToast />
-            </ErrorContent>
-        </ErrorBoundary>
+            <ErrorContent></ErrorContent>
+        </OakErrorBoundary>
     </Found>
 
     <NotFound>

@@ -1,7 +1,7 @@
-using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using OakERP.Client.Services.Errors;
 using OakERP.Common.Dtos.Base;
 
 namespace OakERP.Client.Services.Api;
@@ -10,6 +10,7 @@ public class ApiClient : IApiClient
 {
     private readonly HttpClient _http;
     private readonly ILogger<ApiClient> _logger;
+    private readonly IClientErrorHandler _errorHandler;
 
     private static readonly JsonSerializerOptions CaseInsensitiveOptions = new()
     {
@@ -21,10 +22,11 @@ public class ApiClient : IApiClient
         "IDE0290:Use primary constructor",
         Justification = "Breaks on Desktop if we use a primary constructor."
     )]
-    public ApiClient(HttpClient http, ILogger<ApiClient> logger)
+    public ApiClient(HttpClient http, ILogger<ApiClient> logger, IClientErrorHandler errorHandler)
     {
         _http = http;
         _logger = logger;
+        _errorHandler = errorHandler;
     }
 
     public async Task<ApiResult<TResponse>> PostAsync<TRequest, TResponse>(
@@ -32,29 +34,30 @@ public class ApiClient : IApiClient
         TRequest payload
     )
     {
-        try
-        {
-            var response = await _http.PostAsJsonAsync(url, payload);
-            return await HandleResponse<TResponse>(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Exception during POST to {Url}", url);
-            return ApiResult<TResponse>.Fail(ex.Message, (int)HttpStatusCode.InternalServerError);
-        }
+        return await SendAsync<TResponse>("POST", url, () => _http.PostAsJsonAsync(url, payload));
     }
 
     public async Task<ApiResult<TResponse>> GetAsync<TResponse>(string url)
     {
+        return await SendAsync<TResponse>("GET", url, () => _http.GetAsync(url));
+    }
+
+    private async Task<ApiResult<TResponse>> SendAsync<TResponse>(
+        string method,
+        string url,
+        Func<Task<HttpResponseMessage>> sendAsync
+    )
+    {
         try
         {
-            var response = await _http.GetAsync(url);
+            var response = await sendAsync();
             return await HandleResponse<TResponse>(response);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception during GET from {Url}", url);
-            return ApiResult<TResponse>.Fail(ex.Message, (int)HttpStatusCode.InternalServerError);
+            var error = await _errorHandler.HandleAsync(ex, new ClientErrorContext(method, url));
+
+            return ApiResult<TResponse>.Fail(error.Message, error.StatusCode);
         }
     }
 
@@ -88,6 +91,12 @@ public class ApiClient : IApiClient
         catch (JsonException ex)
         {
             _logger.LogDebug(ex, "Failed to deserialize TResponse fallback");
+            var error = await _errorHandler.HandleAsync(
+                ex,
+                new ClientErrorContext("DeserializeErrorResponse")
+            );
+
+            return ApiResult<TResponse>.Fail(error.Message, statusCode);
         }
 
         return ApiResult<TResponse>.Fail("Unexpected API error", statusCode);

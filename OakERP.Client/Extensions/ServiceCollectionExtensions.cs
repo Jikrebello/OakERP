@@ -1,8 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using OakERP.Client.Configuration;
 using OakERP.Client.Services.Api;
 using OakERP.Client.Services.Auth;
+using OakERP.Client.Services.Errors;
 using OakERP.Common.Abstractions;
 
 namespace OakERP.Client.Extensions;
@@ -14,6 +16,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IAuthSessionManager, AuthSessionManager>();
         services.AddScoped<IAuthService, AuthService>();
+        services.TryAddScoped<IClientErrorHandler, LoggingClientErrorHandler>();
 
         return services;
     }
@@ -36,7 +39,8 @@ public static class ServiceCollectionExtensions
 
             var client = new HttpClient(tokenHandler) { BaseAddress = baseUri };
             var logger = sp.GetRequiredService<ILogger<ApiClient>>();
-            return new ApiClient(client, logger);
+            var errorHandler = sp.GetRequiredService<IClientErrorHandler>();
+            return new ApiClient(client, logger, errorHandler);
         });
 
         return services;
