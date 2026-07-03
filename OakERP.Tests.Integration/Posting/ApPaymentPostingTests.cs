@@ -9,6 +9,7 @@ using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.GeneralLedger;
+using OakERP.Tests.Integration.TestSetup.Helpers;
 using Shouldly;
 
 namespace OakERP.Tests.Integration.Posting;
@@ -356,6 +357,8 @@ public sealed class ApPaymentPostingTests : WebApiIntegrationTestBase
 
             if (includeOpenPeriod)
             {
+                await PostingTestData.EnsurePostingPrerequisitesAsync(db, DaysFromToday(-2));
+
                 if (
                     !await db.FiscalPeriods.AnyAsync(x =>
                         x.FiscalYear == effectivePaymentDate.Year

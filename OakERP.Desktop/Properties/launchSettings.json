@@ -2,7 +2,10 @@
   "profiles": {
     "Windows Machine": {
       "commandName": "Project",
-      "nativeDebugging": false
+      "nativeDebugging": false,
+      "environmentVariables": {
+        "OakERP__Api__BaseUrl": "https://localhost:7057"
+      }
     }
   }
 }

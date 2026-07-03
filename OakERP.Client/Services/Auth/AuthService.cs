@@ -8,11 +8,11 @@ public class AuthService(IApiClient api) : IAuthService
 {
     public async Task<ApiResult<AuthResultDto>> LoginAsync(LoginDto loginDto)
     {
-        return await api.PostAsync<LoginDto, AuthResultDto>(AuthRoutes.Login, loginDto);
+        return await api.PostAsync<LoginDto, AuthResultDto>(AuthApiRoutes.Login, loginDto);
     }
 
     public async Task<ApiResult<AuthResultDto>> RegisterAsync(RegisterDto registerDto)
     {
-        return await api.PostAsync<RegisterDto, AuthResultDto>(AuthRoutes.Register, registerDto);
+        return await api.PostAsync<RegisterDto, AuthResultDto>(AuthApiRoutes.Register, registerDto);
     }
 }

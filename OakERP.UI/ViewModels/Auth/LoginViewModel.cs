@@ -32,19 +32,26 @@ public class LoginViewModel
     public async Task LoginAsync()
     {
         if (!EditContext.Validate())
-            IsBusy = true;
+            return;
 
-        var result = await _authService.LoginAsync(Form);
+        IsBusy = true;
 
-        if (result is { Success: true } && result.Data?.Token is not null)
+        try
         {
-            await _session.SetTokenAsync(result.Data.Token);
-        }
-        else
-        {
-            _toast.ShowError(result?.Message ?? "Login failed.");
-        }
+            var result = await _authService.LoginAsync(Form);
 
-        IsBusy = false;
+            if (result is { Success: true } && result.Data?.Token is not null)
+            {
+                await _session.SetTokenAsync(result.Data.Token);
+            }
+            else
+            {
+                _toast.ShowError(result?.Message ?? "Login failed.");
+            }
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 }

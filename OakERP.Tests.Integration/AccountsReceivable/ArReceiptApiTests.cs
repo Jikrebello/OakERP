@@ -13,6 +13,7 @@ using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Tests.Integration.Runtime;
+using OakERP.Tests.Integration.TestSetup.Helpers;
 using Shouldly;
 
 namespace OakERP.Tests.Integration.AccountsReceivable;
@@ -589,6 +590,8 @@ public sealed class ArReceiptApiTests : WebApiIntegrationTestBase
                     }
                 );
             }
+
+            await PostingTestData.EnsurePostingPrerequisitesAsync(db, DaysFromToday(-4));
 
             db.Customers.Add(
                 new Customer

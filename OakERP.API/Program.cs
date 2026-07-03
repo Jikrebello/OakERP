@@ -11,12 +11,15 @@ using OakERP.Infrastructure.Persistence.Seeding.Views;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
-builder.Configuration.AddJsonFile(
-    $"appsettings.{builder.Environment.EnvironmentName}.Local.json",
-    optional: true,
-    reloadOnChange: true
-);
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+    builder.Configuration.AddJsonFile(
+        $"appsettings.{builder.Environment.EnvironmentName}.Local.json",
+        optional: true,
+        reloadOnChange: true
+    );
+}
 builder.Host.UseSerilog(
     (context, services, loggerConfiguration) =>
     {

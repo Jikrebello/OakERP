@@ -1,8 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
-  <PropertyGroup>
-    <!-- Target only Android and iOS -->
-    <TargetFrameworks>net9.0-android;net9.0-ios</TargetFrameworks>
+  <!-- Target frameworks: on Windows build Android only to avoid iOS SDK checks; on other OS include iOS -->
 
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <TargetFrameworks>net9.0-android36.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <TargetFrameworks>net9.0-android36.0;net9.0-ios18.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>OakERP.Mobile</RootNamespace>
     <UseMaui>true</UseMaui>
@@ -22,14 +29,8 @@
     <ApplicationVersion>1</ApplicationVersion>
 
     <!-- Supported platforms -->
-    <SupportedOSPlatformVersion
-      Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'"
-      >15.0</SupportedOSPlatformVersion
-    >
-    <SupportedOSPlatformVersion
-      Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'"
-      >24.0</SupportedOSPlatformVersion
-    >
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">18.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">36.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
   <ItemGroup>

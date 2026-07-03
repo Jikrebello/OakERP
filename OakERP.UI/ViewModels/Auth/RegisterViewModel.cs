@@ -32,19 +32,26 @@ public class RegisterViewModel
     public async Task RegisterAsync()
     {
         if (!EditContext.Validate())
-            IsBusy = true;
+            return;
 
-        var result = await _authService.RegisterAsync(Form);
+        IsBusy = true;
 
-        if (result is { Success: true } && result.Data?.Token is not null)
+        try
         {
-            await _session.SetTokenAsync(result.Data.Token);
-        }
-        else
-        {
-            _toast.ShowError(result?.Message ?? "Register failed.");
-        }
+            var result = await _authService.RegisterAsync(Form);
 
-        IsBusy = false;
+            if (result is { Success: true } && result.Data?.Token is not null)
+            {
+                await _session.SetTokenAsync(result.Data.Token);
+            }
+            else
+            {
+                _toast.ShowError(result?.Message ?? "Register failed.");
+            }
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 }

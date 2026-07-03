@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using OakERP.Common.Dtos.Auth;
 using Shouldly;
@@ -17,6 +19,17 @@ namespace OakERP.Tests.Integration.Auth;
 [TestFixture]
 public class AuthApiTests : WebApiIntegrationTestBase
 {
+    [Test]
+    public void Test_Host_Should_Use_Test_Configuration_When_Local_Config_Exists()
+    {
+        var configuration = Factory.Services.GetRequiredService<IConfiguration>();
+
+        configuration.GetConnectionString("DefaultConnection").ShouldContain("Database=oakerp_test");
+        configuration["RunSeedOnStartup"].ShouldBe("false");
+        configuration["JwtSettings:Issuer"].ShouldBe("OakERP");
+        configuration["Cors:AllowedOrigins:0"].ShouldBe("https://localhost:7094");
+    }
+
     /// <summary>
     /// Verifies that the register endpoint creates a new tenant and associated license when provided with valid
     /// registration data.

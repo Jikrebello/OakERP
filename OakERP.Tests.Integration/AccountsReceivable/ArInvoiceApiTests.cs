@@ -11,6 +11,7 @@ using OakERP.Domain.Entities.Common;
 using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Entities.Inventory;
 using OakERP.Tests.Integration.Runtime;
+using OakERP.Tests.Integration.TestSetup.Helpers;
 using Shouldly;
 
 namespace OakERP.Tests.Integration.AccountsReceivable;
@@ -633,6 +634,7 @@ public sealed class ArInvoiceApiTests : WebApiIntegrationTestBase
         var outputTaxRateId = Guid.NewGuid();
         var inputTaxRateId = Guid.NewGuid();
         string docNo = $"ARINV-{Guid.NewGuid():N}";
+        var invoiceDate = DaysFromToday(-4);
         await SeedReferenceDataAsync(
             customerId,
             itemId,
@@ -652,7 +654,7 @@ public sealed class ArInvoiceApiTests : WebApiIntegrationTestBase
             {
                 DocNo = docNo,
                 CustomerId = customerId,
-                InvoiceDate = DaysFromToday(-4),
+                InvoiceDate = invoiceDate,
                 CurrencyCode = currencyCode,
                 ShipTo = "Posting transport test ship-to",
                 Memo = "Posting transport test invoice",
@@ -674,6 +676,7 @@ public sealed class ArInvoiceApiTests : WebApiIntegrationTestBase
 
         result.Success.ShouldBeTrue();
         result.Invoice.ShouldNotBeNull();
+        await WithDbAsync(db => PostingTestData.EnsurePostingPrerequisitesAsync(db, invoiceDate));
         return result.Invoice!.InvoiceId;
     }
 

@@ -14,6 +14,7 @@ using OakERP.Domain.Entities.GeneralLedger;
 using OakERP.Domain.Posting;
 using OakERP.Domain.Posting.GeneralLedger;
 using OakERP.Tests.Integration.Runtime;
+using OakERP.Tests.Integration.TestSetup.Helpers;
 using Shouldly;
 
 namespace OakERP.Tests.Integration.AccountsPayable;
@@ -584,6 +585,8 @@ public sealed class ApPaymentApiTests : WebApiIntegrationTestBase
                     }
                 );
             }
+
+            await PostingTestData.EnsurePostingPrerequisitesAsync(db, DaysFromToday(-4));
 
             db.Vendors.Add(
                 new Vendor

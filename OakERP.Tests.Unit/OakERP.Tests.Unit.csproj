@@ -34,6 +34,7 @@
     <ProjectReference Include="..\OakERP.Domain\OakERP.Domain.csproj" />
     <ProjectReference Include="..\OakERP.Infrastructure\OakERP.Infrastructure.csproj" />
     <ProjectReference Include="..\OakERP.Common\OakERP.Common.csproj" />
+    <ProjectReference Include="..\OakERP.UI\OakERP.UI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
