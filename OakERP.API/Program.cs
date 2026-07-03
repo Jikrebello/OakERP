@@ -13,7 +13,11 @@ using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 if (!builder.Environment.IsEnvironment("Testing"))
 {
-    builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+    builder.Configuration.AddJsonFile(
+        "appsettings.Local.json",
+        optional: true,
+        reloadOnChange: true
+    );
     builder.Configuration.AddJsonFile(
         $"appsettings.{builder.Environment.EnvironmentName}.Local.json",
         optional: true,

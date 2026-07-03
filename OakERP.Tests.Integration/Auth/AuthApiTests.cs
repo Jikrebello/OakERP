@@ -24,7 +24,9 @@ public class AuthApiTests : WebApiIntegrationTestBase
     {
         var configuration = Factory.Services.GetRequiredService<IConfiguration>();
 
-        configuration.GetConnectionString("DefaultConnection").ShouldContain("Database=oakerp_test");
+        configuration
+            .GetConnectionString("DefaultConnection")
+            .ShouldContain("Database=oakerp_test");
         configuration["RunSeedOnStartup"].ShouldBe("false");
         configuration["JwtSettings:Issuer"].ShouldBe("OakERP");
         configuration["Cors:AllowedOrigins:0"].ShouldBe("https://localhost:7094");
