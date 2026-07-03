@@ -67,6 +67,10 @@ OakERP
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
 |   |   |   |   |   \-- task_plan.md
+|   |   |   |   +-- global-exception-handling-cleanup
+|   |   |   |   |   +-- findings.md
+|   |   |   |   |   +-- progress.md
+|   |   |   |   |   \-- task_plan.md
 |   |   |   |   +-- local-auth-cors-test-setup
 |   |   |   |   |   +-- findings.md
 |   |   |   |   |   +-- progress.md
@@ -461,12 +465,17 @@ OakERP
 |   |   |   +-- ApiResult.cs
 |   |   |   +-- AuthTokenHandler.cs
 |   |   |   \-- IApiClient.cs
-|   |   \-- Auth
-|   |       +-- AuthService.cs
-|   |       +-- AuthSessionManager.cs
-|   |       +-- CurrentUserService.cs
-|   |       +-- IAuthService.cs
-|   |       \-- IAuthSessionManager.cs
+|   |   +-- Auth
+|   |   |   +-- AuthService.cs
+|   |   |   +-- AuthSessionManager.cs
+|   |   |   +-- CurrentUserService.cs
+|   |   |   +-- IAuthService.cs
+|   |   |   \-- IAuthSessionManager.cs
+|   |   \-- Errors
+|   |       +-- ClientErrorContext.cs
+|   |       +-- ClientErrorResult.cs
+|   |       +-- IClientErrorHandler.cs
+|   |       \-- LoggingClientErrorHandler.cs
 |   \-- OakERP.Client.csproj
 +-- OakERP.Common
 |   +-- Abstractions
@@ -869,6 +878,7 @@ OakERP
 +-- OakERP.Shared
 |   +-- Components
 |   |   +-- ErrorToast.razor
+|   |   +-- OakErrorBoundary.cs
 |   |   \-- OakToastProvider.razor
 |   +-- Extensions
 |   |   +-- NavigationExtensions.cs
@@ -967,6 +977,8 @@ OakERP
 |   |   +-- AuthServiceTests.cs
 |   |   +-- AuthViewModelTests.cs
 |   |   \-- ClientAuthRouteTests.cs
+|   +-- Client
+|   |   \-- ClientErrorHandlingTests.cs
 |   +-- Common
 |   |   \-- Orchestration
 |   |       +-- ResultWorkflowTransactionRunnerTests.cs
@@ -1001,6 +1013,10 @@ OakERP
 |   +-- OakERP.Tests.Unit.csproj
 |   \-- TestDates.cs
 +-- OakERP.UI
+|   +-- Errors
+|   |   +-- FluentToastErrorNotifier.cs
+|   |   +-- IUiErrorNotifier.cs
+|   |   \-- ToastClientErrorHandler.cs
 |   +-- Extensions
 |   |   \-- ServiceCollectionExtensions.cs
 |   +-- Models
@@ -1008,9 +1024,12 @@ OakERP
 |   |       +-- LoginFormModel.cs
 |   |       \-- RegisterFormModel.cs
 |   +-- ViewModels
-|   |   \-- Auth
-|   |       +-- LoginViewModel.cs
-|   |       \-- RegisterViewModel.cs
+|   |   +-- Auth
+|   |   |   +-- LoginViewModel.cs
+|   |   |   \-- RegisterViewModel.cs
+|   |   \-- Support
+|   |       +-- IUiOperationRunner.cs
+|   |       \-- UiOperationRunner.cs
 |   \-- OakERP.UI.csproj
 +-- OakERP.Web
 |   +-- Components
